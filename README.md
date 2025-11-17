@@ -270,7 +270,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ### Audio Credits
 - **Background Music**: "The Old Tower Inn" (NES Chiptune Medieval) from [OpenGameArt.org](https://opengameart.org/content/chiptune-medieval-the-old-tower-inn)
   - Licensed under CC0 (Public Domain)
-- **Sound Effects**: Generated using Web Audio API
+- **Sound Effects**: "The Essential Retro Video Game Sound Effects Collection" by Juhani Junkala from [OpenGameArt.org](https://opengameart.org/content/512-sound-effects-8-bit-style)
+  - Licensed under CC0 (Public Domain)
 
 ---
 
