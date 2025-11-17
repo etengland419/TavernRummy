@@ -433,19 +433,21 @@ const TavernRummy = () => {
         {/* Score Display */}
         <ScoreDisplay scores={scores} scoreAnimation={scoreAnimation} />
 
-        {/* Game Messages */}
-        <div className="mb-4 text-center">
-          <div className="inline-block px-6 py-3 bg-amber-900 bg-opacity-70 border-2 border-amber-600 rounded-lg">
+        {/* Game Messages - Fixed height to prevent layout shifts */}
+        <div className="mb-4 text-center min-h-[56px] flex items-center justify-center">
+          <div className="px-6 py-3 bg-amber-900 bg-opacity-70 border-2 border-amber-600 rounded-lg">
             <p className="text-amber-200 font-semibold">{message}</p>
           </div>
         </div>
 
-        {/* Tutorial Message */}
-        {tutorialMessage && difficulty === DIFFICULTY_LEVELS.TUTORIAL && (
-          <div className="mb-4 px-6 py-4 bg-blue-900 bg-opacity-80 border-2 border-blue-400 rounded-lg">
-            <p className="text-blue-200">{tutorialMessage}</p>
-          </div>
-        )}
+        {/* Tutorial Message - Fixed height container to prevent layout shifts */}
+        <div className="mb-4 min-h-[80px] flex items-center justify-center">
+          {tutorialMessage && difficulty === DIFFICULTY_LEVELS.TUTORIAL && (
+            <div className="px-6 py-4 bg-blue-900 bg-opacity-80 border-2 border-blue-400 rounded-lg w-full">
+              <p className="text-blue-200">{tutorialMessage}</p>
+            </div>
+          )}
+        </div>
 
         {/* AI Hand */}
         <AIHand
