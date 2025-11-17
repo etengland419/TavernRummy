@@ -3,22 +3,18 @@ import PropTypes from 'prop-types';
 
 /**
  * AudioControls Component
- * Displays mute button and separate volume sliders for music and sound effects
+ * Displays mute button and volume slider for music only
  *
  * @param {boolean} isMuted - Whether audio is muted
  * @param {number} musicVolume - Current music volume level (0-1)
- * @param {number} sfxVolume - Current sound effects volume level (0-1)
  * @param {Function} onToggleMute - Callback to toggle mute
  * @param {Function} onMusicVolumeChange - Callback to change music volume
- * @param {Function} onSfxVolumeChange - Callback to change sound effects volume
  */
 const AudioControls = ({
   isMuted,
   musicVolume,
-  sfxVolume,
   onToggleMute,
-  onMusicVolumeChange,
-  onSfxVolumeChange
+  onMusicVolumeChange
 }) => {
   const [showSlider, setShowSlider] = useState(false);
   const sliderRef = useRef(null);
@@ -68,16 +64,10 @@ const AudioControls = ({
     onMusicVolumeChange(newVolume);
   };
 
-  const handleSfxVolumeChange = (e) => {
-    const newVolume = parseFloat(e.target.value);
-    onSfxVolumeChange(newVolume);
-  };
-
   const getVolumeIcon = () => {
-    const avgVolume = (musicVolume + sfxVolume) / 2;
-    if (isMuted || avgVolume === 0) return '🔇';
-    if (avgVolume < 0.3) return '🔈';
-    if (avgVolume < 0.7) return '🔉';
+    if (isMuted || musicVolume === 0) return '🔇';
+    if (musicVolume < 0.3) return '🔈';
+    if (musicVolume < 0.7) return '🔉';
     return '🔊';
   };
 
@@ -87,52 +77,30 @@ const AudioControls = ({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Volume Sliders */}
+      {/* Volume Slider */}
       {showSlider && (
         <div
           ref={sliderRef}
           className="bg-gray-900 bg-opacity-95 p-4 rounded-lg border-2 border-amber-600 shadow-xl"
         >
-          <div className="space-y-3">
-            {/* Music Volume Slider */}
-            <div className="flex items-center gap-3">
-              <span className="text-amber-300 text-sm font-semibold w-16">🎵 Music</span>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value={musicVolume}
-                onChange={handleMusicVolumeChange}
-                className="w-32 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
-                style={{
-                  accentColor: '#f59e0b'
-                }}
-              />
-              <span className="text-amber-300 text-sm font-mono w-10">
-                {Math.round(musicVolume * 100)}%
-              </span>
-            </div>
-
-            {/* Sound Effects Volume Slider */}
-            <div className="flex items-center gap-3">
-              <span className="text-amber-300 text-sm font-semibold w-16">🔔 SFX</span>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value={sfxVolume}
-                onChange={handleSfxVolumeChange}
-                className="w-32 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
-                style={{
-                  accentColor: '#f59e0b'
-                }}
-              />
-              <span className="text-amber-300 text-sm font-mono w-10">
-                {Math.round(sfxVolume * 100)}%
-              </span>
-            </div>
+          {/* Music Volume Slider */}
+          <div className="flex items-center gap-3">
+            <span className="text-amber-300 text-sm font-semibold w-16">🎵 Music</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={musicVolume}
+              onChange={handleMusicVolumeChange}
+              className="w-32 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+              style={{
+                accentColor: '#f59e0b'
+              }}
+            />
+            <span className="text-amber-300 text-sm font-mono w-10">
+              {Math.round(musicVolume * 100)}%
+            </span>
           </div>
         </div>
       )}
@@ -168,10 +136,8 @@ const AudioControls = ({
 AudioControls.propTypes = {
   isMuted: PropTypes.bool.isRequired,
   musicVolume: PropTypes.number.isRequired,
-  sfxVolume: PropTypes.number.isRequired,
   onToggleMute: PropTypes.func.isRequired,
-  onMusicVolumeChange: PropTypes.func.isRequired,
-  onSfxVolumeChange: PropTypes.func.isRequired
+  onMusicVolumeChange: PropTypes.func.isRequired
 };
 
 export default AudioControls;
