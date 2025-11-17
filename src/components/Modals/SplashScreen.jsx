@@ -10,12 +10,20 @@ import { DIFFICULTY_LEVELS } from '../../utils/constants';
  * @param {Function} onStart - Callback when a game mode is selected (difficulty, matchMode)
  */
 const SplashScreen = ({ show, onStart }) => {
-  const [showOptions, setShowOptions] = useState(false);
+  const [selectedDifficulty, setSelectedDifficulty] = useState(DIFFICULTY_LEVELS.TUTORIAL);
+  const [selectedMatchMode, setSelectedMatchMode] = useState(false);
 
   if (!show) return null;
 
-  const handleStartOption = (difficulty, matchMode = false) => {
-    onStart({ difficulty, matchMode });
+  const difficulties = [
+    { level: DIFFICULTY_LEVELS.TUTORIAL, icon: '📚', color: 'blue' },
+    { level: DIFFICULTY_LEVELS.EASY, icon: '😊', color: 'green' },
+    { level: DIFFICULTY_LEVELS.MEDIUM, icon: '🎯', color: 'yellow' },
+    { level: DIFFICULTY_LEVELS.HARD, icon: '🔥', color: 'red' }
+  ];
+
+  const handleStart = () => {
+    onStart({ difficulty: selectedDifficulty, matchMode: selectedMatchMode });
   };
 
   return (
@@ -36,137 +44,64 @@ const SplashScreen = ({ show, onStart }) => {
           </div>
         </div>
 
-        {!showOptions ? (
-          <>
-            {/* Story box */}
-            <div className="bg-gradient-to-br from-amber-900 to-gray-900 p-8 rounded-lg border-4 border-amber-600 mb-8 shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              <p className="text-amber-100 text-lg leading-relaxed mb-4">
-                The tavern door creaks open. A hooded stranger sits at the corner table, shuffling a worn deck of cards.
-                The candlelight flickers across their hidden face as they gesture to the empty seat across from them.
-              </p>
-              <p className="text-amber-200 text-xl font-semibold italic">
-                "Care to test your fortune, traveler? The game is Rummy, and the stakes... well, that's for fate to decide."
-              </p>
-            </div>
+        {/* Story box */}
+        <div className="bg-gradient-to-br from-amber-900 to-gray-900 p-8 rounded-lg border-4 border-amber-600 mb-8 shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          <p className="text-amber-100 text-lg leading-relaxed mb-4">
+            The tavern door creaks open. A hooded stranger sits at the corner table, shuffling a worn deck of cards.
+            The candlelight flickers across their hidden face as they gesture to the empty seat across from them.
+          </p>
+          <p className="text-amber-200 text-xl font-semibold italic">
+            "Care to test your fortune, traveler? The game is Rummy, and the stakes... well, that's for fate to decide."
+          </p>
+        </div>
 
-            {/* Enter button */}
-            <button
-              onClick={() => setShowOptions(true)}
-              className="px-12 py-5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white rounded-lg font-bold text-3xl border-4 border-amber-400 transition-all transform hover:scale-110 shadow-2xl animate-bounce-subtle"
-              style={{ animationDelay: '0.6s' }}
-            >
-              ⚔️ Enter the Tavern ⚔️
-            </button>
-
-            {/* Subtitle */}
-            <p className="text-amber-500 text-sm mt-6 italic animate-fade-in" style={{ animationDelay: '0.9s' }}>
-              Steel yourself, for the cards hold many secrets...
-            </p>
-          </>
-        ) : (
-          <>
-            {/* Startup Options */}
-            <div className="bg-gradient-to-br from-amber-900 to-gray-900 p-8 rounded-lg border-4 border-amber-600 mb-6 shadow-2xl animate-fade-in-up">
-              <h2 className="text-3xl font-bold text-amber-300 mb-6 italic">
-                Choose Your Path, Traveler
-              </h2>
-
-              <div className="space-y-4">
-                {/* Tutorial Option */}
-                <button
-                  onClick={() => handleStartOption(DIFFICULTY_LEVELS.TUTORIAL)}
-                  className="w-full px-8 py-4 bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-bold text-xl border-3 border-blue-400 transition-all transform hover:scale-105 shadow-xl"
-                >
-                  <div className="flex items-center justify-between">
-                    <span>📚 Tutorial Mode</span>
-                    <span className="text-sm font-normal opacity-80">Learn the basics</span>
-                  </div>
-                </button>
-
-                {/* Quick Play Section */}
-                <div className="bg-gray-800 bg-opacity-50 p-4 rounded-lg border-2 border-amber-700">
-                  <h3 className="text-xl font-bold text-amber-300 mb-3">⚔️ Quick Play</h3>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => handleStartOption(DIFFICULTY_LEVELS.EASY)}
-                      className="w-full px-6 py-3 bg-gradient-to-r from-green-700 to-green-800 hover:from-green-600 hover:to-green-700 text-white rounded-lg font-semibold text-lg border-2 border-green-400 transition-all transform hover:scale-105 shadow-lg"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>😊 Easy</span>
-                        <span className="text-sm font-normal opacity-80">A friendly match</span>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => handleStartOption(DIFFICULTY_LEVELS.MEDIUM)}
-                      className="w-full px-6 py-3 bg-gradient-to-r from-yellow-700 to-yellow-800 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-lg font-semibold text-lg border-2 border-yellow-400 transition-all transform hover:scale-105 shadow-lg"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>🎯 Medium</span>
-                        <span className="text-sm font-normal opacity-80">A worthy opponent</span>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => handleStartOption(DIFFICULTY_LEVELS.HARD)}
-                      className="w-full px-6 py-3 bg-gradient-to-r from-red-700 to-red-900 hover:from-red-600 hover:to-red-800 text-white rounded-lg font-semibold text-lg border-2 border-red-400 transition-all transform hover:scale-105 shadow-lg"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>🔥 Hard</span>
-                        <span className="text-sm font-normal opacity-80">The devil's own hand</span>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Match Mode Section */}
-                <div className="bg-gray-800 bg-opacity-50 p-4 rounded-lg border-2 border-purple-600">
-                  <h3 className="text-xl font-bold text-purple-300 mb-3">🏆 Match Mode (First to 100)</h3>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => handleStartOption(DIFFICULTY_LEVELS.EASY, true)}
-                      className="w-full px-6 py-3 bg-gradient-to-r from-purple-700 to-purple-800 hover:from-purple-600 hover:to-purple-700 text-white rounded-lg font-semibold text-lg border-2 border-purple-400 transition-all transform hover:scale-105 shadow-lg"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>😊 Easy Match</span>
-                        <span className="text-sm font-normal opacity-80">Extended play</span>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => handleStartOption(DIFFICULTY_LEVELS.MEDIUM, true)}
-                      className="w-full px-6 py-3 bg-gradient-to-r from-purple-700 to-purple-800 hover:from-purple-600 hover:to-purple-700 text-white rounded-lg font-semibold text-lg border-2 border-purple-400 transition-all transform hover:scale-105 shadow-lg"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>🎯 Medium Match</span>
-                        <span className="text-sm font-normal opacity-80">Extended play</span>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => handleStartOption(DIFFICULTY_LEVELS.HARD, true)}
-                      className="w-full px-6 py-3 bg-gradient-to-r from-purple-700 to-purple-800 hover:from-purple-600 hover:to-purple-700 text-white rounded-lg font-semibold text-lg border-2 border-purple-400 transition-all transform hover:scale-105 shadow-lg"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>🔥 Hard Match</span>
-                        <span className="text-sm font-normal opacity-80">Extended play</span>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Back button */}
+        {/* Compact game options */}
+        <div className="mb-6 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+          {/* Difficulty Selector */}
+          <div className="flex gap-3 justify-center mb-4">
+            {difficulties.map(({ level, icon, color }) => (
               <button
-                onClick={() => setShowOptions(false)}
-                className="mt-6 px-6 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg font-semibold border-2 border-gray-500 transition-all"
+                key={level}
+                onClick={() => setSelectedDifficulty(level)}
+                className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                  selectedDifficulty === level
+                    ? `bg-${color}-600 border-${color}-400 text-white shadow-lg`
+                    : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+                }`}
               >
-                ← Back
+                {icon} {level}
               </button>
-            </div>
+            ))}
+          </div>
 
-            {/* Subtitle */}
-            <p className="text-amber-500 text-sm italic">
-              Choose wisely, for the cards favor the prepared...
-            </p>
-          </>
-        )}
+          {/* Match Mode Toggle */}
+          <div className="flex gap-3 justify-center items-center mb-6">
+            <button
+              onClick={() => setSelectedMatchMode(!selectedMatchMode)}
+              className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                selectedMatchMode
+                  ? 'bg-purple-600 border-purple-400 text-white shadow-lg'
+                  : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              🏆 Match Mode {selectedMatchMode ? '(First to 100)' : ''}
+            </button>
+          </div>
+        </div>
+
+        {/* Enter button */}
+        <button
+          onClick={handleStart}
+          className="px-12 py-5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white rounded-lg font-bold text-3xl border-4 border-amber-400 transition-all transform hover:scale-110 shadow-2xl animate-bounce-subtle"
+          style={{ animationDelay: '0.9s' }}
+        >
+          ⚔️ Enter the Tavern ⚔️
+        </button>
+
+        {/* Subtitle */}
+        <p className="text-amber-500 text-sm mt-6 italic animate-fade-in" style={{ animationDelay: '1.2s' }}>
+          Steel yourself, for the cards hold many secrets...
+        </p>
       </div>
 
       <style jsx>{`
