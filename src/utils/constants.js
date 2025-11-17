@@ -37,6 +37,30 @@ export const DIFFICULTY_LEVELS = {
   HARD: 'Hard'
 };
 
+// Difficulty Descriptions and Warnings
+export const DIFFICULTY_DESCRIPTIONS = {
+  [DIFFICULTY_LEVELS.TUTORIAL]: {
+    title: "📚 The Training Grounds",
+    description: "A gentle introduction for those who've never held a hand of cards. Your mentor shall guide you through the fundamentals of the game.",
+    warning: "Perfect for greenhorns and novices!"
+  },
+  [DIFFICULTY_LEVELS.EASY]: {
+    title: "😊 The Tavern Regular",
+    description: "Face a jovial opponent who enjoys their ale a bit too much. They'll make mistakes and give you chances to claim victory!",
+    warning: "A pleasant game amongst friends. You might actually win this one!"
+  },
+  [DIFFICULTY_LEVELS.MEDIUM]: {
+    title: "🎯 The Seasoned Gambler",
+    description: "Now you face a worthy adversary who knows their way around a deck. They'll exploit your blunders and show no mercy!",
+    warning: "Things are getting serious, friend. Best keep your wits about you!"
+  },
+  [DIFFICULTY_LEVELS.HARD]: {
+    title: "🔥 The Devil's Own Hand",
+    description: "Dare you challenge the master of the cards? This fiend sees through your every stratagem and plays with supernatural cunning!",
+    warning: "⚠️ WARNING: You're gonna die. Probably. A lot. Consider thy life choices!"
+  }
+};
+
 // AI Knock Thresholds by Difficulty
 export const AI_KNOCK_THRESHOLDS = {
   [DIFFICULTY_LEVELS.TUTORIAL]: 5,
