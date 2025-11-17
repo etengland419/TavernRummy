@@ -98,33 +98,17 @@ export const useAudio = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
-   * Play a sound effect using Web Audio API
+   * Play a sound effect from audio file
    */
-  const playSound = useCallback((soundType, frequency = 440, duration = 100) => {
-    if (isMuted || !audioContextRef.current) return;
+  const playSound = useCallback((soundFileName) => {
+    if (isMuted) return;
 
     try {
-      // Resume audio context if suspended
-      if (audioContextRef.current.state === 'suspended') {
-        audioContextRef.current.resume();
-      }
-
-      const oscillator = audioContextRef.current.createOscillator();
-      const gainNode = audioContextRef.current.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContextRef.current.destination);
-
-      oscillator.frequency.value = frequency;
-      oscillator.type = 'sine';
-
-      // Apply sound effects volume
-      const currentVolume = sfxVolume * 0.15; // Keep it reasonable
-      gainNode.gain.setValueAtTime(currentVolume, audioContextRef.current.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current.currentTime + duration / 1000);
-
-      oscillator.start(audioContextRef.current.currentTime);
-      oscillator.stop(audioContextRef.current.currentTime + duration / 1000);
+      const audio = new Audio(`/audio/${soundFileName}.wav`);
+      audio.volume = sfxVolume;
+      audio.play().catch(error => {
+        console.warn('Sound playback prevented:', error);
+      });
     } catch (error) {
       console.error('Error playing sound:', error);
     }
@@ -146,18 +130,18 @@ export const useAudio = () => {
 
   // Sound effect shortcuts
   const sounds = {
-    cardDraw: () => playSound('cardDraw', 400, 100),
-    cardDiscard: () => playSound('cardDiscard', 350, 120),
-    cardShuffle: () => playSound('cardShuffle', 300, 150),
-    knock: () => playSound('knock', 200, 200),
-    win: () => playSound('win', 600, 300),
-    lose: () => playSound('lose', 250, 300),
-    gin: () => playSound('gin', 700, 400),
-    undercut: () => playSound('undercut', 450, 350),
-    buttonClick: () => playSound('buttonClick', 500, 80),
-    achievement: () => playSound('achievement', 800, 350),
-    newRound: () => playSound('newRound', 550, 150),
-    matchWin: () => playSound('matchWin', 900, 500),
+    cardDraw: () => playSound('card-draw'),
+    cardDiscard: () => playSound('card-discard'),
+    cardShuffle: () => playSound('card-shuffle'),
+    knock: () => playSound('knock'),
+    win: () => playSound('win'),
+    lose: () => playSound('lose'),
+    gin: () => playSound('gin'),
+    undercut: () => playSound('undercut'),
+    buttonClick: () => playSound('button-click'),
+    achievement: () => playSound('achievement'),
+    newRound: () => playSound('new-round'),
+    matchWin: () => playSound('match-win'),
   };
 
   return {
