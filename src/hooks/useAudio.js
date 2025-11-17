@@ -24,6 +24,8 @@ export const useAudio = () => {
   const musicGainRef = useRef(null);
   const musicAudioRef = useRef(null);
   const isMusicPlayingRef = useRef(false);
+  const soundPoolRef = useRef(new Map());
+  const saveTimerRef = useRef(null);
 
   // Stop background music function (defined early for cleanup)
   const stopBackgroundMusic = useCallback(() => {
@@ -36,6 +38,8 @@ export const useAudio = () => {
 
   // Initialize audio context and music audio element
   useEffect(() => {
+    const soundPool = soundPoolRef.current;
+
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       audioContextRef.current = new AudioContext();
@@ -49,6 +53,37 @@ export const useAudio = () => {
       audio.loop = true;
       audio.volume = musicVolume;
       musicAudioRef.current = audio;
+
+      // Pre-load all sound effects into a pool for instant playback
+      const soundFiles = [
+        'card-draw',
+        'card-discard',
+        'card-shuffle',
+        'knock',
+        'win',
+        'lose',
+        'gin',
+        'undercut',
+        'button-click',
+        'achievement',
+        'new-round',
+        'match-win'
+      ];
+
+      soundFiles.forEach(soundName => {
+        // Create multiple instances of each sound for overlapping playback
+        const instances = [];
+        for (let i = 0; i < 3; i++) {
+          const audio = new Audio(`${process.env.PUBLIC_URL}/audio/${soundName}.wav`);
+          audio.preload = 'auto';
+          audio.volume = sfxVolume;
+          instances.push({
+            audio,
+            isPlaying: false
+          });
+        }
+        soundPool.set(soundName, instances);
+      });
     } catch (error) {
       console.warn('Web Audio API not supported:', error);
     }
@@ -58,20 +93,52 @@ export const useAudio = () => {
       if (audioContextRef.current) {
         audioContextRef.current.close();
       }
+      // Cleanup sound pool
+      soundPool.forEach(instances => {
+        instances.forEach(({ audio }) => {
+          audio.pause();
+          audio.src = '';
+        });
+      });
+      soundPool.clear();
     };
-  }, [stopBackgroundMusic, musicVolume]);
+  }, [stopBackgroundMusic, musicVolume, sfxVolume]);
 
-  // Save preferences to localStorage
+  // Save preferences to localStorage (debounced to prevent lag)
   useEffect(() => {
     localStorage.setItem('tavernRummy_audioMuted', JSON.stringify(isMuted));
   }, [isMuted]);
 
   useEffect(() => {
-    localStorage.setItem('tavernRummy_musicVolume', musicVolume.toString());
+    // Clear any pending save
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+    // Debounce localStorage writes to prevent slider lag
+    saveTimerRef.current = setTimeout(() => {
+      localStorage.setItem('tavernRummy_musicVolume', musicVolume.toString());
+    }, 300);
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
   }, [musicVolume]);
 
   useEffect(() => {
-    localStorage.setItem('tavernRummy_sfxVolume', sfxVolume.toString());
+    // Clear any pending save
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+    // Debounce localStorage writes to prevent slider lag
+    saveTimerRef.current = setTimeout(() => {
+      localStorage.setItem('tavernRummy_sfxVolume', sfxVolume.toString());
+    }, 300);
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
   }, [sfxVolume]);
 
   // Update music volume in real-time
@@ -80,6 +147,16 @@ export const useAudio = () => {
       musicAudioRef.current.volume = isMuted ? 0 : musicVolume;
     }
   }, [musicVolume, isMuted]);
+
+  // Update SFX volume in real-time for all pooled sounds
+  useEffect(() => {
+    const volume = isMuted ? 0 : sfxVolume;
+    soundPoolRef.current.forEach(instances => {
+      instances.forEach(({ audio }) => {
+        audio.volume = volume;
+      });
+    });
+  }, [sfxVolume, isMuted]);
 
   /**
    * Play background music - 8-bit tavern music file
@@ -109,7 +186,7 @@ export const useAudio = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
-   * Play a sound effect from audio file
+   * Play a sound effect from pre-loaded audio pool
    */
   const playSound = useCallback((soundFileName) => {
     if (isMuted) return;
@@ -122,10 +199,36 @@ export const useAudio = () => {
         });
       }
 
-      const audio = new Audio(`${process.env.PUBLIC_URL}/audio/${soundFileName}.wav`);
+      // Get sound instances from pool
+      const instances = soundPoolRef.current.get(soundFileName);
+      if (!instances || instances.length === 0) {
+        console.warn(`Sound ${soundFileName} not found in pool`);
+        return;
+      }
+
+      // Find an available instance or use the first one
+      let availableInstance = instances.find(inst => !inst.isPlaying);
+      if (!availableInstance) {
+        // All instances are playing, use the first one and restart it
+        availableInstance = instances[0];
+      }
+
+      const { audio } = availableInstance;
+
+      // Reset and play the sound
+      audio.currentTime = 0;
       audio.volume = sfxVolume;
-      audio.play().catch(error => {
+
+      availableInstance.isPlaying = true;
+
+      audio.play().then(() => {
+        // Mark as not playing after it finishes
+        setTimeout(() => {
+          availableInstance.isPlaying = false;
+        }, audio.duration * 1000);
+      }).catch(error => {
         console.warn('Sound playback prevented:', error);
+        availableInstance.isPlaying = false;
       });
     } catch (error) {
       console.error('Error playing sound:', error);
