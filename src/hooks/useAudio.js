@@ -45,7 +45,7 @@ export const useAudio = () => {
       musicGainRef.current.connect(audioContextRef.current.destination);
 
       // Create audio element for background music
-      const audio = new Audio('/audio/tavern-music.mp3');
+      const audio = new Audio(`${process.env.PUBLIC_URL}/audio/tavern-music.mp3`);
       audio.loop = true;
       audio.volume = musicVolume;
       musicAudioRef.current = audio;
@@ -122,7 +122,7 @@ export const useAudio = () => {
         });
       }
 
-      const audio = new Audio(`/audio/${soundFileName}.wav`);
+      const audio = new Audio(`${process.env.PUBLIC_URL}/audio/${soundFileName}.wav`);
       audio.volume = sfxVolume;
       audio.play().catch(error => {
         console.warn('Sound playback prevented:', error);
