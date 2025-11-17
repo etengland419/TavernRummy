@@ -278,7 +278,7 @@ const TavernRummy = () => {
       setMessage(`${opponentName}'s turn...`);
       setTutorialHighlight(null);
 
-      setTimeout(() => aiTurn(newHand), 1000);
+      setTimeout(() => aiTurn(newHand), 500);
     }, 400); // Match animation duration
   };
 
@@ -342,17 +342,17 @@ const TavernRummy = () => {
             if (decision.shouldKnock) {
               setTimeout(() => {
                 setMessage(`${opponentName} knocks!`);
-                setTimeout(() => endRound('ai'), 800);
-              }, 500);
+                setTimeout(() => endRound('ai'), 400);
+              }, 250);
             } else {
               setCurrentTurn('player');
               setPhase('draw');
               setMessage('Your turn - Draw a card');
             }
-          }, 800);
-        }, 1200);
-      }, 1500);
-    }, 800);
+          }, 400);
+        }, 600);
+      }, 750);
+    }, 400);
   };
 
   const handleDraw = () => {
