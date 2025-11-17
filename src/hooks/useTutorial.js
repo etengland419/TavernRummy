@@ -11,14 +11,16 @@ import { findMelds, calculateDeadwood } from '../utils/meldUtils';
  * @param {Array} playerHand - Player's current hand
  * @param {Array} discardPile - Current discard pile
  * @param {Array} deck - Current deck
+ * @param {string} currentTurn - Current turn ('player' or 'ai')
  * @returns {Object} {tutorialMessage, tutorialHighlight, updateTutorialGuidance}
  */
-export const useTutorial = (difficulty, phase, playerHand, discardPile, deck) => {
+export const useTutorial = (difficulty, phase, playerHand, discardPile, deck, currentTurn) => {
   const [tutorialMessage, setTutorialMessage] = useState('');
   const [tutorialHighlight, setTutorialHighlight] = useState(null);
 
   const updateTutorialGuidance = useCallback(() => {
-    if (difficulty !== DIFFICULTY_LEVELS.TUTORIAL) {
+    // Only show tutorial guidance during player's turn in tutorial mode
+    if (difficulty !== DIFFICULTY_LEVELS.TUTORIAL || currentTurn !== 'player') {
       setTutorialMessage('');
       setTutorialHighlight(null);
       return;
@@ -78,7 +80,7 @@ export const useTutorial = (difficulty, phase, playerHand, discardPile, deck) =>
         }
       }
     }
-  }, [difficulty, phase, playerHand, discardPile]);
+  }, [difficulty, phase, playerHand, discardPile, currentTurn]);
 
   useEffect(() => {
     updateTutorialGuidance();

@@ -84,7 +84,8 @@ const TavernRummy = () => {
     phase,
     playerHand,
     discardPile,
-    deck
+    deck,
+    currentTurn
   );
 
   // Stats hook
@@ -105,8 +106,20 @@ const TavernRummy = () => {
 
   // Helper function to add flying card animation
   const addFlyingCard = (card, fromRef, toRef, hidden = false, duration = 0.5) => {
+    // Validate refs before creating animation
+    if (!fromRef || !fromRef.current || !toRef || !toRef.current) {
+      console.warn('Animation refs not ready, skipping animation');
+      return;
+    }
+
     const fromPos = getElementPosition(fromRef);
     const toPos = getElementPosition(toRef);
+
+    // Validate positions
+    if (fromPos.x === 0 && fromPos.y === 0 && toPos.x === 0 && toPos.y === 0) {
+      console.warn('Invalid positions, skipping animation');
+      return;
+    }
 
     const flyingCard = {
       id: `flying-${card.id}-${Date.now()}`,

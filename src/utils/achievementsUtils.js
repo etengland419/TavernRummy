@@ -6,6 +6,13 @@ const ACHIEVEMENTS_STORAGE_KEY = 'tavernRummy_achievements';
  * Achievement definitions
  */
 export const ACHIEVEMENTS = {
+  TUTORIAL_COMPLETE: {
+    id: 'tutorial_complete',
+    name: 'Learning the Ropes',
+    description: 'Complete the tutorial',
+    icon: '📚',
+    condition: (stats) => stats.byDifficulty[DIFFICULTY_LEVELS.TUTORIAL]?.gamesWon >= 1
+  },
   FIRST_WIN: {
     id: 'first_win',
     name: 'First Victory',
@@ -202,6 +209,7 @@ export const getAchievementProgress = (stats) => {
 
   // Custom progress calculators for specific achievements
   const progressCalculators = {
+    tutorial_complete: () => Math.min(stats.byDifficulty[DIFFICULTY_LEVELS.TUTORIAL]?.gamesWon || 0, 1),
     first_win: () => Math.min(stats.gamesWon, 1),
     perfect_gin: () => Math.min(stats.ginsCount, 1),
     underdog: () => Math.min(stats.undercutsCount / 5, 1),
