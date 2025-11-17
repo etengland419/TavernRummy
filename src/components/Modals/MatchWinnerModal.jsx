@@ -23,18 +23,18 @@ const MatchWinnerModal = ({ matchWinner, scores, onPlayAgain }) => {
         <h2 className={`text-5xl font-bold mb-6 text-center ${
           matchWinner === 'player' ? 'text-yellow-300' : 'text-pink-300'
         }`}>
-          {matchWinner === 'player' ? 'HUZZAH! VICTORY IS THINE!' : 'ALAS! DEFEAT BEFALLS THEE!'}
+          {matchWinner === 'player' ? 'HUZZAH! VICTORY IS YOURS!' : 'ALAS! DEFEAT!'}
         </h2>
         <div className="text-center text-amber-100 mb-8 space-y-3">
           <p className="text-2xl">
             {matchWinner === 'player'
-              ? `By the ancient laws of the tavern, thou hast triumphed with ${scores.player} gold pieces! The Stranger doffs their hood in respect.`
-              : `The mysterious Stranger hath bested thee, claiming ${scores.ai} gold from thy purse! Perhaps another round shall restore thy honor?`
+              ? `By the ancient laws of the tavern, you have triumphed with ${scores.player} gold pieces! The Stranger doffs their hood in respect.`
+              : `The mysterious Stranger has bested you, claiming ${scores.ai} gold from your purse! Perhaps another round shall restore your honor?`
             }
           </p>
           <div className="flex justify-center gap-8 text-xl mt-6">
             <div>
-              <div className="text-amber-400">Thy Gold</div>
+              <div className="text-amber-400">Your Gold</div>
               <div className="text-3xl font-bold text-yellow-300">{scores.player}</div>
             </div>
             <div className="text-4xl text-amber-600">⚔️</div>

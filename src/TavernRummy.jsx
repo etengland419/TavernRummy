@@ -290,7 +290,7 @@ const TavernRummy = () => {
           setAiDiscardedCard(decision.discardCard.id);
 
           // Add flying card animation for AI discard
-          addFlyingCard(decision.discardCard, aiHandRef, discardRef, true, 0.4);
+          addFlyingCard(decision.discardCard, aiHandRef, discardRef, false, 0.4);
 
           setTimeout(() => {
             setAiHand(decision.finalHand);
@@ -600,11 +600,11 @@ const TavernRummy = () => {
         <div className="mt-8 p-6 bg-gray-900 bg-opacity-70 rounded-lg border-2 border-amber-800">
           <h3 className="text-xl font-bold text-amber-400 mb-3">♦️ The Ancient Rules of the Tavern ♦️</h3>
           <div className="text-amber-200 text-sm space-y-2">
-            <p><strong>Thy Quest:</strong> Forge melds (sets of 3+ cards of matching rank, or runs of 3+ cards in sequence of the same suit) and reduce thy deadwood to 10 points or less, then strike the table to knock!</p>
-            <p><strong>When Thy Turn Arrives:</strong> Draw a card from the deck or pluck one from the discard pile, then cast aside one card of thy choosing.</p>
-            <p><strong>The Sacred Knock:</strong> After discarding, shouldst thy deadwood be 10 or less, thou mayest knock upon the table to end the round and challenge thy foe!</p>
-            <p><strong>The Reckoning:</strong> The victor claims gold equal to the difference in deadwood. Achieving GIN (0 deadwood) bestows a mighty +25 gold bonus! Beware: knocking with higher deadwood than thy opponent results in an UNDERCUT, granting them +25 gold instead!</p>
-            <p><strong>Words of Wisdom:</strong> Build thy melds with care, minimize deadwood with cunning, and time thy knock with precision! Fortune favors the shrewd!</p>
+            <p><strong>Your Quest:</strong> Forge melds (sets of 3+ cards of matching rank, or runs of 3+ cards in sequence of the same suit) and reduce your deadwood to 10 points or less, then strike the table to knock!</p>
+            <p><strong>Your Turn:</strong> Draw a card from the deck or pluck one from the discard pile, then cast aside one card of your choosing.</p>
+            <p><strong>Knocking:</strong> After discarding, if your deadwood is 10 or less, you may knock upon the table to end the round and challenge your opponent!</p>
+            <p><strong>The Reckoning:</strong> The victor claims gold equal to the difference in deadwood. Achieving GIN (0 deadwood) bestows a mighty +25 gold bonus! Beware: knocking with higher deadwood than your opponent results in an UNDERCUT, granting them +25 gold instead!</p>
+            <p><strong>Words of Wisdom:</strong> Build your melds with care, minimize deadwood with cunning, and time your knock with precision! Fortune favors the shrewd!</p>
           </div>
         </div>
       </div>

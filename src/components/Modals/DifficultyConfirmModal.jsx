@@ -21,14 +21,14 @@ const DifficultyConfirmModal = ({ show, currentDifficulty, newDifficulty, onConf
     if (isLeavingTutorial) {
       return "⚔️ Depart from Training Grounds?";
     }
-    return "⚔️ Alter Thy Challenge?";
+    return "⚔️ Change Difficulty?";
   };
 
   const getMessage = () => {
     if (isLeavingTutorial) {
-      return "Art thou certain thou wishest to leave the guidance of thy mentor? Thou shalt venture forth without counsel, and a fresh contest shall commence!";
+      return "Are you certain you want to leave the guidance of your mentor? You'll venture forth without counsel, and a fresh contest shall commence!";
     }
-    return `Dost thou truly desire to shift from the ${currentDifficulty} path to the ${newDifficulty} way? The current game shall be forfeit and a new challenge shall begin forthwith!`;
+    return `Do you really want to shift from the ${currentDifficulty} path to the ${newDifficulty} way? The current game shall be forfeit and a new challenge shall begin!`;
   };
 
   const getConfirmText = () => {
