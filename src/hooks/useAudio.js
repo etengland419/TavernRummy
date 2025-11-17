@@ -77,6 +77,10 @@ export const useAudio = () => {
           const audio = new Audio(`${process.env.PUBLIC_URL}/audio/${soundName}.wav`);
           audio.preload = 'auto';
           audio.volume = sfxVolume;
+          // Disable default error logging to prevent console spam
+          audio.onerror = () => {
+            console.warn(`Failed to load audio: ${soundName}.wav`);
+          };
           instances.push({
             audio,
             isPlaying: false
@@ -96,7 +100,10 @@ export const useAudio = () => {
       // Cleanup sound pool
       soundPool.forEach(instances => {
         instances.forEach(({ audio }) => {
+          // Remove all event listeners and cleanup
           audio.pause();
+          audio.onended = null;
+          audio.onerror = null;
           audio.src = '';
         });
       });
@@ -215,25 +222,28 @@ export const useAudio = () => {
 
       const { audio } = availableInstance;
 
-      // Reset and play the sound
-      audio.currentTime = 0;
-      audio.volume = sfxVolume;
-
+      // Mark as playing immediately
       availableInstance.isPlaying = true;
 
-      audio.play().then(() => {
-        // Mark as not playing after it finishes
-        setTimeout(() => {
-          availableInstance.isPlaying = false;
-        }, audio.duration * 1000);
-      }).catch(error => {
+      // Reset playback position
+      audio.currentTime = 0;
+
+      // Use 'ended' event to mark as not playing (more reliable than setTimeout)
+      const onEnded = () => {
+        availableInstance.isPlaying = false;
+        audio.removeEventListener('ended', onEnded);
+      };
+      audio.addEventListener('ended', onEnded);
+
+      audio.play().catch(error => {
         console.warn('Sound playback prevented:', error);
         availableInstance.isPlaying = false;
+        audio.removeEventListener('ended', onEnded);
       });
     } catch (error) {
       console.error('Error playing sound:', error);
     }
-  }, [isMuted, sfxVolume]);
+  }, [isMuted]);
 
   const toggleMute = useCallback(() => {
     setIsMuted(prev => !prev);
