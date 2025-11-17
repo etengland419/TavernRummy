@@ -1,0 +1,100 @@
+import React from 'react';
+import PlayingCard from '../UI/PlayingCard';
+import { isCardInMeld, getMeldColor } from '../../utils/cardUtils';
+
+/**
+ * PlayerHand Component
+ * Displays the player's hand with meld highlighting
+ *
+ * @param {Array} hand - Player's hand
+ * @param {Array} melds - Current melds
+ * @param {number} deadwood - Deadwood value
+ * @param {Function} onCardClick - Callback when card is clicked
+ * @param {boolean} canDiscard - Whether player can discard
+ * @param {string} newlyDrawnCard - ID of newly drawn card
+ * @param {string} discardingCard - ID of card being discarded
+ * @param {string} tutorialHighlight - ID of highlighted card
+ * @param {boolean} sortCards - Whether cards are auto-sorted
+ * @param {Object} playerHandRef - Ref for player hand container
+ */
+const PlayerHand = ({
+  hand,
+  melds,
+  deadwood,
+  onCardClick,
+  canDiscard,
+  newlyDrawnCard,
+  discardingCard,
+  tutorialHighlight,
+  sortCards,
+  playerHandRef
+}) => {
+  return (
+    <div ref={playerHandRef}>
+      <div className="flex items-center justify-center gap-2 mb-3">
+        <span className="text-2xl">🛡️</span>
+        <h2 className="text-xl font-bold text-amber-400">Your Hand</h2>
+        {sortCards && melds.length > 0 && (
+          <span className="text-xs text-amber-500">(Melds first, then deadwood)</span>
+        )}
+      </div>
+      <div className="flex justify-center gap-2 flex-wrap mb-4">
+        {hand.map((card, index) => {
+          // Check if we're at the transition from melds to deadwood
+          const isFirstDeadwood = sortCards && melds.length > 0 &&
+            index === melds.flat().length;
+
+          const inMeld = isCardInMeld(card.id, melds);
+          const meldColor = getMeldColor(card.id, melds);
+
+          return (
+            <React.Fragment key={card.id}>
+              {isFirstDeadwood && (
+                <div className="w-1 h-28 bg-amber-600 rounded mx-2 opacity-50"></div>
+              )}
+              <PlayingCard
+                card={card}
+                onClick={() => canDiscard && onCardClick(card)}
+                isNew={newlyDrawnCard === card.id}
+                isDiscarding={discardingCard === card.id}
+                shouldHighlight={tutorialHighlight === card.id}
+                inMeld={inMeld}
+                meldColor={meldColor}
+              />
+            </React.Fragment>
+          );
+        })}
+      </div>
+
+      {/* Player Info with Meld Legend */}
+      <div className="text-center text-amber-300 mb-4">
+        <p>Deadwood: <span className="font-bold text-yellow-400">{deadwood}</span> points</p>
+        <p className="text-sm text-amber-400 mt-1">
+          {melds.length > 0 ? `${melds.length} meld(s) formed` : 'No melds yet'}
+        </p>
+        {melds.length > 0 && (
+          <div className="flex justify-center gap-3 mt-2 text-xs">
+            <span className="flex items-center gap-1">
+              <span className="inline-block w-3 h-3 border-2 border-green-500 rounded"></span>
+              Meld 1
+            </span>
+            {melds.length > 1 && (
+              <span className="flex items-center gap-1">
+                <span className="inline-block w-3 h-3 border-2 border-blue-500 rounded"></span>
+                Meld 2
+              </span>
+            )}
+            {melds.length > 2 && (
+              <span className="flex items-center gap-1">
+                <span className="inline-block w-3 h-3 border-2 border-purple-500 rounded"></span>
+                Meld 3
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default PlayerHand;
