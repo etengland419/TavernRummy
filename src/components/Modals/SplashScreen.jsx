@@ -84,7 +84,7 @@ const SplashScreen = ({ show, onStart }) => {
                   : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
               }`}
             >
-              🏆 Match Mode {selectedMatchMode ? <span className="hidden sm:inline">(First to 100)</span> : ''}
+              🏆 Match Mode {selectedMatchMode ? '(First to 100)' : ''}
             </button>
           </div>
         </div>
