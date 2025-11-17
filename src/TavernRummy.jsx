@@ -172,15 +172,12 @@ const TavernRummy = () => {
     }
   }, [newlyUnlocked.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Start background music when game starts (after splash screen)
+  // Stop background music on unmount
   useEffect(() => {
-    if (!showSplashScreen) {
-      playBackgroundMusic();
-    }
     return () => {
       stopBackgroundMusic();
     };
-  }, [showSplashScreen]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [stopBackgroundMusic]);
 
   const startNewRound = () => {
     const newDeck = createDeck();
@@ -476,7 +473,11 @@ const TavernRummy = () => {
       {/* Splash Screen */}
       <SplashScreen
         show={showSplashScreen}
-        onStart={() => setShowSplashScreen(false)}
+        onStart={() => {
+          setShowSplashScreen(false);
+          // Start background music on user interaction
+          playBackgroundMusic();
+        }}
       />
 
       {/* Audio Controls */}

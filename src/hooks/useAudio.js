@@ -88,12 +88,23 @@ export const useAudio = () => {
     if (!musicAudioRef.current || isMusicPlayingRef.current) return;
 
     try {
+      // Resume AudioContext if it's suspended (required by browser autoplay policies)
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume().then(() => {
+          console.log('AudioContext resumed successfully');
+        }).catch(error => {
+          console.warn('Failed to resume AudioContext:', error);
+        });
+      }
+
       isMusicPlayingRef.current = true;
       musicAudioRef.current.play().catch(error => {
         console.warn('Autoplay prevented. Music will start on user interaction:', error);
+        isMusicPlayingRef.current = false;
       });
     } catch (error) {
       console.error('Error playing background music:', error);
+      isMusicPlayingRef.current = false;
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -104,6 +115,13 @@ export const useAudio = () => {
     if (isMuted) return;
 
     try {
+      // Resume AudioContext if it's suspended (required by browser autoplay policies)
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume().catch(error => {
+          console.warn('Failed to resume AudioContext:', error);
+        });
+      }
+
       const audio = new Audio(`/audio/${soundFileName}.wav`);
       audio.volume = sfxVolume;
       audio.play().catch(error => {
