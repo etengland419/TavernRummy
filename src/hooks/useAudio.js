@@ -59,7 +59,7 @@ export const useAudio = () => {
         audioContextRef.current.close();
       }
     };
-  }, [stopBackgroundMusic]);
+  }, [stopBackgroundMusic, musicVolume]);
 
   // Save preferences to localStorage
   useEffect(() => {
