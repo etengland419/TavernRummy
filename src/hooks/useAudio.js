@@ -1,5 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 
+// Master volume reduction factor (0.5 = 50% volume reduction)
+const MASTER_VOLUME_FACTOR = 0.5;
+
 /**
  * Custom hook for managing game audio
  * Handles background music, sound effects, mute, and volume control
@@ -12,7 +15,7 @@ export const useAudio = () => {
 
   const [musicVolume, setMusicVolume] = useState(() => {
     const saved = localStorage.getItem('tavernRummy_musicVolume');
-    return saved ? parseFloat(saved) : 0.15;
+    return saved ? parseFloat(saved) : 0.30;
   });
 
   const [sfxVolume, setSfxVolume] = useState(() => {
@@ -53,7 +56,7 @@ export const useAudio = () => {
       // Create audio element for background music
       const audio = new Audio(`${process.env.PUBLIC_URL}/audio/tavern-music.mp3`);
       audio.loop = true;
-      audio.volume = 0.15; // Default volume
+      audio.volume = 0.30 * MASTER_VOLUME_FACTOR; // Default volume with master reduction
       musicAudioRef.current = audio;
 
       // Sound effects disabled - Pre-load all sound effects into a pool for instant playback
@@ -78,7 +81,7 @@ export const useAudio = () => {
         for (let i = 0; i < 3; i++) {
           const audio = new Audio(`${process.env.PUBLIC_URL}/audio/${soundName}.wav`);
           audio.preload = 'auto';
-          audio.volume = 0.5; // Default SFX volume
+          audio.volume = 0.5 * MASTER_VOLUME_FACTOR; // Default SFX volume with master reduction
           // Disable default error logging to prevent console spam
           audio.onerror = () => {
             console.warn(`Failed to load audio: ${soundName}.wav`);
@@ -154,13 +157,13 @@ export const useAudio = () => {
   // Update music volume in real-time
   useEffect(() => {
     if (musicAudioRef.current) {
-      musicAudioRef.current.volume = isMuted ? 0 : musicVolume;
+      musicAudioRef.current.volume = isMuted ? 0 : musicVolume * MASTER_VOLUME_FACTOR;
     }
   }, [musicVolume, isMuted]);
 
   // Update SFX volume in real-time for all pooled sounds
   useEffect(() => {
-    const volume = isMuted ? 0 : sfxVolume;
+    const volume = isMuted ? 0 : sfxVolume * MASTER_VOLUME_FACTOR;
     soundPoolRef.current.forEach(instances => {
       instances.forEach(({ audio }) => {
         audio.volume = volume;
