@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { GAME_CONFIG, SUIT_SYMBOLS, DIFFICULTY_LEVELS } from '../utils/constants';
 import { findMelds, calculateDeadwood } from '../utils/meldUtils';
 
@@ -17,7 +17,7 @@ export const useTutorial = (difficulty, phase, playerHand, discardPile, deck) =>
   const [tutorialMessage, setTutorialMessage] = useState('');
   const [tutorialHighlight, setTutorialHighlight] = useState(null);
 
-  const updateTutorialGuidance = () => {
+  const updateTutorialGuidance = useCallback(() => {
     if (difficulty !== DIFFICULTY_LEVELS.TUTORIAL) {
       setTutorialMessage('');
       setTutorialHighlight(null);
@@ -78,11 +78,11 @@ export const useTutorial = (difficulty, phase, playerHand, discardPile, deck) =>
         }
       }
     }
-  };
+  }, [difficulty, phase, playerHand, discardPile]);
 
   useEffect(() => {
     updateTutorialGuidance();
-  }, [phase, playerHand, discardPile, difficulty]);
+  }, [updateTutorialGuidance]);
 
   return {
     tutorialMessage,

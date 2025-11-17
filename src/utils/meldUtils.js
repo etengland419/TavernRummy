@@ -104,8 +104,7 @@ export const sortHand = (hand, shouldSort = true) => {
   const melds = findMelds(hand);
   const meldedCardIds = new Set(melds.flat().map(card => card.id));
 
-  // Separate melded and non-melded cards
-  const meldedCards = hand.filter(card => meldedCardIds.has(card.id));
+  // Separate deadwood cards from melded cards
   const deadwoodCards = hand.filter(card => !meldedCardIds.has(card.id));
 
   // Sort function: by rank first, then by suit within rank
