@@ -25,7 +25,9 @@ export const useAudio = () => {
 
   const audioContextRef = useRef(null);
   const musicGainRef = useRef(null);
+  const sfxGainRef = useRef(null);
   const musicAudioRef = useRef(null);
+  const musicSourceRef = useRef(null);
   const isMusicPlayingRef = useRef(false);
   const soundPoolRef = useRef(new Map());
   const saveTimerRef = useRef(null);
@@ -49,15 +51,26 @@ export const useAudio = () => {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       audioContextRef.current = new AudioContext();
 
-      // Create gain node for music (used for sound effects)
+      // Create separate gain nodes for music and SFX
       musicGainRef.current = audioContextRef.current.createGain();
+      musicGainRef.current.gain.value = 0.30 * MASTER_VOLUME_FACTOR; // Default music volume
       musicGainRef.current.connect(audioContextRef.current.destination);
 
-      // Create audio element for background music
+      sfxGainRef.current = audioContextRef.current.createGain();
+      sfxGainRef.current.gain.value = 0.5 * MASTER_VOLUME_FACTOR; // Default SFX volume
+      sfxGainRef.current.connect(audioContextRef.current.destination);
+
+      // Create audio element for background music and route through Web Audio API
       const audio = new Audio(`${process.env.PUBLIC_URL}/audio/tavern-music.mp3`);
       audio.loop = true;
-      audio.volume = 0.30 * MASTER_VOLUME_FACTOR; // Default volume with master reduction
+      // Set volume to 1.0 - actual volume controlled by GainNode (iOS compatible)
+      audio.volume = 1.0;
       musicAudioRef.current = audio;
+
+      // Connect audio element to Web Audio API for iOS-compatible volume control
+      const source = audioContextRef.current.createMediaElementSource(audio);
+      source.connect(musicGainRef.current);
+      musicSourceRef.current = source;
 
       // Sound effects disabled - Pre-load all sound effects into a pool for instant playback
       const soundFiles = [
@@ -81,13 +94,20 @@ export const useAudio = () => {
         for (let i = 0; i < 3; i++) {
           const audio = new Audio(`${process.env.PUBLIC_URL}/audio/${soundName}.wav`);
           audio.preload = 'auto';
-          audio.volume = 0.5 * MASTER_VOLUME_FACTOR; // Default SFX volume with master reduction
+          // Set volume to 1.0 - actual volume controlled by GainNode (iOS compatible)
+          audio.volume = 1.0;
           // Disable default error logging to prevent console spam
           audio.onerror = () => {
             console.warn(`Failed to load audio: ${soundName}.wav`);
           };
+
+          // Connect audio to Web Audio API for iOS-compatible volume control
+          const source = audioContextRef.current.createMediaElementSource(audio);
+          source.connect(sfxGainRef.current);
+
           instances.push({
             audio,
+            source,
             isPlaying: false
           });
         }
@@ -154,21 +174,18 @@ export const useAudio = () => {
     };
   }, [sfxVolume]);
 
-  // Update music volume in real-time
+  // Update music volume in real-time via Web Audio API GainNode (iOS compatible)
   useEffect(() => {
-    if (musicAudioRef.current) {
-      musicAudioRef.current.volume = isMuted ? 0 : musicVolume * MASTER_VOLUME_FACTOR;
+    if (musicGainRef.current) {
+      musicGainRef.current.gain.value = isMuted ? 0 : musicVolume * MASTER_VOLUME_FACTOR;
     }
   }, [musicVolume, isMuted]);
 
-  // Update SFX volume in real-time for all pooled sounds
+  // Update SFX volume in real-time via Web Audio API GainNode (iOS compatible)
   useEffect(() => {
-    const volume = isMuted ? 0 : sfxVolume * MASTER_VOLUME_FACTOR;
-    soundPoolRef.current.forEach(instances => {
-      instances.forEach(({ audio }) => {
-        audio.volume = volume;
-      });
-    });
+    if (sfxGainRef.current) {
+      sfxGainRef.current.gain.value = isMuted ? 0 : sfxVolume * MASTER_VOLUME_FACTOR;
+    }
   }, [sfxVolume, isMuted]);
 
   /**
