@@ -21,7 +21,7 @@ const AudioControls = ({
   const buttonRef = useRef(null);
   const closeTimerRef = useRef(null);
 
-  // Close slider when clicking outside
+  // Close slider when clicking/touching outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -35,9 +35,12 @@ const AudioControls = ({
       }
     };
 
+    // Support both mouse and touch events for cross-platform compatibility
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
       if (closeTimerRef.current) {
         clearTimeout(closeTimerRef.current);
       }
@@ -59,9 +62,24 @@ const AudioControls = ({
     }
   };
 
+  const handleVolumeButtonClick = () => {
+    // Toggle slider visibility on click/touch
+    setShowSlider(!showSlider);
+    // Cancel any pending close when clicking button
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
+
   const handleMusicVolumeChange = (e) => {
     const newVolume = parseFloat(e.target.value);
     onMusicVolumeChange(newVolume);
+    // Cancel auto-close timer when actively adjusting volume
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
   };
 
   const getVolumeIcon = () => {
@@ -95,8 +113,10 @@ const AudioControls = ({
               onChange={handleMusicVolumeChange}
               className="w-32 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
               style={{
-                accentColor: '#f59e0b'
+                accentColor: '#f59e0b',
+                touchAction: 'none' // Prevent scrolling while adjusting slider on touch devices
               }}
+              aria-label="Music Volume"
             />
             <span className="text-amber-300 text-sm font-mono w-10">
               {Math.round(musicVolume * 100)}%
@@ -108,11 +128,12 @@ const AudioControls = ({
       {/* Volume Button */}
       <button
         ref={buttonRef}
-        onClick={() => setShowSlider(!showSlider)}
+        onClick={handleVolumeButtonClick}
         onMouseEnter={() => setShowSlider(true)}
         className="px-3 py-2 bg-gray-900 bg-opacity-90 border-2 border-amber-600 rounded-lg
                    hover:bg-amber-900 transition-all shadow-lg text-2xl"
         title="Volume Controls"
+        aria-label="Volume Controls"
       >
         {getVolumeIcon()}
       </button>
