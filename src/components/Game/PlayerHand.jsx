@@ -74,7 +74,19 @@ const PlayerHand = ({
                 >
                   <PlayingCard
                     card={card}
-                    onClick={() => canDiscard && onCardClick(card)}
+                    onClick={(e) => {
+                      if (canDiscard) {
+                        // Capture the card element position before discarding
+                        if (e && e.currentTarget) {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          card._discardPosition = {
+                            x: rect.left + rect.width / 2 - 40,
+                            y: rect.top + rect.height / 2 - 56
+                          };
+                        }
+                        onCardClick(card);
+                      }
+                    }}
                     isNew={newlyDrawnCard === card.id}
                     isDiscarding={discardingCard === card.id}
                     shouldHighlight={tutorialHighlight === card.id}

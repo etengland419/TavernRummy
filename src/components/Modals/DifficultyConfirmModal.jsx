@@ -19,30 +19,30 @@ const DifficultyConfirmModal = ({ show, currentDifficulty, newDifficulty, onConf
 
   const getTitle = () => {
     if (isLeavingTutorial) {
-      return "Leave Tutorial Mode?";
+      return "⚔️ Depart from Training Grounds?";
     }
-    return "Change Difficulty?";
+    return "⚔️ Alter Thy Challenge?";
   };
 
   const getMessage = () => {
     if (isLeavingTutorial) {
-      return "Are you sure you want to leave Tutorial mode? You'll no longer receive helpful tips and guidance, and a new game will start.";
+      return "Art thou certain thou wishest to leave the guidance of thy mentor? Thou shalt venture forth without counsel, and a fresh contest shall commence!";
     }
-    return `Are you sure you want to change from ${currentDifficulty} to ${newDifficulty}? This will start a new game and reset the current round.`;
+    return `Dost thou truly desire to shift from the ${currentDifficulty} path to the ${newDifficulty} way? The current game shall be forfeit and a new challenge shall begin forthwith!`;
   };
 
   const getConfirmText = () => {
     if (isLeavingTutorial) {
-      return "Yes, Continue";
+      return "Aye, I Am Ready!";
     }
-    return "Start New Game";
+    return "Begin Anew!";
   };
 
   const getCancelText = () => {
     if (isLeavingTutorial) {
-      return "Stay in Tutorial";
+      return "Nay, Continue Learning";
     }
-    return "Cancel";
+    return "Remain As Is";
   };
 
   return (
