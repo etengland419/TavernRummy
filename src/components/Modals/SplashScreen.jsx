@@ -36,7 +36,7 @@ const SplashScreen = ({ show, onStart }) => {
             The candlelight flickers across their hidden face as they gesture to the empty seat across from them.
           </p>
           <p className="text-amber-200 text-xl font-semibold italic">
-            "Care to test thy fortune, traveler? The game is Rummy, and the stakes... well, that's for fate to decide."
+            "Care to test your fortune, traveler? The game is Rummy, and the stakes... well, that's for fate to decide."
           </p>
         </div>
 
@@ -51,7 +51,7 @@ const SplashScreen = ({ show, onStart }) => {
 
         {/* Subtitle */}
         <p className="text-amber-500 text-sm mt-6 italic animate-fade-in" style={{ animationDelay: '0.9s' }}>
-          Steel thyself, for the cards hold many secrets...
+          Steel yourself, for the cards hold many secrets...
         </p>
       </div>
 
