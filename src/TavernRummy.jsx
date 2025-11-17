@@ -5,7 +5,7 @@ import { GAME_CONFIG, DIFFICULTY_LEVELS, ANIMATION_TIMINGS } from './utils/const
 
 // Utilities
 import { createDeck } from './utils/cardUtils';
-import { findMelds, calculateDeadwood, sortHand } from './utils/meldUtils';
+import { findMelds, calculateDeadwood, calculateMinDeadwoodAfterDiscard, sortHand } from './utils/meldUtils';
 import { calculateRoundResult, checkMatchWinner } from './utils/scoringUtils';
 import { getRandomOpponentName } from './utils/opponentNames';
 
@@ -84,6 +84,7 @@ const TavernRummy = () => {
   // Memoized calculations
   const playerMelds = useMemo(() => findMelds(playerHand), [playerHand]);
   const playerDeadwood = useMemo(() => calculateDeadwood(playerHand), [playerHand]);
+  const playerMinDeadwoodAfterDiscard = useMemo(() => calculateMinDeadwoodAfterDiscard(playerHand), [playerHand]);
   const sortedPlayerHand = useMemo(() => sortHand(playerHand, true), [playerHand]);
 
   // Tutorial hook
@@ -226,10 +227,55 @@ const TavernRummy = () => {
   };
 
   const knock = () => {
-    const deadwood = calculateDeadwood(playerHand);
-    if (deadwood <= GAME_CONFIG.KNOCK_THRESHOLD && phase === 'discard') {
-      // sounds.knock(); // Sound effects disabled
-      endRound('player');
+    if (phase !== 'discard' || currentTurn !== 'player') return;
+
+    // If player has 11 cards, find and discard the card that minimizes deadwood
+    if (playerHand.length === 11) {
+      let bestCardToDiscard = null;
+      let minDeadwood = Infinity;
+
+      // Try discarding each card and find which gives minimum deadwood
+      for (let i = 0; i < playerHand.length; i++) {
+        const handWithoutCard = playerHand.filter((_, index) => index !== i);
+        const deadwood = calculateDeadwood(handWithoutCard);
+        if (deadwood < minDeadwood) {
+          minDeadwood = deadwood;
+          bestCardToDiscard = playerHand[i];
+        }
+      }
+
+      // Verify we can knock with the resulting deadwood
+      if (minDeadwood <= GAME_CONFIG.KNOCK_THRESHOLD && bestCardToDiscard) {
+        // Discard the best card
+        setDiscardingCard(bestCardToDiscard.id);
+        // sounds.cardDiscard(); // Sound effects disabled
+
+        // Add flying card animation
+        if (bestCardToDiscard._discardPosition && discardRef && discardRef.current) {
+          addFlyingCardFromPosition(bestCardToDiscard, bestCardToDiscard._discardPosition, discardRef, ANIMATION_TIMINGS.CARD_DISCARD / 1000);
+        } else {
+          addFlyingCard(bestCardToDiscard, playerHandRef, discardRef, false, ANIMATION_TIMINGS.CARD_DISCARD / 1000);
+        }
+
+        setTimeout(() => {
+          const newHand = playerHand.filter(c => c.id !== bestCardToDiscard.id);
+          setPlayerHand(newHand);
+          setDiscardPile([...discardPile, bestCardToDiscard]);
+          setDiscardingCard(null);
+          setMessage('You knock!');
+
+          // sounds.knock(); // Sound effects disabled
+          setTimeout(() => endRound('player'), ANIMATION_TIMINGS.KNOCK_ANNOUNCEMENT);
+        }, ANIMATION_TIMINGS.CARD_DISCARD);
+      }
+    } else {
+      // If player already has 10 cards, knock directly
+      const deadwood = calculateDeadwood(playerHand);
+      if (deadwood <= GAME_CONFIG.KNOCK_THRESHOLD) {
+        setMessage('You knock!');
+        // sounds.knock(); // Sound effects disabled
+        setTimeout(() => endRound('player'), ANIMATION_TIMINGS.KNOCK_ANNOUNCEMENT);
+      }
     }
   };
 
@@ -546,7 +592,7 @@ const TavernRummy = () => {
         <GameControls
           onKnock={knock}
           onNewRound={startNewRound}
-          canKnock={playerDeadwood <= GAME_CONFIG.KNOCK_THRESHOLD && phase === 'discard' && currentTurn === 'player'}
+          canKnock={playerMinDeadwoodAfterDiscard <= GAME_CONFIG.KNOCK_THRESHOLD && phase === 'discard' && currentTurn === 'player'}
           deadwood={playerDeadwood}
           tutorialHighlight={tutorialHighlight === 'knock'}
         />
