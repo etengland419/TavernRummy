@@ -48,6 +48,14 @@ const StatsModal = ({ show, stats, derivedStats, onClose, onReset }) => {
                 <span className="font-bold text-green-400">{stats.gamesWon}</span>
               </div>
               <div className="flex justify-between">
+                <span>Games Lost:</span>
+                <span className="font-bold text-red-400">{stats.gamesLost || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Games Drawn:</span>
+                <span className="font-bold text-blue-400">{stats.gamesDrawn || 0}</span>
+              </div>
+              <div className="flex justify-between">
                 <span>Win Rate:</span>
                 <span className="font-bold text-yellow-400">{derivedStats.winRate}%</span>
               </div>
@@ -154,6 +162,8 @@ const StatsModal = ({ show, stats, derivedStats, onClose, onReset }) => {
                   <div className="text-center space-y-1 text-sm text-amber-100">
                     <div>Played: <span className="font-bold">{difficultyStats.gamesPlayed}</span></div>
                     <div>Won: <span className="font-bold text-green-400">{difficultyStats.gamesWon}</span></div>
+                    <div>Lost: <span className="font-bold text-red-400">{difficultyStats.gamesLost || 0}</span></div>
+                    <div>Drawn: <span className="font-bold text-blue-400">{difficultyStats.gamesDrawn || 0}</span></div>
                     <div>Win Rate: <span className="font-bold text-yellow-400">{winRate}%</span></div>
                   </div>
                 </div>

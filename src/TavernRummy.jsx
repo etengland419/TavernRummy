@@ -25,6 +25,7 @@ import DifficultyConfirmModal from './components/Modals/DifficultyConfirmModal';
 import StatsModal from './components/Modals/StatsModal';
 import AchievementsModal from './components/Modals/AchievementsModal';
 import AchievementNotification from './components/UI/AchievementNotification';
+import AnimatedCard from './components/UI/AnimatedCard';
 
 // Hooks
 import { useTutorial } from './hooks/useTutorial';
@@ -64,11 +65,13 @@ const TavernRummy = () => {
   const [showTutorialComplete, setShowTutorialComplete] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
+  const [flyingCards, setFlyingCards] = useState([]);
 
   // Refs
   const deckRef = useRef(null);
   const discardRef = useRef(null);
   const playerHandRef = useRef(null);
+  const aiHandRef = useRef(null);
 
   // Memoized calculations
   const playerMelds = useMemo(() => findMelds(playerHand), [playerHand]);
@@ -89,6 +92,36 @@ const TavernRummy = () => {
 
   // Achievements hook
   const { newlyUnlocked, dismissNotification, getAchievement, getAllAchievements, getCompletionStats } = useAchievements(stats);
+
+  // Helper function to get element position
+  const getElementPosition = (ref) => {
+    if (!ref || !ref.current) return { x: 0, y: 0 };
+    const rect = ref.current.getBoundingClientRect();
+    return {
+      x: rect.left + rect.width / 2 - 40, // Center card (card width is ~80px)
+      y: rect.top + rect.height / 2 - 56  // Center card (card height is ~112px)
+    };
+  };
+
+  // Helper function to add flying card animation
+  const addFlyingCard = (card, fromRef, toRef, hidden = false, duration = 0.5) => {
+    const fromPos = getElementPosition(fromRef);
+    const toPos = getElementPosition(toRef);
+
+    const flyingCard = {
+      id: `flying-${card.id}-${Date.now()}`,
+      card,
+      fromPosition: fromPos,
+      toPosition: toPos,
+      hidden,
+      duration,
+      onComplete: () => {
+        setFlyingCards(prev => prev.filter(fc => fc.id !== flyingCard.id));
+      }
+    };
+
+    setFlyingCards(prev => [...prev, flyingCard]);
+  };
 
   // Initialize game on mount
   useEffect(() => {
@@ -131,25 +164,35 @@ const TavernRummy = () => {
       }
       drawnCard = newDeck.pop();
       setDeck(newDeck);
+      // Add flying card animation from deck to player hand
+      addFlyingCard(drawnCard, deckRef, playerHandRef, true);
     } else {
       if (discardPile.length === 0) return;
       drawnCard = newDiscard.pop();
       setDiscardPile(newDiscard);
+      // Add flying card animation from discard to player hand
+      addFlyingCard(drawnCard, discardRef, playerHandRef, false);
     }
 
-    const newHand = [...playerHand, drawnCard];
-    setPlayerHand(newHand);
-    setNewlyDrawnCard(drawnCard.id);
-    setPhase('discard');
-    setMessage('Discard a card or knock');
+    // Delay adding card to hand until animation completes
+    setTimeout(() => {
+      const newHand = [...playerHand, drawnCard];
+      setPlayerHand(newHand);
+      setNewlyDrawnCard(drawnCard.id);
+      setPhase('discard');
+      setMessage('Discard a card or knock');
 
-    setTimeout(() => setNewlyDrawnCard(null), 800);
+      setTimeout(() => setNewlyDrawnCard(null), 800);
+    }, 500); // Match animation duration
   };
 
   const discardCard = (card) => {
     if (currentTurn !== 'player' || phase !== 'discard') return;
 
     setDiscardingCard(card.id);
+
+    // Add flying card animation from player hand to discard
+    addFlyingCard(card, playerHandRef, discardRef, false, 0.4);
 
     setTimeout(() => {
       const newHand = playerHand.filter(c => c.id !== card.id);
@@ -162,7 +205,7 @@ const TavernRummy = () => {
       setTutorialHighlight(null);
 
       setTimeout(() => aiTurn(newHand), 1000);
-    }, 300);
+    }, 400); // Match animation duration
   };
 
   const knock = () => {
@@ -189,6 +232,11 @@ const TavernRummy = () => {
       setMessage(drawMessage);
       setAiDrawnCard(decision.drawnCard.id);
 
+      // Add flying card animation for AI draw
+      const fromRef = decision.drawSource === 'deck' ? deckRef : discardRef;
+      const isHidden = decision.drawSource === 'deck';
+      addFlyingCard(decision.drawnCard, fromRef, aiHandRef, isHidden, 0.5);
+
       // Update deck/discard based on draw source
       if (decision.drawSource === 'deck') {
         const newDeck = [...deck];
@@ -207,6 +255,9 @@ const TavernRummy = () => {
         setTimeout(() => {
           setMessage("The Hooded Stranger discards...");
           setAiDiscardedCard(decision.discardCard.id);
+
+          // Add flying card animation for AI discard
+          addFlyingCard(decision.discardCard, aiHandRef, discardRef, true, 0.4);
 
           setTimeout(() => {
             setAiHand(decision.finalHand);
@@ -390,6 +441,7 @@ const TavernRummy = () => {
           aiDrawnCard={aiDrawnCard}
           aiDiscardedCard={aiDiscardedCard}
           currentTurn={currentTurn}
+          aiHandRef={aiHandRef}
         />
 
         {/* Game Board (Deck & Discard) */}
@@ -497,6 +549,19 @@ const TavernRummy = () => {
             key={achievementId}
             achievement={getAchievement(achievementId)}
             onDismiss={() => dismissNotification(achievementId)}
+          />
+        ))}
+
+        {/* Flying Card Animations */}
+        {flyingCards.map(flyingCard => (
+          <AnimatedCard
+            key={flyingCard.id}
+            card={flyingCard.card}
+            hidden={flyingCard.hidden}
+            fromPosition={flyingCard.fromPosition}
+            toPosition={flyingCard.toPosition}
+            duration={flyingCard.duration}
+            onComplete={flyingCard.onComplete}
           />
         ))}
 

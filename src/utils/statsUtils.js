@@ -10,6 +10,8 @@ const getDefaultStats = () => ({
   version: STATS_VERSION,
   gamesPlayed: 0,
   gamesWon: 0,
+  gamesLost: 0,
+  gamesDrawn: 0,
   totalScore: 0,
   highestScore: 0,
   ginsCount: 0,
@@ -20,19 +22,27 @@ const getDefaultStats = () => ({
   byDifficulty: {
     [DIFFICULTY_LEVELS.TUTORIAL]: {
       gamesPlayed: 0,
-      gamesWon: 0
+      gamesWon: 0,
+      gamesLost: 0,
+      gamesDrawn: 0
     },
     [DIFFICULTY_LEVELS.EASY]: {
       gamesPlayed: 0,
-      gamesWon: 0
+      gamesWon: 0,
+      gamesLost: 0,
+      gamesDrawn: 0
     },
     [DIFFICULTY_LEVELS.MEDIUM]: {
       gamesPlayed: 0,
-      gamesWon: 0
+      gamesWon: 0,
+      gamesLost: 0,
+      gamesDrawn: 0
     },
     [DIFFICULTY_LEVELS.HARD]: {
       gamesPlayed: 0,
-      gamesWon: 0
+      gamesWon: 0,
+      gamesLost: 0,
+      gamesDrawn: 0
     }
   },
   averageDeadwood: [],
@@ -119,6 +129,10 @@ export const recordGame = (stats, data) => {
       newStats.longestStreak = newStats.currentStreak;
     }
   } else if (winner === 'ai') {
+    newStats.gamesLost++;
+    newStats.currentStreak = 0;
+  } else if (winner === 'draw') {
+    newStats.gamesDrawn++;
     newStats.currentStreak = 0;
   }
 
@@ -146,6 +160,10 @@ export const recordGame = (stats, data) => {
     newStats.byDifficulty[difficulty].gamesPlayed++;
     if (winner === 'player') {
       newStats.byDifficulty[difficulty].gamesWon++;
+    } else if (winner === 'ai') {
+      newStats.byDifficulty[difficulty].gamesLost++;
+    } else if (winner === 'draw') {
+      newStats.byDifficulty[difficulty].gamesDrawn++;
     }
   }
 
