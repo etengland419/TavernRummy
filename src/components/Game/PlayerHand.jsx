@@ -36,10 +36,12 @@ const PlayerHand = ({
   const isPlayerTurn = currentTurn === 'player';
 
   return (
-    <div ref={playerHandRef} className={`rounded-lg p-4 transition-all duration-300 ${isPlayerTurn ? 'player-turn-glow' : ''}`}>
+    <div ref={playerHandRef} className="rounded-lg p-4 transition-all duration-300">
       <div className="flex items-center justify-center gap-2 mb-3">
         <span className="text-2xl">🛡️</span>
-        <h2 className="text-xl font-bold text-amber-400">Your Hand</h2>
+        <h2 className={`text-xl font-bold text-amber-400 transition-all duration-300 ${isPlayerTurn ? 'player-turn-name-glow' : ''}`}>
+          Your Hand
+        </h2>
         {sortCards && melds.length > 0 && (
           <span className="text-xs text-amber-500">(Melds first, then deadwood)</span>
         )}

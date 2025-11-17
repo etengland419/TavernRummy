@@ -12,15 +12,18 @@ import PlayingCard from '../UI/PlayingCard';
  * @param {string} aiDrawnCard - ID of card AI just drew
  * @param {string} aiDiscardedCard - ID of card AI is discarding
  * @param {string} currentTurn - Current turn ('player' or 'ai')
+ * @param {Object} aiHandRef - Ref for AI hand container
  */
-const AIHand = ({ hand, gameOver, aiDrawnCard, aiDiscardedCard, currentTurn }) => {
+const AIHand = ({ hand, gameOver, aiDrawnCard, aiDiscardedCard, currentTurn, aiHandRef }) => {
   const isAiTurn = currentTurn === 'ai';
 
   return (
-    <div className={`mb-8 rounded-lg p-4 transition-all duration-300 ${isAiTurn ? 'ai-turn-glow' : ''}`}>
+    <div ref={aiHandRef} className="mb-8 rounded-lg p-4 transition-all duration-300">
       <div className="flex items-center justify-center gap-2 mb-3">
         <span className="text-2xl">👤</span>
-        <h2 className="text-xl font-bold text-amber-400">The Hooded Stranger</h2>
+        <h2 className={`text-xl font-bold text-amber-400 transition-all duration-300 ${isAiTurn ? 'ai-turn-name-glow' : ''}`}>
+          The Hooded Stranger
+        </h2>
       </div>
       <div className="flex justify-center gap-2">
         <AnimatePresence initial={false}>
@@ -52,7 +55,8 @@ AIHand.propTypes = {
   gameOver: PropTypes.bool.isRequired,
   aiDrawnCard: PropTypes.string,
   aiDiscardedCard: PropTypes.string,
-  currentTurn: PropTypes.string
+  currentTurn: PropTypes.string,
+  aiHandRef: PropTypes.object
 };
 
 export default AIHand;
