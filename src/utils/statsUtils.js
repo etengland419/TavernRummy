@@ -120,39 +120,44 @@ export const recordGame = (stats, data) => {
 
   const newStats = { ...stats };
 
-  // Overall stats
-  newStats.gamesPlayed++;
-  if (winner === 'player') {
-    newStats.gamesWon++;
-    newStats.currentStreak++;
-    if (newStats.currentStreak > newStats.longestStreak) {
-      newStats.longestStreak = newStats.currentStreak;
-    }
-  } else if (winner === 'ai') {
-    newStats.gamesLost++;
-    newStats.currentStreak = 0;
-  } else if (winner === 'draw') {
-    newStats.gamesDrawn++;
-    newStats.currentStreak = 0;
-  }
+  // Don't count tutorial games towards overall stats (only track difficulty-specific stats)
+  const isTutorial = difficulty === DIFFICULTY_LEVELS.TUTORIAL;
 
-  // Score tracking
-  if (playerScore !== undefined) {
-    newStats.totalScore += playerScore;
-    if (playerScore > newStats.highestScore) {
-      newStats.highestScore = playerScore;
+  // Overall stats (skip for tutorial)
+  if (!isTutorial) {
+    newStats.gamesPlayed++;
+    if (winner === 'player') {
+      newStats.gamesWon++;
+      newStats.currentStreak++;
+      if (newStats.currentStreak > newStats.longestStreak) {
+        newStats.longestStreak = newStats.currentStreak;
+      }
+    } else if (winner === 'ai') {
+      newStats.gamesLost++;
+      newStats.currentStreak = 0;
+    } else if (winner === 'draw') {
+      newStats.gamesDrawn++;
+      newStats.currentStreak = 0;
     }
-  }
 
-  // Special events
-  if (isGin) {
-    newStats.ginsCount++;
-  }
-  if (isUndercut && winner === 'player') {
-    newStats.undercutsCount++;
-  }
-  if (isKnock && winner === 'player') {
-    newStats.knocksCount++;
+    // Score tracking
+    if (playerScore !== undefined) {
+      newStats.totalScore += playerScore;
+      if (playerScore > newStats.highestScore) {
+        newStats.highestScore = playerScore;
+      }
+    }
+
+    // Special events
+    if (isGin) {
+      newStats.ginsCount++;
+    }
+    if (isUndercut && winner === 'player') {
+      newStats.undercutsCount++;
+    }
+    if (isKnock && winner === 'player') {
+      newStats.knocksCount++;
+    }
   }
 
   // Difficulty-specific stats
@@ -167,8 +172,8 @@ export const recordGame = (stats, data) => {
     }
   }
 
-  // Average deadwood tracking (keep last 50 games)
-  if (playerDeadwood !== undefined) {
+  // Average deadwood tracking (keep last 50 games, skip tutorial)
+  if (playerDeadwood !== undefined && !isTutorial) {
     newStats.averageDeadwood.push(playerDeadwood);
     if (newStats.averageDeadwood.length > 50) {
       newStats.averageDeadwood.shift();

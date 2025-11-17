@@ -51,7 +51,7 @@ const PlayingCard = ({
         ${hidden ? 'bg-gradient-to-br from-amber-900 to-amber-950 border-amber-700' : 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-800'}
         ${inMeld && meldColor ? `${meldColor} border-4` : ''}
         ${isNew ? 'animate-pulse ring-2 ring-green-400' : ''}
-        ${isDiscarding ? 'opacity-50 scale-90' : ''}
+        ${isDiscarding ? 'opacity-0 scale-90 pointer-events-none' : ''}
         ${isAiDrawing ? 'ring-4 ring-purple-400 animate-[pulse_1s_ease-in-out_3]' : ''}
         ${isAiDiscarding ? 'ring-4 ring-red-400 animate-[pulse_0.8s_ease-in-out_2]' : ''}
         ${shouldHighlight ? 'ring-4 ring-blue-400 animate-[pulse_1.5s_ease-in-out_infinite]' : ''}
