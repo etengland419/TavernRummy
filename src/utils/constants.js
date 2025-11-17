@@ -68,3 +68,16 @@ export const AI_KNOCK_THRESHOLDS = {
   [DIFFICULTY_LEVELS.MEDIUM]: 7,
   [DIFFICULTY_LEVELS.HARD]: 10
 };
+
+// Animation Timing Constants (in milliseconds)
+export const ANIMATION_TIMINGS = {
+  CARD_DRAW: 500,           // Time for card to fly from deck/discard to hand
+  CARD_DISCARD: 400,        // Time for card to fly from hand to discard
+  CARD_HIGHLIGHT: 800,      // Duration for newly drawn card highlight
+  SCORE_ANIMATION: 2000,    // Duration for score change animation
+  AI_DRAW_DELAY: 750,       // Delay before AI shows drawn card
+  AI_DISCARD_DELAY: 600,    // Delay before AI discards
+  AI_TURN_START: 400,       // Initial delay before AI turn begins
+  KNOCK_ANNOUNCEMENT: 400,  // Delay before knock announcement
+  TUTORIAL_DELAY: 1500      // Delay before showing tutorial complete modal
+};
