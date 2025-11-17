@@ -1,63 +1,150 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 /**
  * AudioControls Component
- * Displays mute button and volume slider for game audio
+ * Displays mute button and separate volume sliders for music and sound effects
  *
  * @param {boolean} isMuted - Whether audio is muted
- * @param {number} volume - Current volume level (0-1)
+ * @param {number} musicVolume - Current music volume level (0-1)
+ * @param {number} sfxVolume - Current sound effects volume level (0-1)
  * @param {Function} onToggleMute - Callback to toggle mute
- * @param {Function} onVolumeChange - Callback to change volume
+ * @param {Function} onMusicVolumeChange - Callback to change music volume
+ * @param {Function} onSfxVolumeChange - Callback to change sound effects volume
  */
-const AudioControls = ({ isMuted, volume, onToggleMute, onVolumeChange }) => {
+const AudioControls = ({
+  isMuted,
+  musicVolume,
+  sfxVolume,
+  onToggleMute,
+  onMusicVolumeChange,
+  onSfxVolumeChange
+}) => {
   const [showSlider, setShowSlider] = useState(false);
+  const sliderRef = useRef(null);
+  const buttonRef = useRef(null);
+  const closeTimerRef = useRef(null);
 
-  const handleVolumeChange = (e) => {
+  // Close slider when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        showSlider &&
+        sliderRef.current &&
+        buttonRef.current &&
+        !sliderRef.current.contains(event.target) &&
+        !buttonRef.current.contains(event.target)
+      ) {
+        setShowSlider(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, [showSlider]);
+
+  const handleMouseLeave = () => {
+    // Delay closing to allow user to move between button and slider
+    closeTimerRef.current = setTimeout(() => {
+      setShowSlider(false);
+    }, 800);
+  };
+
+  const handleMouseEnter = () => {
+    // Cancel any pending close
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
+
+  const handleMusicVolumeChange = (e) => {
     const newVolume = parseFloat(e.target.value);
-    onVolumeChange(newVolume);
+    onMusicVolumeChange(newVolume);
+  };
+
+  const handleSfxVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value);
+    onSfxVolumeChange(newVolume);
   };
 
   const getVolumeIcon = () => {
-    if (isMuted || volume === 0) return '🔇';
-    if (volume < 0.3) return '🔈';
-    if (volume < 0.7) return '🔉';
+    const avgVolume = (musicVolume + sfxVolume) / 2;
+    if (isMuted || avgVolume === 0) return '🔇';
+    if (avgVolume < 0.3) return '🔈';
+    if (avgVolume < 0.7) return '🔉';
     return '🔊';
   };
 
   return (
-    <div className="fixed top-4 right-4 z-40 flex items-center gap-2">
-      {/* Volume Slider */}
+    <div
+      className="fixed top-4 right-4 z-40 flex items-center gap-2"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Volume Sliders */}
       {showSlider && (
-        <div className="bg-gray-900 bg-opacity-90 p-3 rounded-lg border-2 border-amber-600 shadow-lg">
-          <div className="flex items-center gap-3">
-            <span className="text-amber-300 text-sm font-semibold">Volume</span>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.05"
-              value={volume}
-              onChange={handleVolumeChange}
-              className="w-32 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
-              style={{
-                accentColor: '#f59e0b'
-              }}
-            />
-            <span className="text-amber-300 text-sm font-mono w-10">
-              {Math.round(volume * 100)}%
-            </span>
+        <div
+          ref={sliderRef}
+          className="bg-gray-900 bg-opacity-95 p-4 rounded-lg border-2 border-amber-600 shadow-xl"
+        >
+          <div className="space-y-3">
+            {/* Music Volume Slider */}
+            <div className="flex items-center gap-3">
+              <span className="text-amber-300 text-sm font-semibold w-16">🎵 Music</span>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={musicVolume}
+                onChange={handleMusicVolumeChange}
+                className="w-32 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                style={{
+                  accentColor: '#f59e0b'
+                }}
+              />
+              <span className="text-amber-300 text-sm font-mono w-10">
+                {Math.round(musicVolume * 100)}%
+              </span>
+            </div>
+
+            {/* Sound Effects Volume Slider */}
+            <div className="flex items-center gap-3">
+              <span className="text-amber-300 text-sm font-semibold w-16">🔔 SFX</span>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={sfxVolume}
+                onChange={handleSfxVolumeChange}
+                className="w-32 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                style={{
+                  accentColor: '#f59e0b'
+                }}
+              />
+              <span className="text-amber-300 text-sm font-mono w-10">
+                {Math.round(sfxVolume * 100)}%
+              </span>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Mute/Volume Button */}
+      {/* Volume Button */}
       <button
+        ref={buttonRef}
         onClick={() => setShowSlider(!showSlider)}
         onMouseEnter={() => setShowSlider(true)}
         className="px-3 py-2 bg-gray-900 bg-opacity-90 border-2 border-amber-600 rounded-lg
                    hover:bg-amber-900 transition-all shadow-lg text-2xl"
-        title={isMuted ? 'Unmute' : 'Mute'}
+        title="Volume Controls"
       >
         {getVolumeIcon()}
       </button>
@@ -74,23 +161,17 @@ const AudioControls = ({ isMuted, volume, onToggleMute, onVolumeChange }) => {
       >
         {isMuted ? 'MUTED' : 'SOUND ON'}
       </button>
-
-      {/* Close slider when mouse leaves the area */}
-      {showSlider && (
-        <div
-          className="fixed inset-0 z-30"
-          onMouseEnter={() => setShowSlider(false)}
-        />
-      )}
     </div>
   );
 };
 
 AudioControls.propTypes = {
   isMuted: PropTypes.bool.isRequired,
-  volume: PropTypes.number.isRequired,
+  musicVolume: PropTypes.number.isRequired,
+  sfxVolume: PropTypes.number.isRequired,
   onToggleMute: PropTypes.func.isRequired,
-  onVolumeChange: PropTypes.func.isRequired
+  onMusicVolumeChange: PropTypes.func.isRequired,
+  onSfxVolumeChange: PropTypes.func.isRequired
 };
 
 export default AudioControls;

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 /**
  * Custom hook for managing game audio
@@ -10,19 +10,54 @@ export const useAudio = () => {
     return saved ? JSON.parse(saved) : false;
   });
 
-  const [volume, setVolume] = useState(() => {
-    const saved = localStorage.getItem('tavernRummy_volume');
+  const [musicVolume, setMusicVolume] = useState(() => {
+    const saved = localStorage.getItem('tavernRummy_musicVolume');
+    return saved ? parseFloat(saved) : 0.3;
+  });
+
+  const [sfxVolume, setSfxVolume] = useState(() => {
+    const saved = localStorage.getItem('tavernRummy_sfxVolume');
     return saved ? parseFloat(saved) : 0.5;
   });
 
+  const audioContextRef = useRef(null);
+  const musicGainRef = useRef(null);
+  const musicOscillatorsRef = useRef([]);
+  const isMusicPlayingRef = useRef(false);
+
+  // Stop background music function (defined early for cleanup)
+  const stopBackgroundMusic = useCallback(() => {
+    isMusicPlayingRef.current = false;
+    musicOscillatorsRef.current.forEach(osc => {
+      try {
+        osc.stop();
+      } catch (e) {
+        // Oscillator already stopped
+      }
+    });
+    musicOscillatorsRef.current = [];
+  }, []);
+
   // Initialize audio context
   useEffect(() => {
-    // We'll use HTML5 Audio for simplicity instead of Web Audio API
-    // In a production app, you'd load actual audio files here
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioContextRef.current = new AudioContext();
+
+      // Create gain node for music
+      musicGainRef.current = audioContextRef.current.createGain();
+      musicGainRef.current.connect(audioContextRef.current.destination);
+    } catch (error) {
+      console.warn('Web Audio API not supported:', error);
+    }
+
     return () => {
-      // Cleanup on unmount if needed
+      stopBackgroundMusic();
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
     };
-  }, []);
+  }, [stopBackgroundMusic]);
 
   // Save preferences to localStorage
   useEffect(() => {
@@ -30,44 +65,125 @@ export const useAudio = () => {
   }, [isMuted]);
 
   useEffect(() => {
-    localStorage.setItem('tavernRummy_volume', volume.toString());
-  }, [volume]);
+    localStorage.setItem('tavernRummy_musicVolume', musicVolume.toString());
+  }, [musicVolume]);
+
+  useEffect(() => {
+    localStorage.setItem('tavernRummy_sfxVolume', sfxVolume.toString());
+  }, [sfxVolume]);
+
+  // Update music volume in real-time
+  useEffect(() => {
+    if (musicGainRef.current) {
+      musicGainRef.current.gain.value = isMuted ? 0 : musicVolume * 0.15;
+    }
+  }, [musicVolume, isMuted]);
 
   /**
-   * Play a sound effect
-   * For now, we'll use a simple beep generator as placeholder
-   * In production, you'd load actual audio files
+   * Play background music - simple tavern-style melody
    */
-  const playSound = useCallback((soundType, frequency = 440, duration = 100) => {
-    if (isMuted) return;
+  const playBackgroundMusic = useCallback(() => {
+    if (!audioContextRef.current || isMusicPlayingRef.current) return;
 
     try {
-      // For now, we'll just log the sound since we don't have actual audio files
-      // In production, you'd do: new Audio('/sounds/soundType.mp3').play()
-      console.log(`[Audio] Playing sound: ${soundType} (muted: ${isMuted}, volume: ${volume})`);
+      // Resume audio context if suspended (browser autoplay policy)
+      if (audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume();
+      }
 
-      // You can add actual Web Audio API beeps here for testing:
-      // const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      // const oscillator = audioContext.createOscillator();
-      // const gainNode = audioContext.createGain();
-      // oscillator.connect(gainNode);
-      // gainNode.connect(audioContext.destination);
-      // oscillator.frequency.value = frequency;
-      // gainNode.gain.value = volume * 0.1; // Keep it quiet
-      // oscillator.start();
-      // oscillator.stop(audioContext.currentTime + duration / 1000);
+      isMusicPlayingRef.current = true;
+
+      // Simple tavern melody using chord progressions
+      const melody = [
+        { freq: 261.63, duration: 0.5 }, // C4
+        { freq: 329.63, duration: 0.5 }, // E4
+        { freq: 392.00, duration: 0.5 }, // G4
+        { freq: 329.63, duration: 0.5 }, // E4
+        { freq: 293.66, duration: 0.5 }, // D4
+        { freq: 349.23, duration: 0.5 }, // F4
+        { freq: 392.00, duration: 0.5 }, // G4
+        { freq: 349.23, duration: 0.5 }, // F4
+      ];
+
+      const playMelodyLoop = (startTime = audioContextRef.current.currentTime) => {
+        if (!isMusicPlayingRef.current) return;
+
+        let currentTime = startTime;
+        const oscillators = [];
+
+        melody.forEach(note => {
+          const osc = audioContextRef.current.createOscillator();
+          osc.type = 'sine';
+          osc.frequency.value = note.freq;
+          osc.connect(musicGainRef.current);
+          osc.start(currentTime);
+          osc.stop(currentTime + note.duration);
+          oscillators.push(osc);
+          currentTime += note.duration;
+        });
+
+        musicOscillatorsRef.current = oscillators;
+
+        // Loop the melody
+        const totalDuration = melody.reduce((sum, note) => sum + note.duration, 0);
+        setTimeout(() => {
+          if (isMusicPlayingRef.current) {
+            playMelodyLoop();
+          }
+        }, totalDuration * 1000);
+      };
+
+      playMelodyLoop();
+    } catch (error) {
+      console.error('Error playing background music:', error);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /**
+   * Play a sound effect using Web Audio API
+   */
+  const playSound = useCallback((soundType, frequency = 440, duration = 100) => {
+    if (isMuted || !audioContextRef.current) return;
+
+    try {
+      // Resume audio context if suspended
+      if (audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume();
+      }
+
+      const oscillator = audioContextRef.current.createOscillator();
+      const gainNode = audioContextRef.current.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContextRef.current.destination);
+
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'sine';
+
+      // Apply sound effects volume
+      const currentVolume = sfxVolume * 0.15; // Keep it reasonable
+      gainNode.gain.setValueAtTime(currentVolume, audioContextRef.current.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current.currentTime + duration / 1000);
+
+      oscillator.start(audioContextRef.current.currentTime);
+      oscillator.stop(audioContextRef.current.currentTime + duration / 1000);
     } catch (error) {
       console.error('Error playing sound:', error);
     }
-  }, [isMuted, volume]);
+  }, [isMuted, sfxVolume]);
 
   const toggleMute = useCallback(() => {
     setIsMuted(prev => !prev);
   }, []);
 
-  const changeVolume = useCallback((newVolume) => {
+  const changeMusicVolume = useCallback((newVolume) => {
     const clampedVolume = Math.max(0, Math.min(1, newVolume));
-    setVolume(clampedVolume);
+    setMusicVolume(clampedVolume);
+  }, []);
+
+  const changeSfxVolume = useCallback((newVolume) => {
+    const clampedVolume = Math.max(0, Math.min(1, newVolume));
+    setSfxVolume(clampedVolume);
   }, []);
 
   // Sound effect shortcuts
@@ -88,10 +204,14 @@ export const useAudio = () => {
 
   return {
     isMuted,
-    volume,
+    musicVolume,
+    sfxVolume,
     toggleMute,
-    changeVolume,
+    changeMusicVolume,
+    changeSfxVolume,
     playSound,
-    sounds
+    sounds,
+    playBackgroundMusic,
+    stopBackgroundMusic
   };
 };

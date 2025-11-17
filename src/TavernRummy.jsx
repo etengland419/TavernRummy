@@ -103,7 +103,17 @@ const TavernRummy = () => {
   const { newlyUnlocked, dismissNotification, getAchievement, getAllAchievements, getCompletionStats } = useAchievements(stats);
 
   // Audio hook
-  const { isMuted, volume, toggleMute, changeVolume, sounds } = useAudio();
+  const {
+    isMuted,
+    musicVolume,
+    sfxVolume,
+    toggleMute,
+    changeMusicVolume,
+    changeSfxVolume,
+    sounds,
+    playBackgroundMusic,
+    stopBackgroundMusic
+  } = useAudio();
 
   // Helper function to get element position
   const getElementPosition = (ref) => {
@@ -161,6 +171,16 @@ const TavernRummy = () => {
       sounds.achievement();
     }
   }, [newlyUnlocked.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Start background music when game starts (after splash screen)
+  useEffect(() => {
+    if (!showSplashScreen) {
+      playBackgroundMusic();
+    }
+    return () => {
+      stopBackgroundMusic();
+    };
+  }, [showSplashScreen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startNewRound = () => {
     const newDeck = createDeck();
@@ -462,9 +482,11 @@ const TavernRummy = () => {
       {/* Audio Controls */}
       <AudioControls
         isMuted={isMuted}
-        volume={volume}
+        musicVolume={musicVolume}
+        sfxVolume={sfxVolume}
         onToggleMute={toggleMute}
-        onVolumeChange={changeVolume}
+        onMusicVolumeChange={changeMusicVolume}
+        onSfxVolumeChange={changeSfxVolume}
       />
 
       {/* Torch light effects */}
