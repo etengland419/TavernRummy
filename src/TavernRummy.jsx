@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 
 // Constants
-import { GAME_CONFIG, DIFFICULTY_LEVELS } from './utils/constants';
+import { GAME_CONFIG, DIFFICULTY_LEVELS, ANIMATION_TIMINGS } from './utils/constants';
 
 // Utilities
 import { createDeck } from './utils/cardUtils';
@@ -36,6 +36,7 @@ import { useTutorial } from './hooks/useTutorial';
 import { useStats } from './hooks/useStats';
 import { useAchievements } from './hooks/useAchievements';
 import { useAudio } from './hooks/useAudio';
+import { useCardAnimation } from './hooks/useCardAnimation';
 
 const TavernRummy = () => {
   // Game State
@@ -72,7 +73,6 @@ const TavernRummy = () => {
   const [showTutorialComplete, setShowTutorialComplete] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
-  const [flyingCards, setFlyingCards] = useState([]);
   const [showSplashScreen, setShowSplashScreen] = useState(true);
 
   // Refs
@@ -112,47 +112,8 @@ const TavernRummy = () => {
     stopBackgroundMusic
   } = useAudio();
 
-  // Helper function to get element position
-  const getElementPosition = (ref) => {
-    if (!ref || !ref.current) return { x: 0, y: 0 };
-    const rect = ref.current.getBoundingClientRect();
-    return {
-      x: rect.left + rect.width / 2 - 40, // Center card (card width is ~80px)
-      y: rect.top + rect.height / 2 - 56  // Center card (card height is ~112px)
-    };
-  };
-
-  // Helper function to add flying card animation
-  const addFlyingCard = (card, fromRef, toRef, hidden = false, duration = 0.5) => {
-    // Validate refs before creating animation
-    if (!fromRef || !fromRef.current || !toRef || !toRef.current) {
-      console.warn('Animation refs not ready, skipping animation');
-      return;
-    }
-
-    const fromPos = getElementPosition(fromRef);
-    const toPos = getElementPosition(toRef);
-
-    // Validate positions
-    if (fromPos.x === 0 && fromPos.y === 0 && toPos.x === 0 && toPos.y === 0) {
-      console.warn('Invalid positions, skipping animation');
-      return;
-    }
-
-    const flyingCard = {
-      id: `flying-${card.id}-${Date.now()}`,
-      card,
-      fromPosition: fromPos,
-      toPosition: toPos,
-      hidden,
-      duration,
-      onComplete: () => {
-        setFlyingCards(prev => prev.filter(fc => fc.id !== flyingCard.id));
-      }
-    };
-
-    setFlyingCards(prev => [...prev, flyingCard]);
-  };
+  // Card animation hook
+  const { flyingCards, addFlyingCard, addFlyingCardFromPosition } = useCardAnimation();
 
   // Initialize game on mount (only after splash screen is dismissed)
   useEffect(() => {
@@ -232,8 +193,8 @@ const TavernRummy = () => {
       setPhase('discard');
       setMessage('Discard a card or knock');
 
-      setTimeout(() => setNewlyDrawnCard(null), 800);
-    }, 500); // Match animation duration
+      setTimeout(() => setNewlyDrawnCard(null), ANIMATION_TIMINGS.CARD_HIGHLIGHT);
+    }, ANIMATION_TIMINGS.CARD_DRAW);
   };
 
   const discardCard = (card) => {
@@ -245,21 +206,9 @@ const TavernRummy = () => {
     // Add flying card animation from player hand to discard
     // Use captured card position if available, otherwise use container position
     if (card._discardPosition && discardRef && discardRef.current) {
-      const toPos = getElementPosition(discardRef);
-      const flyingCard = {
-        id: `flying-${card.id}-${Date.now()}`,
-        card,
-        fromPosition: card._discardPosition,
-        toPosition: toPos,
-        hidden: false,
-        duration: 0.4,
-        onComplete: () => {
-          setFlyingCards(prev => prev.filter(fc => fc.id !== flyingCard.id));
-        }
-      };
-      setFlyingCards(prev => [...prev, flyingCard]);
+      addFlyingCardFromPosition(card, card._discardPosition, discardRef, ANIMATION_TIMINGS.CARD_DISCARD / 1000);
     } else {
-      addFlyingCard(card, playerHandRef, discardRef, false, 0.4);
+      addFlyingCard(card, playerHandRef, discardRef, false, ANIMATION_TIMINGS.CARD_DISCARD / 1000);
     }
 
     setTimeout(() => {
@@ -272,8 +221,8 @@ const TavernRummy = () => {
       setMessage(`${opponentName}'s turn...`);
       setTutorialHighlight(null);
 
-      setTimeout(() => aiTurn(newHand), 500);
-    }, 400); // Match animation duration
+      setTimeout(() => aiTurn(newHand), ANIMATION_TIMINGS.CARD_DRAW);
+    }, ANIMATION_TIMINGS.CARD_DISCARD);
   };
 
   const knock = () => {
@@ -304,7 +253,7 @@ const TavernRummy = () => {
       // Add flying card animation for AI draw
       const fromRef = decision.drawSource === 'deck' ? deckRef : discardRef;
       const isHidden = decision.drawSource === 'deck';
-      addFlyingCard(decision.drawnCard, fromRef, aiHandRef, isHidden, 0.5);
+      addFlyingCard(decision.drawnCard, fromRef, aiHandRef, isHidden, ANIMATION_TIMINGS.CARD_DRAW / 1000);
 
       // Update deck/discard based on draw source
       if (decision.drawSource === 'deck') {
@@ -326,7 +275,7 @@ const TavernRummy = () => {
           setAiDiscardedCard(decision.discardCard.id);
 
           // Add flying card animation for AI discard
-          addFlyingCard(decision.discardCard, aiHandRef, discardRef, false, 0.4);
+          addFlyingCard(decision.discardCard, aiHandRef, discardRef, false, ANIMATION_TIMINGS.CARD_DISCARD / 1000);
 
           setTimeout(() => {
             setAiHand(decision.finalHand);
@@ -336,17 +285,17 @@ const TavernRummy = () => {
             if (decision.shouldKnock) {
               setTimeout(() => {
                 setMessage(`${opponentName} knocks!`);
-                setTimeout(() => endRound('ai'), 400);
+                setTimeout(() => endRound('ai'), ANIMATION_TIMINGS.KNOCK_ANNOUNCEMENT);
               }, 250);
             } else {
               setCurrentTurn('player');
               setPhase('draw');
               setMessage('Your turn - Draw a card');
             }
-          }, 400);
-        }, 600);
-      }, 750);
-    }, 400);
+          }, ANIMATION_TIMINGS.CARD_DISCARD);
+        }, ANIMATION_TIMINGS.AI_DISCARD_DELAY);
+      }, ANIMATION_TIMINGS.AI_DRAW_DELAY);
+    }, ANIMATION_TIMINGS.AI_TURN_START);
   };
 
   const handleDraw = () => {
@@ -373,7 +322,7 @@ const TavernRummy = () => {
     if (result.winner !== 'draw') {
       newScores[result.winner] += result.scoreDiff;
       setScoreAnimation(result.winner);
-      setTimeout(() => setScoreAnimation(null), 2000);
+      setTimeout(() => setScoreAnimation(null), ANIMATION_TIMINGS.SCORE_ANIMATION);
     }
 
     // Sound effects disabled - Play appropriate sound based on result
@@ -424,7 +373,7 @@ const TavernRummy = () => {
 
     // Show tutorial completion prompt
     if (difficulty === DIFFICULTY_LEVELS.TUTORIAL && result.winner !== 'draw') {
-      setTimeout(() => setShowTutorialComplete(true), 1500);
+      setTimeout(() => setShowTutorialComplete(true), ANIMATION_TIMINGS.TUTORIAL_DELAY);
     }
   };
 
