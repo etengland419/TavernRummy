@@ -249,7 +249,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ### Future Enhancements
 - Multiplayer mode (online play)
-- Sound effects and music
 - Additional card themes
 - Progressive web app (PWA) support
 - Online leaderboards
@@ -267,6 +266,11 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - Inspired by classic Gin Rummy
 - Medieval theme elements
 - Community feedback and suggestions
+
+### Audio Credits
+- **Background Music**: "The Old Tower Inn" (NES Chiptune Medieval) from [OpenGameArt.org](https://opengameart.org/content/chiptune-medieval-the-old-tower-inn)
+  - Licensed under CC0 (Public Domain)
+- **Sound Effects**: Generated using Web Audio API
 
 ---
 

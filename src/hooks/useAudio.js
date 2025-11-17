@@ -22,31 +22,33 @@ export const useAudio = () => {
 
   const audioContextRef = useRef(null);
   const musicGainRef = useRef(null);
-  const musicOscillatorsRef = useRef([]);
+  const musicAudioRef = useRef(null);
   const isMusicPlayingRef = useRef(false);
 
   // Stop background music function (defined early for cleanup)
   const stopBackgroundMusic = useCallback(() => {
     isMusicPlayingRef.current = false;
-    musicOscillatorsRef.current.forEach(osc => {
-      try {
-        osc.stop();
-      } catch (e) {
-        // Oscillator already stopped
-      }
-    });
-    musicOscillatorsRef.current = [];
+    if (musicAudioRef.current) {
+      musicAudioRef.current.pause();
+      musicAudioRef.current.currentTime = 0;
+    }
   }, []);
 
-  // Initialize audio context
+  // Initialize audio context and music audio element
   useEffect(() => {
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       audioContextRef.current = new AudioContext();
 
-      // Create gain node for music
+      // Create gain node for music (used for sound effects)
       musicGainRef.current = audioContextRef.current.createGain();
       musicGainRef.current.connect(audioContextRef.current.destination);
+
+      // Create audio element for background music
+      const audio = new Audio('/audio/tavern-music.mp3');
+      audio.loop = true;
+      audio.volume = musicVolume;
+      musicAudioRef.current = audio;
     } catch (error) {
       console.warn('Web Audio API not supported:', error);
     }
@@ -74,66 +76,22 @@ export const useAudio = () => {
 
   // Update music volume in real-time
   useEffect(() => {
-    if (musicGainRef.current) {
-      musicGainRef.current.gain.value = isMuted ? 0 : musicVolume * 0.15;
+    if (musicAudioRef.current) {
+      musicAudioRef.current.volume = isMuted ? 0 : musicVolume;
     }
   }, [musicVolume, isMuted]);
 
   /**
-   * Play background music - simple tavern-style melody
+   * Play background music - 8-bit tavern music file
    */
   const playBackgroundMusic = useCallback(() => {
-    if (!audioContextRef.current || isMusicPlayingRef.current) return;
+    if (!musicAudioRef.current || isMusicPlayingRef.current) return;
 
     try {
-      // Resume audio context if suspended (browser autoplay policy)
-      if (audioContextRef.current.state === 'suspended') {
-        audioContextRef.current.resume();
-      }
-
       isMusicPlayingRef.current = true;
-
-      // Simple tavern melody using chord progressions
-      const melody = [
-        { freq: 261.63, duration: 0.5 }, // C4
-        { freq: 329.63, duration: 0.5 }, // E4
-        { freq: 392.00, duration: 0.5 }, // G4
-        { freq: 329.63, duration: 0.5 }, // E4
-        { freq: 293.66, duration: 0.5 }, // D4
-        { freq: 349.23, duration: 0.5 }, // F4
-        { freq: 392.00, duration: 0.5 }, // G4
-        { freq: 349.23, duration: 0.5 }, // F4
-      ];
-
-      const playMelodyLoop = (startTime = audioContextRef.current.currentTime) => {
-        if (!isMusicPlayingRef.current) return;
-
-        let currentTime = startTime;
-        const oscillators = [];
-
-        melody.forEach(note => {
-          const osc = audioContextRef.current.createOscillator();
-          osc.type = 'sine';
-          osc.frequency.value = note.freq;
-          osc.connect(musicGainRef.current);
-          osc.start(currentTime);
-          osc.stop(currentTime + note.duration);
-          oscillators.push(osc);
-          currentTime += note.duration;
-        });
-
-        musicOscillatorsRef.current = oscillators;
-
-        // Loop the melody
-        const totalDuration = melody.reduce((sum, note) => sum + note.duration, 0);
-        setTimeout(() => {
-          if (isMusicPlayingRef.current) {
-            playMelodyLoop();
-          }
-        }, totalDuration * 1000);
-      };
-
-      playMelodyLoop();
+      musicAudioRef.current.play().catch(error => {
+        console.warn('Autoplay prevented. Music will start on user interaction:', error);
+      });
     } catch (error) {
       console.error('Error playing background music:', error);
     }
