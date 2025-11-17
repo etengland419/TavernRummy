@@ -80,6 +80,7 @@ const TavernRummy = () => {
   // Initialize game on mount
   useEffect(() => {
     startNewRound();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startNewRound = () => {
@@ -185,8 +186,6 @@ const TavernRummy = () => {
         newDiscard.pop();
         setDiscardPile(newDiscard);
       }
-
-      const newAiHand = [...aiHand, decision.drawnCard];
 
       setTimeout(() => {
         setAiDrawnCard(null);

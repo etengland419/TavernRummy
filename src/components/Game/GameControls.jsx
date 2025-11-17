@@ -1,5 +1,4 @@
 import React from 'react';
-import { GAME_CONFIG } from '../../utils/constants';
 
 /**
  * GameControls Component
