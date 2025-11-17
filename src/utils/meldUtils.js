@@ -2,7 +2,7 @@ import { SUITS, RANKS } from './constants';
 
 /**
  * Find all valid non-overlapping melds in a hand
- * Uses a greedy algorithm to find the best combination of sets and runs
+ * Uses an optimal algorithm to find the combination that minimizes deadwood
  * @param {Array} hand - Array of card objects
  * @returns {Array} Array of melds, where each meld is an array of cards
  */
@@ -58,24 +58,47 @@ export const findMelds = (hand) => {
     }
   });
 
-  // Now find the best non-overlapping combination using greedy algorithm
-  // Sort by meld size (prefer longer melds)
-  allPossibleMelds.sort((a, b) => b.cards.length - a.cards.length);
-
-  const usedCardIds = new Set();
-  const finalMelds = [];
-
-  for (const meld of allPossibleMelds) {
-    // Check if any card in this meld has already been used
-    const hasOverlap = meld.cards.some(card => usedCardIds.has(card.id));
-
-    if (!hasOverlap) {
-      finalMelds.push(meld.cards);
-      meld.cards.forEach(card => usedCardIds.add(card.id));
-    }
+  // If no possible melds, return empty array
+  if (allPossibleMelds.length === 0) {
+    return [];
   }
 
-  return finalMelds;
+  // Find the best combination of non-overlapping melds that minimizes deadwood
+  // Use backtracking to try all valid combinations
+  let bestMelds = [];
+  let bestDeadwood = hand.reduce((sum, card) => sum + card.value, 0);
+
+  const findBestCombination = (meldIndex, currentMelds, usedCardIds) => {
+    // Calculate current deadwood
+    const deadwoodCards = hand.filter(card => !usedCardIds.has(card.id));
+    const deadwoodValue = deadwoodCards.reduce((sum, card) => sum + card.value, 0);
+
+    // Update best if this is better
+    if (deadwoodValue < bestDeadwood) {
+      bestDeadwood = deadwoodValue;
+      bestMelds = [...currentMelds];
+    }
+
+    // Try adding more melds
+    for (let i = meldIndex; i < allPossibleMelds.length; i++) {
+      const meld = allPossibleMelds[i];
+
+      // Check if this meld overlaps with already used cards
+      const hasOverlap = meld.cards.some(card => usedCardIds.has(card.id));
+
+      if (!hasOverlap) {
+        // Add this meld and recurse
+        const newUsedCardIds = new Set(usedCardIds);
+        meld.cards.forEach(card => newUsedCardIds.add(card.id));
+
+        findBestCombination(i + 1, [...currentMelds, meld.cards], newUsedCardIds);
+      }
+    }
+  };
+
+  findBestCombination(0, [], new Set());
+
+  return bestMelds;
 };
 
 /**

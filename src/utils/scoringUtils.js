@@ -68,7 +68,16 @@ export const calculateRoundResult = (knocker, playerHand, aiHand) => {
  */
 export const checkMatchWinner = (scores, matchMode) => {
   if (!matchMode) return null;
-  if (scores.player >= GAME_CONFIG.MATCH_WIN_SCORE) return 'player';
-  if (scores.ai >= GAME_CONFIG.MATCH_WIN_SCORE) return 'ai';
+
+  const playerWon = scores.player >= GAME_CONFIG.MATCH_WIN_SCORE;
+  const aiWon = scores.ai >= GAME_CONFIG.MATCH_WIN_SCORE;
+
+  // If both have reached the win score, the higher score wins
+  if (playerWon && aiWon) {
+    return scores.player > scores.ai ? 'player' : 'ai';
+  }
+
+  if (playerWon) return 'player';
+  if (aiWon) return 'ai';
   return null;
 };

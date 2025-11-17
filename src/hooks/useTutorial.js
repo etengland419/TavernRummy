@@ -72,7 +72,7 @@ export const useTutorial = (difficulty, phase, playerHand, discardPile, deck, cu
           });
 
           const worstCard = sortedDeadwood[0];
-          setTutorialMessage(`💡 TIP: Discard your ${worstCard.rank} of ${SUIT_SYMBOLS[worstCard.suit]} (${worstCard.value} points). Try to get your deadwood to ${GAME_CONFIG.KNOCK_THRESHOLD} or less to knock!`);
+          setTutorialMessage(`💡 TIP: Discard your ${worstCard.rank} of ${SUIT_SYMBOLS[worstCard.suit]} (${worstCard.value} points). You have ${currentDeadwood} deadwood - you need ${GAME_CONFIG.KNOCK_THRESHOLD} or less to knock! (That's the rule of the tavern!)`);
           setTutorialHighlight(worstCard.id);
         } else {
           setTutorialMessage(`💡 TIP: All your cards are in melds! Discard any card and knock with 0 deadwood for GIN!`);

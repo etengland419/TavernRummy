@@ -26,6 +26,7 @@ import StatsModal from './components/Modals/StatsModal';
 import AchievementsModal from './components/Modals/AchievementsModal';
 import AchievementNotification from './components/UI/AchievementNotification';
 import AnimatedCard from './components/UI/AnimatedCard';
+import SplashScreen from './components/Modals/SplashScreen';
 
 // Hooks
 import { useTutorial } from './hooks/useTutorial';
@@ -53,7 +54,6 @@ const TavernRummy = () => {
   // Settings
   const [difficulty, setDifficulty] = useState(DIFFICULTY_LEVELS.TUTORIAL);
   const [matchMode, setMatchMode] = useState(false);
-  const [sortCards, setSortCards] = useState(true);
 
   // UI State
   const [newlyDrawnCard, setNewlyDrawnCard] = useState(null);
@@ -66,6 +66,7 @@ const TavernRummy = () => {
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
   const [flyingCards, setFlyingCards] = useState([]);
+  const [showSplashScreen, setShowSplashScreen] = useState(true);
 
   // Refs
   const deckRef = useRef(null);
@@ -76,7 +77,7 @@ const TavernRummy = () => {
   // Memoized calculations
   const playerMelds = useMemo(() => findMelds(playerHand), [playerHand]);
   const playerDeadwood = useMemo(() => calculateDeadwood(playerHand), [playerHand]);
-  const sortedPlayerHand = useMemo(() => sortHand(playerHand, sortCards), [playerHand, sortCards]);
+  const sortedPlayerHand = useMemo(() => sortHand(playerHand, true), [playerHand]);
 
   // Tutorial hook
   const { tutorialMessage, tutorialHighlight, setTutorialHighlight } = useTutorial(
@@ -136,11 +137,13 @@ const TavernRummy = () => {
     setFlyingCards(prev => [...prev, flyingCard]);
   };
 
-  // Initialize game on mount
+  // Initialize game on mount (only after splash screen is dismissed)
   useEffect(() => {
-    startNewRound();
+    if (!showSplashScreen) {
+      startNewRound();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [showSplashScreen]);
 
   const startNewRound = () => {
     const newDeck = createDeck();
@@ -205,7 +208,24 @@ const TavernRummy = () => {
     setDiscardingCard(card.id);
 
     // Add flying card animation from player hand to discard
-    addFlyingCard(card, playerHandRef, discardRef, false, 0.4);
+    // Use captured card position if available, otherwise use container position
+    if (card._discardPosition && discardRef && discardRef.current) {
+      const toPos = getElementPosition(discardRef);
+      const flyingCard = {
+        id: `flying-${card.id}-${Date.now()}`,
+        card,
+        fromPosition: card._discardPosition,
+        toPosition: toPos,
+        hidden: false,
+        duration: 0.4,
+        onComplete: () => {
+          setFlyingCards(prev => prev.filter(fc => fc.id !== flyingCard.id));
+        }
+      };
+      setFlyingCards(prev => [...prev, flyingCard]);
+    } else {
+      addFlyingCard(card, playerHandRef, discardRef, false, 0.4);
+    }
 
     setTimeout(() => {
       const newHand = playerHand.filter(c => c.id !== card.id);
@@ -378,6 +398,12 @@ const TavernRummy = () => {
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-gray-900 via-amber-950 to-gray-900 text-amber-100 p-8 relative overflow-hidden">
+      {/* Splash Screen */}
+      <SplashScreen
+        show={showSplashScreen}
+        onStart={() => setShowSplashScreen(false)}
+      />
+
       {/* Torch light effects */}
       <div className="absolute top-0 left-20 w-40 h-40 bg-orange-500 rounded-full filter blur-3xl opacity-20 animate-pulse"></div>
       <div className="absolute top-0 right-20 w-40 h-40 bg-orange-500 rounded-full filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -404,16 +430,6 @@ const TavernRummy = () => {
               }`}
             >
               🏆 Match Mode {matchMode ? `(First to ${GAME_CONFIG.MATCH_WIN_SCORE})` : ''}
-            </button>
-            <button
-              onClick={() => setSortCards(!sortCards)}
-              className={`px-3 py-1 rounded-lg border transition-all ${
-                sortCards
-                  ? 'bg-teal-600 border-teal-400 text-white'
-                  : 'bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700'
-              }`}
-            >
-              🔄 Auto-Sort
             </button>
             <button
               onClick={() => setShowStatsModal(true)}
@@ -480,7 +496,7 @@ const TavernRummy = () => {
           newlyDrawnCard={newlyDrawnCard}
           discardingCard={discardingCard}
           tutorialHighlight={tutorialHighlight}
-          sortCards={sortCards}
+          sortCards={true}
           playerHandRef={playerHandRef}
           currentTurn={currentTurn}
         />
@@ -582,13 +598,13 @@ const TavernRummy = () => {
 
         {/* Rules */}
         <div className="mt-8 p-6 bg-gray-900 bg-opacity-70 rounded-lg border-2 border-amber-800">
-          <h3 className="text-xl font-bold text-amber-400 mb-3">♦️ The Ancient Rules ♦️</h3>
+          <h3 className="text-xl font-bold text-amber-400 mb-3">♦️ The Ancient Rules of the Tavern ♦️</h3>
           <div className="text-amber-200 text-sm space-y-2">
-            <p><strong>Objective:</strong> Form melds (sets of 3+ same rank, or runs of 3+ consecutive cards in same suit) and reduce deadwood to 10 or less, then knock!</p>
-            <p><strong>Your Turn:</strong> Draw from deck or discard pile, then discard one card.</p>
-            <p><strong>Knocking:</strong> After discarding, if your deadwood is 10 or less, you can knock to end the round.</p>
-            <p><strong>Scoring:</strong> Winner gets the difference in deadwood. GIN (0 deadwood) gives +25 gold bonus. Undercut (knocking with higher deadwood) gives opponent +25 gold.</p>
-            <p><strong>Strategy:</strong> Build melds, minimize deadwood, and time your knock wisely!</p>
+            <p><strong>Thy Quest:</strong> Forge melds (sets of 3+ cards of matching rank, or runs of 3+ cards in sequence of the same suit) and reduce thy deadwood to 10 points or less, then strike the table to knock!</p>
+            <p><strong>When Thy Turn Arrives:</strong> Draw a card from the deck or pluck one from the discard pile, then cast aside one card of thy choosing.</p>
+            <p><strong>The Sacred Knock:</strong> After discarding, shouldst thy deadwood be 10 or less, thou mayest knock upon the table to end the round and challenge thy foe!</p>
+            <p><strong>The Reckoning:</strong> The victor claims gold equal to the difference in deadwood. Achieving GIN (0 deadwood) bestows a mighty +25 gold bonus! Beware: knocking with higher deadwood than thy opponent results in an UNDERCUT, granting them +25 gold instead!</p>
+            <p><strong>Words of Wisdom:</strong> Build thy melds with care, minimize deadwood with cunning, and time thy knock with precision! Fortune favors the shrewd!</p>
           </div>
         </div>
       </div>
