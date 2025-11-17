@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 /**
  * TutorialCompleteModal Component
@@ -50,6 +51,13 @@ const TutorialCompleteModal = ({
       </div>
     </div>
   );
+};
+
+TutorialCompleteModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  roundWinner: PropTypes.string,
+  onStartRealMatch: PropTypes.func.isRequired,
+  onContinueTutorial: PropTypes.func.isRequired
 };
 
 export default TutorialCompleteModal;

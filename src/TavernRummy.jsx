@@ -22,9 +22,14 @@ import RoundEndModal from './components/Modals/RoundEndModal';
 import MatchWinnerModal from './components/Modals/MatchWinnerModal';
 import TutorialCompleteModal from './components/Modals/TutorialCompleteModal';
 import DifficultyConfirmModal from './components/Modals/DifficultyConfirmModal';
+import StatsModal from './components/Modals/StatsModal';
+import AchievementsModal from './components/Modals/AchievementsModal';
+import AchievementNotification from './components/UI/AchievementNotification';
 
 // Hooks
 import { useTutorial } from './hooks/useTutorial';
+import { useStats } from './hooks/useStats';
+import { useAchievements } from './hooks/useAchievements';
 
 const TavernRummy = () => {
   // Game State
@@ -57,6 +62,8 @@ const TavernRummy = () => {
   const [pendingDifficulty, setPendingDifficulty] = useState(null);
   const [showDifficultyConfirm, setShowDifficultyConfirm] = useState(false);
   const [showTutorialComplete, setShowTutorialComplete] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [showAchievementsModal, setShowAchievementsModal] = useState(false);
 
   // Refs
   const deckRef = useRef(null);
@@ -76,6 +83,12 @@ const TavernRummy = () => {
     discardPile,
     deck
   );
+
+  // Stats hook
+  const { stats, derivedStats, trackGame, trackMatch, resetAllStats } = useStats();
+
+  // Achievements hook
+  const { newlyUnlocked, dismissNotification, getAchievement, getAllAchievements, getCompletionStats } = useAchievements(stats);
 
   // Initialize game on mount
   useEffect(() => {
@@ -244,13 +257,30 @@ const TavernRummy = () => {
     }
 
     // Check for match winner
-    const winner = checkMatchWinner(newScores, matchMode);
-    if (winner) {
-      setMatchWinner(winner);
+    const matchWinner = checkMatchWinner(newScores, matchMode);
+    if (matchWinner) {
+      setMatchWinner(matchWinner);
+      // Track match completion
+      if (trackMatch) {
+        trackMatch(matchWinner);
+      }
     }
 
     setScores(newScores);
     setRoundEndData(result);
+
+    // Track game completion in stats
+    if (trackGame) {
+      trackGame({
+        winner: result.winner,
+        difficulty: difficulty,
+        playerDeadwood: result.playerDeadwood,
+        isGin: result.playerDeadwood === 0 && knocker === 'player',
+        isUndercut: (knocker === 'player' && result.winner === 'ai') || (knocker === 'ai' && result.winner === 'player'),
+        isKnock: knocker === 'player',
+        playerScore: newScores.player
+      });
+    }
 
     // Show tutorial completion prompt
     if (difficulty === DIFFICULTY_LEVELS.TUTORIAL && result.winner !== 'draw') {
@@ -259,17 +289,20 @@ const TavernRummy = () => {
   };
 
   const changeDifficulty = (newDifficulty) => {
-    if (difficulty === DIFFICULTY_LEVELS.TUTORIAL && newDifficulty !== DIFFICULTY_LEVELS.TUTORIAL) {
-      setPendingDifficulty(newDifficulty);
-      setShowDifficultyConfirm(true);
-    } else {
-      setDifficulty(newDifficulty);
-    }
+    // Don't show confirmation if selecting the same difficulty
+    if (difficulty === newDifficulty) return;
+
+    // Always show confirmation when changing difficulty
+    setPendingDifficulty(newDifficulty);
+    setShowDifficultyConfirm(true);
   };
 
   const confirmDifficultyChange = () => {
     setDifficulty(pendingDifficulty);
     setShowDifficultyConfirm(false);
+    setPendingDifficulty(null);
+    // Start a new round when difficulty changes
+    startNewRound();
   };
 
   const handleMatchModeToggle = () => {
@@ -317,6 +350,18 @@ const TavernRummy = () => {
               }`}
             >
               🔄 Auto-Sort
+            </button>
+            <button
+              onClick={() => setShowStatsModal(true)}
+              className="px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
+            >
+              📊 Statistics
+            </button>
+            <button
+              onClick={() => setShowAchievementsModal(true)}
+              className="px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
+            >
+              🏆 Achievements
             </button>
           </div>
         </div>
@@ -417,9 +462,41 @@ const TavernRummy = () => {
 
         <DifficultyConfirmModal
           show={showDifficultyConfirm}
+          currentDifficulty={difficulty}
+          newDifficulty={pendingDifficulty}
           onConfirm={confirmDifficultyChange}
-          onCancel={() => setShowDifficultyConfirm(false)}
+          onCancel={() => {
+            setShowDifficultyConfirm(false);
+            setPendingDifficulty(null);
+          }}
         />
+
+        <StatsModal
+          show={showStatsModal}
+          stats={stats}
+          derivedStats={derivedStats}
+          onClose={() => setShowStatsModal(false)}
+          onReset={() => {
+            resetAllStats();
+            setShowStatsModal(false);
+          }}
+        />
+
+        <AchievementsModal
+          show={showAchievementsModal}
+          achievements={getAllAchievements()}
+          completionStats={getCompletionStats()}
+          onClose={() => setShowAchievementsModal(false)}
+        />
+
+        {/* Achievement Notifications */}
+        {newlyUnlocked.map(achievementId => (
+          <AchievementNotification
+            key={achievementId}
+            achievement={getAchievement(achievementId)}
+            onDismiss={() => dismissNotification(achievementId)}
+          />
+        ))}
 
         {/* Rules */}
         <div className="mt-8 p-6 bg-gray-900 bg-opacity-70 rounded-lg border-2 border-amber-800">

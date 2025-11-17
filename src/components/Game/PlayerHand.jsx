@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import PlayingCard from '../UI/PlayingCard';
 import { isCardInMeld, getMeldColor } from '../../utils/cardUtils';
 
@@ -95,6 +96,19 @@ const PlayerHand = ({
       </div>
     </div>
   );
+};
+
+PlayerHand.propTypes = {
+  hand: PropTypes.array.isRequired,
+  melds: PropTypes.array.isRequired,
+  deadwood: PropTypes.number.isRequired,
+  onCardClick: PropTypes.func.isRequired,
+  canDiscard: PropTypes.bool.isRequired,
+  newlyDrawnCard: PropTypes.string,
+  discardingCard: PropTypes.string,
+  tutorialHighlight: PropTypes.string,
+  sortCards: PropTypes.bool.isRequired,
+  playerHandRef: PropTypes.object
 };
 
 export default PlayerHand;

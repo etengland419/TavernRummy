@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import PlayingCard from '../UI/PlayingCard';
 
 /**
@@ -74,6 +75,19 @@ const GameBoard = ({
       </div>
     </div>
   );
+};
+
+GameBoard.propTypes = {
+  deck: PropTypes.array.isRequired,
+  discardPile: PropTypes.array.isRequired,
+  onDrawFromDeck: PropTypes.func.isRequired,
+  onDrawFromDiscard: PropTypes.func.isRequired,
+  canDraw: PropTypes.bool.isRequired,
+  tutorialHighlight: PropTypes.string,
+  refs: PropTypes.shape({
+    deckRef: PropTypes.object,
+    discardRef: PropTypes.object
+  })
 };
 
 export default GameBoard;

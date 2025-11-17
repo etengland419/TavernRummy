@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 /**
  * RoundEndModal Component
@@ -54,6 +55,17 @@ const RoundEndModal = ({ roundEndData, onNextRound }) => {
       </div>
     </div>
   );
+};
+
+RoundEndModal.propTypes = {
+  roundEndData: PropTypes.shape({
+    winner: PropTypes.string.isRequired,
+    playerDeadwood: PropTypes.number.isRequired,
+    aiDeadwood: PropTypes.number.isRequired,
+    scoreDiff: PropTypes.number.isRequired,
+    reason: PropTypes.string.isRequired
+  }),
+  onNextRound: PropTypes.func.isRequired
 };
 
 export default RoundEndModal;
