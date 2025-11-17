@@ -23,16 +23,19 @@ import RoundEndModal from './components/Modals/RoundEndModal';
 import MatchWinnerModal from './components/Modals/MatchWinnerModal';
 import TutorialCompleteModal from './components/Modals/TutorialCompleteModal';
 import DifficultyConfirmModal from './components/Modals/DifficultyConfirmModal';
+import MatchModeConfirmModal from './components/Modals/MatchModeConfirmModal';
 import StatsModal from './components/Modals/StatsModal';
 import AchievementsModal from './components/Modals/AchievementsModal';
 import AchievementNotification from './components/UI/AchievementNotification';
 import AnimatedCard from './components/UI/AnimatedCard';
+import AudioControls from './components/UI/AudioControls';
 import SplashScreen from './components/Modals/SplashScreen';
 
 // Hooks
 import { useTutorial } from './hooks/useTutorial';
 import { useStats } from './hooks/useStats';
 import { useAchievements } from './hooks/useAchievements';
+import { useAudio } from './hooks/useAudio';
 
 const TavernRummy = () => {
   // Game State
@@ -64,6 +67,8 @@ const TavernRummy = () => {
   const [aiDiscardedCard, setAiDiscardedCard] = useState(null);
   const [pendingDifficulty, setPendingDifficulty] = useState(null);
   const [showDifficultyConfirm, setShowDifficultyConfirm] = useState(false);
+  const [pendingMatchMode, setPendingMatchMode] = useState(false);
+  const [showMatchModeConfirm, setShowMatchModeConfirm] = useState(false);
   const [showTutorialComplete, setShowTutorialComplete] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
@@ -96,6 +101,9 @@ const TavernRummy = () => {
 
   // Achievements hook
   const { newlyUnlocked, dismissNotification, getAchievement, getAllAchievements, getCompletionStats } = useAchievements(stats);
+
+  // Audio hook
+  const { isMuted, volume, toggleMute, changeVolume, sounds } = useAudio();
 
   // Helper function to get element position
   const getElementPosition = (ref) => {
@@ -147,6 +155,13 @@ const TavernRummy = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showSplashScreen]);
 
+  // Play achievement sound when new achievements are unlocked
+  useEffect(() => {
+    if (newlyUnlocked.length > 0) {
+      sounds.achievement();
+    }
+  }, [newlyUnlocked.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const startNewRound = () => {
     const newDeck = createDeck();
     const playerCards = newDeck.splice(0, GAME_CONFIG.STARTING_HAND_SIZE);
@@ -165,6 +180,7 @@ const TavernRummy = () => {
     setRoundEndData(null);
     setTutorialHighlight(null);
     setMessage('Draw a card from the deck or discard pile');
+    sounds.cardShuffle();
   };
 
   const drawCard = (source) => {
@@ -182,12 +198,14 @@ const TavernRummy = () => {
       }
       drawnCard = newDeck.pop();
       setDeck(newDeck);
+      sounds.cardDraw();
       // Add flying card animation from deck to player hand
       addFlyingCard(drawnCard, deckRef, playerHandRef, true);
     } else {
       if (discardPile.length === 0) return;
       drawnCard = newDiscard.pop();
       setDiscardPile(newDiscard);
+      sounds.cardDraw();
       // Add flying card animation from discard to player hand
       addFlyingCard(drawnCard, discardRef, playerHandRef, false);
     }
@@ -208,6 +226,7 @@ const TavernRummy = () => {
     if (currentTurn !== 'player' || phase !== 'discard') return;
 
     setDiscardingCard(card.id);
+    sounds.cardDiscard();
 
     // Add flying card animation from player hand to discard
     // Use captured card position if available, otherwise use container position
@@ -246,6 +265,7 @@ const TavernRummy = () => {
   const knock = () => {
     const deadwood = calculateDeadwood(playerHand);
     if (deadwood <= GAME_CONFIG.KNOCK_THRESHOLD && phase === 'discard') {
+      sounds.knock();
       endRound('player');
     }
   };
@@ -342,10 +362,30 @@ const TavernRummy = () => {
       setTimeout(() => setScoreAnimation(null), 2000);
     }
 
+    // Play appropriate sound based on result
+    const isPlayerGin = result.playerDeadwood === 0 && knocker === 'player';
+    const isUndercut = (knocker === 'player' && result.winner === 'ai') || (knocker === 'ai' && result.winner === 'player');
+
+    if (isPlayerGin) {
+      sounds.gin();
+    } else if (isUndercut && result.winner === 'ai') {
+      sounds.undercut();
+    } else if (result.winner === 'player') {
+      sounds.win();
+    } else if (result.winner === 'ai') {
+      sounds.lose();
+    }
+
     // Check for match winner
     const matchWinner = checkMatchWinner(newScores, matchMode);
     if (matchWinner) {
       setMatchWinner(matchWinner);
+      // Play match win/loss sound
+      setTimeout(() => {
+        if (matchWinner === 'player') {
+          sounds.matchWin();
+        }
+      }, 500);
       // Track match completion
       if (trackMatch) {
         trackMatch(matchWinner);
@@ -381,6 +421,7 @@ const TavernRummy = () => {
     // Always show confirmation when changing difficulty
     setPendingDifficulty(newDifficulty);
     setShowDifficultyConfirm(true);
+    sounds.buttonClick();
   };
 
   const confirmDifficultyChange = () => {
@@ -388,15 +429,25 @@ const TavernRummy = () => {
     setOpponentName(getRandomOpponentName(pendingDifficulty));
     setShowDifficultyConfirm(false);
     setPendingDifficulty(null);
+    sounds.newRound();
     // Start a new round when difficulty changes
     startNewRound();
   };
 
   const handleMatchModeToggle = () => {
-    setMatchMode(!matchMode);
+    // Show confirmation modal before toggling
+    setPendingMatchMode(!matchMode);
+    setShowMatchModeConfirm(true);
+    sounds.buttonClick();
+  };
+
+  const confirmMatchModeChange = () => {
+    setMatchMode(pendingMatchMode);
     setScores({ player: 0, ai: 0 });
     setMatchWinner(null);
     setOpponentName(getRandomOpponentName(difficulty));
+    setShowMatchModeConfirm(false);
+    sounds.newRound();
     startNewRound();
   };
 
@@ -406,6 +457,14 @@ const TavernRummy = () => {
       <SplashScreen
         show={showSplashScreen}
         onStart={() => setShowSplashScreen(false)}
+      />
+
+      {/* Audio Controls */}
+      <AudioControls
+        isMuted={isMuted}
+        volume={volume}
+        onToggleMute={toggleMute}
+        onVolumeChange={changeVolume}
       />
 
       {/* Torch light effects */}
@@ -436,13 +495,19 @@ const TavernRummy = () => {
               🏆 Match Mode {matchMode ? `(First to ${GAME_CONFIG.MATCH_WIN_SCORE})` : ''}
             </button>
             <button
-              onClick={() => setShowStatsModal(true)}
+              onClick={() => {
+                sounds.buttonClick();
+                setShowStatsModal(true);
+              }}
               className="px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
             >
               📊 Statistics
             </button>
             <button
-              onClick={() => setShowAchievementsModal(true)}
+              onClick={() => {
+                sounds.buttonClick();
+                setShowAchievementsModal(true);
+              }}
               className="px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
             >
               🏆 Achievements
@@ -558,6 +623,16 @@ const TavernRummy = () => {
           onCancel={() => {
             setShowDifficultyConfirm(false);
             setPendingDifficulty(null);
+          }}
+        />
+
+        <MatchModeConfirmModal
+          show={showMatchModeConfirm}
+          isEnabling={pendingMatchMode}
+          onConfirm={confirmMatchModeChange}
+          onCancel={() => {
+            setShowMatchModeConfirm(false);
+            setPendingMatchMode(false);
           }}
         />
 
