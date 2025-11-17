@@ -470,8 +470,12 @@ const TavernRummy = () => {
       {/* Splash Screen */}
       <SplashScreen
         show={showSplashScreen}
-        onStart={() => {
+        onStart={({ difficulty: selectedDifficulty, matchMode: selectedMatchMode }) => {
           setShowSplashScreen(false);
+          // Set the selected difficulty and match mode
+          setDifficulty(selectedDifficulty);
+          setMatchMode(selectedMatchMode);
+          setOpponentName(getRandomOpponentName(selectedDifficulty));
           // Start background music on user interaction
           playBackgroundMusic();
         }}
