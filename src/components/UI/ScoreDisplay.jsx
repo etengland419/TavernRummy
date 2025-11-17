@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 /**
  * ScoreDisplay Component
@@ -25,6 +26,14 @@ const ScoreDisplay = ({ scores, scoreAnimation }) => {
       </div>
     </div>
   );
+};
+
+ScoreDisplay.propTypes = {
+  scores: PropTypes.shape({
+    player: PropTypes.number.isRequired,
+    ai: PropTypes.number.isRequired
+  }).isRequired,
+  scoreAnimation: PropTypes.string
 };
 
 export default ScoreDisplay;

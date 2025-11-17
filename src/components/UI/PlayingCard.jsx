@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 /**
  * PlayingCard Component
@@ -65,6 +66,24 @@ const PlayingCard = ({
       )}
     </div>
   );
+};
+
+PlayingCard.propTypes = {
+  card: PropTypes.shape({
+    suit: PropTypes.string.isRequired,
+    rank: PropTypes.string.isRequired,
+    value: PropTypes.number.isRequired,
+    id: PropTypes.string.isRequired
+  }).isRequired,
+  onClick: PropTypes.func,
+  hidden: PropTypes.bool,
+  isNew: PropTypes.bool,
+  isDiscarding: PropTypes.bool,
+  isAiDrawing: PropTypes.bool,
+  isAiDiscarding: PropTypes.bool,
+  shouldHighlight: PropTypes.bool,
+  inMeld: PropTypes.bool,
+  meldColor: PropTypes.string
 };
 
 export default PlayingCard;

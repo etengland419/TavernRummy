@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import PlayingCard from '../UI/PlayingCard';
 
 /**
@@ -31,6 +32,13 @@ const AIHand = ({ hand, gameOver, aiDrawnCard, aiDiscardedCard }) => {
       </div>
     </div>
   );
+};
+
+AIHand.propTypes = {
+  hand: PropTypes.array.isRequired,
+  gameOver: PropTypes.bool.isRequired,
+  aiDrawnCard: PropTypes.string,
+  aiDiscardedCard: PropTypes.string
 };
 
 export default AIHand;

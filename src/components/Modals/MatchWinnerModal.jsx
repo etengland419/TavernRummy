@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 /**
  * MatchWinnerModal Component
@@ -52,6 +53,15 @@ const MatchWinnerModal = ({ matchWinner, scores, onPlayAgain }) => {
       </div>
     </div>
   );
+};
+
+MatchWinnerModal.propTypes = {
+  matchWinner: PropTypes.string,
+  scores: PropTypes.shape({
+    player: PropTypes.number.isRequired,
+    ai: PropTypes.number.isRequired
+  }).isRequired,
+  onPlayAgain: PropTypes.func.isRequired
 };
 
 export default MatchWinnerModal;

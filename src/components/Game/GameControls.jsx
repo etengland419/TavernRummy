@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 /**
  * GameControls Component
@@ -35,6 +36,14 @@ const GameControls = ({ onKnock, onNewRound, canKnock, deadwood, tutorialHighlig
       </button>
     </div>
   );
+};
+
+GameControls.propTypes = {
+  onKnock: PropTypes.func.isRequired,
+  onNewRound: PropTypes.func.isRequired,
+  canKnock: PropTypes.bool.isRequired,
+  deadwood: PropTypes.number.isRequired,
+  tutorialHighlight: PropTypes.bool.isRequired
 };
 
 export default GameControls;

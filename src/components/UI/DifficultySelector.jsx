@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { DIFFICULTY_LEVELS } from '../../utils/constants';
 
 /**
@@ -33,6 +34,11 @@ const DifficultySelector = ({ difficulty, onDifficultyChange }) => {
       ))}
     </div>
   );
+};
+
+DifficultySelector.propTypes = {
+  difficulty: PropTypes.string.isRequired,
+  onDifficultyChange: PropTypes.func.isRequired
 };
 
 export default DifficultySelector;

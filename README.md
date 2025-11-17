@@ -24,6 +24,10 @@ A medieval-themed Gin Rummy card game with an immersive tavern atmosphere, intel
 - **Auto-Sort Cards** - Automatically organize your hand with melds first
 - **Visual Meld Detection** - Color-coded borders show which cards form melds
 - **Real-time Feedback** - Deadwood counter and meld statistics
+- **Statistics Tracking** - Comprehensive game statistics with LocalStorage persistence
+- **Achievements System** - 15+ achievements to unlock with progress tracking
+- **Achievement Notifications** - Toast notifications when unlocking new achievements
+- **Difficulty Confirmation** - Prevents accidental difficulty changes with confirmation dialogs
 
 ## 🎯 How to Play
 
@@ -54,24 +58,32 @@ TavernRummy/
 │   │   ├── UI/                    # Reusable UI components
 │   │   │   ├── PlayingCard.jsx
 │   │   │   ├── ScoreDisplay.jsx
-│   │   │   └── DifficultySelector.jsx
+│   │   │   ├── DifficultySelector.jsx
+│   │   │   └── AchievementNotification.jsx
 │   │   ├── Modals/                # Modal dialogs
 │   │   │   ├── RoundEndModal.jsx
 │   │   │   ├── MatchWinnerModal.jsx
 │   │   │   ├── TutorialCompleteModal.jsx
-│   │   │   └── DifficultyConfirmModal.jsx
-│   │   └── Game/                  # Game-specific components
-│   │       ├── GameBoard.jsx
-│   │       ├── PlayerHand.jsx
-│   │       ├── AIHand.jsx
-│   │       └── GameControls.jsx
+│   │   │   ├── DifficultyConfirmModal.jsx
+│   │   │   ├── StatsModal.jsx
+│   │   │   └── AchievementsModal.jsx
+│   │   ├── Game/                  # Game-specific components
+│   │   │   ├── GameBoard.jsx
+│   │   │   ├── PlayerHand.jsx
+│   │   │   ├── AIHand.jsx
+│   │   │   └── GameControls.jsx
+│   │   └── ErrorBoundary.jsx      # Error handling
 │   ├── hooks/                     # Custom React hooks
-│   │   └── useTutorial.js
+│   │   ├── useTutorial.js
+│   │   ├── useStats.js
+│   │   └── useAchievements.js
 │   ├── utils/                     # Utility functions
 │   │   ├── constants.js           # Game configuration
 │   │   ├── cardUtils.js           # Card operations
 │   │   ├── meldUtils.js           # Meld detection logic
-│   │   └── scoringUtils.js        # Scoring calculations
+│   │   ├── scoringUtils.js        # Scoring calculations
+│   │   ├── statsUtils.js          # Statistics tracking
+│   │   └── achievementsUtils.js   # Achievements system
 │   ├── ai/                        # AI strategy
 │   │   └── aiStrategy.js
 │   ├── styles/
@@ -183,13 +195,49 @@ The game is fully responsive and works on:
 - **Separation of Concerns** - Logic separated from presentation
 - **Scalability** - Easy to add new features and game modes
 - **Maintainability** - Clear file structure and documentation
+- **Type Safety** - PropTypes for all components
+- **Error Handling** - Error boundaries for graceful failure recovery
+- **Comprehensive Testing** - Unit tests for all utility functions
+- **Local Persistence** - Statistics and achievements saved in LocalStorage
 
 ## 🧪 Testing
+
+The project includes comprehensive unit tests for all utility functions:
 
 ```bash
 # Run tests
 npm test
+
+# Run tests in watch mode
+npm test -- --watch
+
+# Run tests with coverage
+npm test -- --coverage
 ```
+
+### Test Coverage
+- ✅ `cardUtils.js` - Card creation, shuffling, and meld utilities
+- ✅ `meldUtils.js` - Meld detection, deadwood calculation, hand sorting
+- ✅ `scoringUtils.js` - Round scoring and match winner determination
+
+## 📊 Statistics & Achievements
+
+### Statistics Tracked
+- Games played/won by difficulty
+- Win rates and streaks
+- Average deadwood and scores
+- Gin count and undercut count
+- Match statistics
+
+### Achievement Categories
+- **First Steps** - First win, tutorial completion
+- **Special Plays** - Gin, undercuts, strategic plays
+- **Milestones** - Games played (10, 50, 100+)
+- **Streaks** - Win streaks (3, 5, 10+)
+- **Difficulty Mastery** - Win games on each difficulty
+- **Match Mode** - Match victories
+
+All statistics and achievements are automatically saved in LocalStorage and persist between sessions.
 
 ## 📄 License
 
@@ -201,12 +249,12 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ### Future Enhancements
 - Multiplayer mode (online play)
-- Leaderboards and statistics
 - Sound effects and music
 - Additional card themes
 - Progressive web app (PWA) support
-- Achievements system
-- Card animation improvements
+- Online leaderboards
+- More achievements
+- Component Storybook for development
 
 ## 📚 Learn More
 
