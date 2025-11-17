@@ -12,7 +12,7 @@ export const useAudio = () => {
 
   const [musicVolume, setMusicVolume] = useState(() => {
     const saved = localStorage.getItem('tavernRummy_musicVolume');
-    return saved ? parseFloat(saved) : 0.3;
+    return saved ? parseFloat(saved) : 0.15;
   });
 
   const [sfxVolume, setSfxVolume] = useState(() => {
@@ -36,7 +36,9 @@ export const useAudio = () => {
     }
   }, []);
 
-  // Initialize audio context and music audio element
+  // Initialize audio context and music audio element (ONCE on mount)
+  // Note: We intentionally do NOT include musicVolume/sfxVolume in dependencies
+  // to prevent re-initialization when sliders change, which causes freezing
   useEffect(() => {
     const soundPool = soundPoolRef.current;
 
@@ -51,10 +53,10 @@ export const useAudio = () => {
       // Create audio element for background music
       const audio = new Audio(`${process.env.PUBLIC_URL}/audio/tavern-music.mp3`);
       audio.loop = true;
-      audio.volume = musicVolume;
+      audio.volume = 0.15; // Default volume
       musicAudioRef.current = audio;
 
-      // Pre-load all sound effects into a pool for instant playback
+      // Sound effects disabled - Pre-load all sound effects into a pool for instant playback
       const soundFiles = [
         'card-draw',
         'card-discard',
@@ -76,7 +78,7 @@ export const useAudio = () => {
         for (let i = 0; i < 3; i++) {
           const audio = new Audio(`${process.env.PUBLIC_URL}/audio/${soundName}.wav`);
           audio.preload = 'auto';
-          audio.volume = sfxVolume;
+          audio.volume = 0.5; // Default SFX volume
           // Disable default error logging to prevent console spam
           audio.onerror = () => {
             console.warn(`Failed to load audio: ${soundName}.wav`);
@@ -109,7 +111,8 @@ export const useAudio = () => {
       });
       soundPool.clear();
     };
-  }, [stopBackgroundMusic, musicVolume, sfxVolume]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stopBackgroundMusic]);
 
   // Save preferences to localStorage (debounced to prevent lag)
   useEffect(() => {

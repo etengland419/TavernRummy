@@ -106,11 +106,8 @@ const TavernRummy = () => {
   const {
     isMuted,
     musicVolume,
-    sfxVolume,
     toggleMute,
     changeMusicVolume,
-    changeSfxVolume,
-    sounds,
     playBackgroundMusic,
     stopBackgroundMusic
   } = useAudio();
@@ -165,12 +162,12 @@ const TavernRummy = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showSplashScreen]);
 
-  // Play achievement sound when new achievements are unlocked
-  useEffect(() => {
-    if (newlyUnlocked.length > 0) {
-      sounds.achievement();
-    }
-  }, [newlyUnlocked.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Sound effects disabled - Play achievement sound when new achievements are unlocked
+  // useEffect(() => {
+  //   if (newlyUnlocked.length > 0) {
+  //     sounds.achievement();
+  //   }
+  // }, [newlyUnlocked.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Stop background music on unmount
   useEffect(() => {
@@ -197,7 +194,7 @@ const TavernRummy = () => {
     setRoundEndData(null);
     setTutorialHighlight(null);
     setMessage('Draw a card from the deck or discard pile');
-    sounds.cardShuffle();
+    // sounds.cardShuffle(); // Sound effects disabled
   };
 
   const drawCard = (source) => {
@@ -215,14 +212,14 @@ const TavernRummy = () => {
       }
       drawnCard = newDeck.pop();
       setDeck(newDeck);
-      sounds.cardDraw();
+      // sounds.cardDraw(); // Sound effects disabled
       // Add flying card animation from deck to player hand
       addFlyingCard(drawnCard, deckRef, playerHandRef, true);
     } else {
       if (discardPile.length === 0) return;
       drawnCard = newDiscard.pop();
       setDiscardPile(newDiscard);
-      sounds.cardDraw();
+      // sounds.cardDraw(); // Sound effects disabled
       // Add flying card animation from discard to player hand
       addFlyingCard(drawnCard, discardRef, playerHandRef, false);
     }
@@ -243,7 +240,7 @@ const TavernRummy = () => {
     if (currentTurn !== 'player' || phase !== 'discard') return;
 
     setDiscardingCard(card.id);
-    sounds.cardDiscard();
+    // sounds.cardDiscard(); // Sound effects disabled
 
     // Add flying card animation from player hand to discard
     // Use captured card position if available, otherwise use container position
@@ -282,7 +279,7 @@ const TavernRummy = () => {
   const knock = () => {
     const deadwood = calculateDeadwood(playerHand);
     if (deadwood <= GAME_CONFIG.KNOCK_THRESHOLD && phase === 'discard') {
-      sounds.knock();
+      // sounds.knock(); // Sound effects disabled
       endRound('player');
     }
   };
@@ -379,30 +376,30 @@ const TavernRummy = () => {
       setTimeout(() => setScoreAnimation(null), 2000);
     }
 
-    // Play appropriate sound based on result
-    const isPlayerGin = result.playerDeadwood === 0 && knocker === 'player';
-    const isUndercut = (knocker === 'player' && result.winner === 'ai') || (knocker === 'ai' && result.winner === 'player');
+    // Sound effects disabled - Play appropriate sound based on result
+    // const isPlayerGin = result.playerDeadwood === 0 && knocker === 'player';
+    // const isUndercut = (knocker === 'player' && result.winner === 'ai') || (knocker === 'ai' && result.winner === 'player');
 
-    if (isPlayerGin) {
-      sounds.gin();
-    } else if (isUndercut && result.winner === 'ai') {
-      sounds.undercut();
-    } else if (result.winner === 'player') {
-      sounds.win();
-    } else if (result.winner === 'ai') {
-      sounds.lose();
-    }
+    // if (isPlayerGin) {
+    //   sounds.gin();
+    // } else if (isUndercut && result.winner === 'ai') {
+    //   sounds.undercut();
+    // } else if (result.winner === 'player') {
+    //   sounds.win();
+    // } else if (result.winner === 'ai') {
+    //   sounds.lose();
+    // }
 
     // Check for match winner
     const matchWinner = checkMatchWinner(newScores, matchMode);
     if (matchWinner) {
       setMatchWinner(matchWinner);
-      // Play match win/loss sound
-      setTimeout(() => {
-        if (matchWinner === 'player') {
-          sounds.matchWin();
-        }
-      }, 500);
+      // Sound effects disabled - Play match win/loss sound
+      // setTimeout(() => {
+      //   if (matchWinner === 'player') {
+      //     sounds.matchWin();
+      //   }
+      // }, 500);
       // Track match completion
       if (trackMatch) {
         trackMatch(matchWinner);
@@ -438,7 +435,7 @@ const TavernRummy = () => {
     // Always show confirmation when changing difficulty
     setPendingDifficulty(newDifficulty);
     setShowDifficultyConfirm(true);
-    sounds.buttonClick();
+    // sounds.buttonClick(); // Sound effects disabled
   };
 
   const confirmDifficultyChange = () => {
@@ -446,7 +443,7 @@ const TavernRummy = () => {
     setOpponentName(getRandomOpponentName(pendingDifficulty));
     setShowDifficultyConfirm(false);
     setPendingDifficulty(null);
-    sounds.newRound();
+    // sounds.newRound(); // Sound effects disabled
     // Start a new round when difficulty changes
     startNewRound();
   };
@@ -455,7 +452,7 @@ const TavernRummy = () => {
     // Show confirmation modal before toggling
     setPendingMatchMode(!matchMode);
     setShowMatchModeConfirm(true);
-    sounds.buttonClick();
+    // sounds.buttonClick(); // Sound effects disabled
   };
 
   const confirmMatchModeChange = () => {
@@ -464,7 +461,7 @@ const TavernRummy = () => {
     setMatchWinner(null);
     setOpponentName(getRandomOpponentName(difficulty));
     setShowMatchModeConfirm(false);
-    sounds.newRound();
+    // sounds.newRound(); // Sound effects disabled
     startNewRound();
   };
 
@@ -484,10 +481,8 @@ const TavernRummy = () => {
       <AudioControls
         isMuted={isMuted}
         musicVolume={musicVolume}
-        sfxVolume={sfxVolume}
         onToggleMute={toggleMute}
         onMusicVolumeChange={changeMusicVolume}
-        onSfxVolumeChange={changeSfxVolume}
       />
 
       {/* Torch light effects */}
@@ -519,7 +514,7 @@ const TavernRummy = () => {
             </button>
             <button
               onClick={() => {
-                sounds.buttonClick();
+                // sounds.buttonClick(); // Sound effects disabled
                 setShowStatsModal(true);
               }}
               className="px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
@@ -528,7 +523,7 @@ const TavernRummy = () => {
             </button>
             <button
               onClick={() => {
-                sounds.buttonClick();
+                // sounds.buttonClick(); // Sound effects disabled
                 setShowAchievementsModal(true);
               }}
               className="px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
