@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A medieval-themed Gin Rummy card game with tutorial mode and AI opponents",
   "private": true,
-  "homepage": ".",
+  "homepage": "https://etengland419.github.io/TavernRummy",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
