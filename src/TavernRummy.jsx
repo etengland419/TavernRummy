@@ -477,6 +477,7 @@ const TavernRummy = () => {
           aiDiscardedCard={aiDiscardedCard}
           currentTurn={currentTurn}
           aiHandRef={aiHandRef}
+          opponentName={opponentName}
         />
 
         {/* Game Board (Deck & Discard) */}

@@ -13,8 +13,9 @@ import PlayingCard from '../UI/PlayingCard';
  * @param {string} aiDiscardedCard - ID of card AI is discarding
  * @param {string} currentTurn - Current turn ('player' or 'ai')
  * @param {Object} aiHandRef - Ref for AI hand container
+ * @param {string} opponentName - Name of the opponent to display
  */
-const AIHand = ({ hand, gameOver, aiDrawnCard, aiDiscardedCard, currentTurn, aiHandRef }) => {
+const AIHand = ({ hand, gameOver, aiDrawnCard, aiDiscardedCard, currentTurn, aiHandRef, opponentName }) => {
   const isAiTurn = currentTurn === 'ai';
 
   return (
@@ -22,7 +23,7 @@ const AIHand = ({ hand, gameOver, aiDrawnCard, aiDiscardedCard, currentTurn, aiH
       <div className="flex items-center justify-center gap-2 mb-3">
         <span className="text-2xl">👤</span>
         <h2 className={`text-xl font-bold text-amber-400 transition-all duration-300 ${isAiTurn ? 'ai-turn-name-glow' : ''}`}>
-          The Hooded Stranger
+          {opponentName}
         </h2>
       </div>
       <div className="flex justify-center gap-2">
@@ -56,7 +57,8 @@ AIHand.propTypes = {
   aiDrawnCard: PropTypes.string,
   aiDiscardedCard: PropTypes.string,
   currentTurn: PropTypes.string,
-  aiHandRef: PropTypes.object
+  aiHandRef: PropTypes.object,
+  opponentName: PropTypes.string.isRequired
 };
 
 export default AIHand;
