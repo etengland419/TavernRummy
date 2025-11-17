@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -29,6 +29,18 @@ const PlayingCard = ({
   meldColor = null
 }) => {
   const isRed = ['♥', '♦', '🏆', '💰'].includes(card.suit);
+  const [showMeldCelebration, setShowMeldCelebration] = useState(false);
+  const prevInMeld = useRef(inMeld);
+
+  // Detect when card becomes part of a meld
+  useEffect(() => {
+    if (!prevInMeld.current && inMeld) {
+      setShowMeldCelebration(true);
+      const timer = setTimeout(() => setShowMeldCelebration(false), 600);
+      return () => clearTimeout(timer);
+    }
+    prevInMeld.current = inMeld;
+  }, [inMeld]);
 
   return (
     <div
@@ -44,6 +56,7 @@ const PlayingCard = ({
         ${isAiDiscarding ? 'ring-4 ring-red-400 animate-[pulse_0.8s_ease-in-out_2]' : ''}
         ${shouldHighlight ? 'ring-4 ring-blue-400 animate-[pulse_1.5s_ease-in-out_infinite]' : ''}
         ${!hidden && !inMeld ? 'hover:transform hover:-translate-y-1' : ''}
+        ${showMeldCelebration ? 'meld-glow' : ''}
       `}
     >
       {!hidden ? (

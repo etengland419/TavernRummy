@@ -75,3 +75,162 @@
   background: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
   background-size: 1000px 100%;
 }
+
+/* Turn indicator animations */
+@keyframes playerTurnGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.4), 0 0 40px rgba(34, 197, 94, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(34, 197, 94, 0.6), 0 0 60px rgba(34, 197, 94, 0.3);
+  }
+}
+
+.player-turn-glow {
+  animation: playerTurnGlow 2s ease-in-out infinite;
+}
+
+@keyframes aiTurnGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.4), 0 0 40px rgba(147, 51, 234, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(147, 51, 234, 0.6), 0 0 60px rgba(147, 51, 234, 0.3);
+  }
+}
+
+.ai-turn-glow {
+  animation: aiTurnGlow 2s ease-in-out infinite;
+}
+
+/* Clickable area pulse */
+@keyframes clickablePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(251, 191, 36, 0);
+  }
+}
+
+.clickable-pulse {
+  animation: clickablePulse 1.5s ease-in-out infinite;
+}
+
+/* Meld celebration */
+@keyframes meldSparkle {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5) rotate(180deg);
+  }
+}
+
+.meld-sparkle {
+  animation: meldSparkle 0.6s ease-out;
+}
+
+@keyframes meldGlow {
+  0% {
+    box-shadow: 0 0 0 rgba(34, 197, 94, 0);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.meld-glow {
+  animation: meldGlow 0.6s ease-out;
+}
+
+/* Knock animation */
+@keyframes knockBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.15) rotate(-5deg);
+  }
+  75% {
+    transform: scale(1.15) rotate(5deg);
+  }
+}
+
+.knock-bounce {
+  animation: knockBounce 0.4s ease-in-out;
+}
+
+/* Deck low warning */
+@keyframes deckLowShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
+}
+
+.deck-low-shake {
+  animation: deckLowShake 0.3s ease-in-out;
+}
+
+@keyframes deckLowGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.8);
+  }
+}
+
+.deck-low-glow {
+  animation: deckLowGlow 1s ease-in-out infinite;
+}
+
+/* Card flying animation */
+@keyframes cardFly {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.card-fly {
+  animation: cardFly 0.3s ease-out;
+}
+
+/* Turn transition */
+@keyframes turnTransition {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.turn-transition {
+  animation: turnTransition 0.4s ease-in-out;
+}

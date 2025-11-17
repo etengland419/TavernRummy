@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -12,10 +12,18 @@ import PropTypes from 'prop-types';
  * @param {boolean} tutorialHighlight - Whether to highlight knock button
  */
 const GameControls = ({ onKnock, onNewRound, canKnock, deadwood, tutorialHighlight }) => {
+  const [isKnocking, setIsKnocking] = useState(false);
+
+  const handleKnock = () => {
+    setIsKnocking(true);
+    setTimeout(() => setIsKnocking(false), 400);
+    onKnock();
+  };
+
   return (
     <div className="flex justify-center gap-4 mb-6">
       <button
-        onClick={onKnock}
+        onClick={handleKnock}
         disabled={!canKnock}
         className={`
           px-6 py-3 rounded-lg font-bold text-lg border-3 transition-all transform
@@ -23,6 +31,7 @@ const GameControls = ({ onKnock, onNewRound, canKnock, deadwood, tutorialHighlig
             ? `bg-green-700 hover:bg-green-600 border-green-500 text-white hover:scale-105 shadow-lg ${tutorialHighlight ? 'ring-4 ring-blue-400 animate-[pulse_1.5s_ease-in-out_infinite]' : ''}`
             : 'bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed opacity-50'
           }
+          ${isKnocking ? 'knock-bounce' : ''}
         `}
       >
         ⚔️ KNOCK ({deadwood})

@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { motion, AnimatePresence } from 'framer-motion';
 import PlayingCard from '../UI/PlayingCard';
 import { isCardInMeld, getMeldColor } from '../../utils/cardUtils';
 
@@ -17,6 +18,7 @@ import { isCardInMeld, getMeldColor } from '../../utils/cardUtils';
  * @param {string} tutorialHighlight - ID of highlighted card
  * @param {boolean} sortCards - Whether cards are auto-sorted
  * @param {Object} playerHandRef - Ref for player hand container
+ * @param {string} currentTurn - Current turn ('player' or 'ai')
  */
 const PlayerHand = ({
   hand,
@@ -28,10 +30,13 @@ const PlayerHand = ({
   discardingCard,
   tutorialHighlight,
   sortCards,
-  playerHandRef
+  playerHandRef,
+  currentTurn
 }) => {
+  const isPlayerTurn = currentTurn === 'player';
+
   return (
-    <div ref={playerHandRef}>
+    <div ref={playerHandRef} className={`rounded-lg p-4 transition-all duration-300 ${isPlayerTurn ? 'player-turn-glow' : ''}`}>
       <div className="flex items-center justify-center gap-2 mb-3">
         <span className="text-2xl">🛡️</span>
         <h2 className="text-xl font-bold text-amber-400">Your Hand</h2>
@@ -40,31 +45,45 @@ const PlayerHand = ({
         )}
       </div>
       <div className="flex justify-center gap-2 flex-wrap mb-4">
-        {hand.map((card, index) => {
-          // Check if we're at the transition from melds to deadwood
-          const isFirstDeadwood = sortCards && melds.length > 0 &&
-            index === melds.flat().length;
+        <AnimatePresence initial={false}>
+          {hand.map((card, index) => {
+            // Check if we're at the transition from melds to deadwood
+            const isFirstDeadwood = sortCards && melds.length > 0 &&
+              index === melds.flat().length;
 
-          const inMeld = isCardInMeld(card.id, melds);
-          const meldColor = getMeldColor(card.id, melds);
+            const inMeld = isCardInMeld(card.id, melds);
+            const meldColor = getMeldColor(card.id, melds);
 
-          return (
-            <React.Fragment key={card.id}>
-              {isFirstDeadwood && (
-                <div className="w-1 h-28 bg-amber-600 rounded mx-2 opacity-50"></div>
-              )}
-              <PlayingCard
-                card={card}
-                onClick={() => canDiscard && onCardClick(card)}
-                isNew={newlyDrawnCard === card.id}
-                isDiscarding={discardingCard === card.id}
-                shouldHighlight={tutorialHighlight === card.id}
-                inMeld={inMeld}
-                meldColor={meldColor}
-              />
-            </React.Fragment>
-          );
-        })}
+            return (
+              <React.Fragment key={card.id}>
+                {isFirstDeadwood && (
+                  <motion.div
+                    className="w-1 h-28 bg-amber-600 rounded mx-2 opacity-50"
+                    layout
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                  />
+                )}
+                <motion.div
+                  layout
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <PlayingCard
+                    card={card}
+                    onClick={() => canDiscard && onCardClick(card)}
+                    isNew={newlyDrawnCard === card.id}
+                    isDiscarding={discardingCard === card.id}
+                    shouldHighlight={tutorialHighlight === card.id}
+                    inMeld={inMeld}
+                    meldColor={meldColor}
+                  />
+                </motion.div>
+              </React.Fragment>
+            );
+          })}
+        </AnimatePresence>
       </div>
 
       {/* Player Info with Meld Legend */}
@@ -108,7 +127,8 @@ PlayerHand.propTypes = {
   discardingCard: PropTypes.string,
   tutorialHighlight: PropTypes.string,
   sortCards: PropTypes.bool.isRequired,
-  playerHandRef: PropTypes.object
+  playerHandRef: PropTypes.object,
+  currentTurn: PropTypes.string
 };
 
 export default PlayerHand;

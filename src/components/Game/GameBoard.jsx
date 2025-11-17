@@ -23,6 +23,8 @@ const GameBoard = ({
   tutorialHighlight,
   refs
 }) => {
+  const isDeckLow = deck.length <= 10 && deck.length > 0;
+
   return (
     <div className="flex justify-center gap-8 mb-8">
       {/* Draw Pile */}
@@ -31,7 +33,10 @@ const GameBoard = ({
         ref={refs?.deckRef}
       >
         <div className="text-center mb-2">
-          <p className="text-amber-300 font-bold">Draw Pile ({deck.length})</p>
+          <p className={`font-bold ${isDeckLow ? 'text-red-400' : 'text-amber-300'}`}>
+            Draw Pile ({deck.length})
+            {isDeckLow && <span className="ml-1 text-xs">⚠️</span>}
+          </p>
         </div>
         <div
           onClick={onDrawFromDeck}
@@ -41,6 +46,8 @@ const GameBoard = ({
             flex items-center justify-center cursor-pointer
             transition-all duration-200 shadow-2xl
             ${canDraw && deck.length > 0 ? 'hover:scale-105 hover:shadow-yellow-500/50' : 'opacity-50 cursor-not-allowed'}
+            ${canDraw && deck.length > 0 && !tutorialHighlight ? 'clickable-pulse' : ''}
+            ${isDeckLow ? 'deck-low-glow' : ''}
           `}
         >
           <div className="text-amber-600 text-5xl">🃏</div>
@@ -61,7 +68,10 @@ const GameBoard = ({
           <p className="text-amber-300 font-bold">Discard Pile</p>
         </div>
         {discardPile.length > 0 ? (
-          <div onClick={onDrawFromDiscard}>
+          <div
+            onClick={onDrawFromDiscard}
+            className={canDraw && !tutorialHighlight ? 'clickable-pulse' : ''}
+          >
             <PlayingCard
               card={discardPile[discardPile.length - 1]}
               onClick={onDrawFromDiscard}

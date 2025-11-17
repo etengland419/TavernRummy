@@ -389,6 +389,7 @@ const TavernRummy = () => {
           gameOver={gameOver}
           aiDrawnCard={aiDrawnCard}
           aiDiscardedCard={aiDiscardedCard}
+          currentTurn={currentTurn}
         />
 
         {/* Game Board (Deck & Discard) */}
@@ -414,6 +415,7 @@ const TavernRummy = () => {
           tutorialHighlight={tutorialHighlight}
           sortCards={sortCards}
           playerHandRef={playerHandRef}
+          currentTurn={currentTurn}
         />
 
         {/* Game Controls */}
