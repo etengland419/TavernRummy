@@ -115,6 +115,30 @@ export const calculateDeadwood = (hand) => {
 };
 
 /**
+ * Calculate the minimum possible deadwood after discarding one card
+ * Used to determine if a player can knock after discarding
+ * @param {Array} hand - Array of card objects (typically 11 cards during discard phase)
+ * @returns {number} Minimum deadwood value achievable after discarding one card
+ */
+export const calculateMinDeadwoodAfterDiscard = (hand) => {
+  // If hand has 10 or fewer cards, just return current deadwood
+  if (hand.length <= 10) {
+    return calculateDeadwood(hand);
+  }
+
+  // Try removing each card and find the minimum deadwood
+  let minDeadwood = Infinity;
+
+  for (let i = 0; i < hand.length; i++) {
+    const handWithoutCard = hand.filter((_, index) => index !== i);
+    const deadwood = calculateDeadwood(handWithoutCard);
+    minDeadwood = Math.min(minDeadwood, deadwood);
+  }
+
+  return minDeadwood;
+};
+
+/**
  * Sort hand with melds first, then deadwood
  * Within each section, sort by rank then suit
  * @param {Array} hand - Array of card objects
