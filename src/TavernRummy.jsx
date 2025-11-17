@@ -7,6 +7,7 @@ import { GAME_CONFIG, DIFFICULTY_LEVELS } from './utils/constants';
 import { createDeck } from './utils/cardUtils';
 import { findMelds, calculateDeadwood, sortHand } from './utils/meldUtils';
 import { calculateRoundResult, checkMatchWinner } from './utils/scoringUtils';
+import { getRandomOpponentName } from './utils/opponentNames';
 
 // AI
 import { executeAITurn } from './ai/aiStrategy';
@@ -54,6 +55,7 @@ const TavernRummy = () => {
   // Settings
   const [difficulty, setDifficulty] = useState(DIFFICULTY_LEVELS.TUTORIAL);
   const [matchMode, setMatchMode] = useState(false);
+  const [opponentName, setOpponentName] = useState(getRandomOpponentName(DIFFICULTY_LEVELS.TUTORIAL));
 
   // UI State
   const [newlyDrawnCard, setNewlyDrawnCard] = useState(null);
@@ -234,7 +236,7 @@ const TavernRummy = () => {
       setDiscardingCard(null);
       setPhase('draw');
       setCurrentTurn('ai');
-      setMessage("The Hooded Stranger's turn...");
+      setMessage(`${opponentName}'s turn...`);
       setTutorialHighlight(null);
 
       setTimeout(() => aiTurn(newHand), 1000);
@@ -260,8 +262,8 @@ const TavernRummy = () => {
 
       // Show draw animation
       const drawMessage = decision.drawSource === 'discard'
-        ? "The Hooded Stranger takes from the discard pile..."
-        : "The Hooded Stranger draws from the deck...";
+        ? `${opponentName} takes from the discard pile...`
+        : `${opponentName} draws from the deck...`;
       setMessage(drawMessage);
       setAiDrawnCard(decision.drawnCard.id);
 
@@ -283,10 +285,10 @@ const TavernRummy = () => {
 
       setTimeout(() => {
         setAiDrawnCard(null);
-        setMessage("The Hooded Stranger considers their hand...");
+        setMessage(`${opponentName} considers their hand...`);
 
         setTimeout(() => {
-          setMessage("The Hooded Stranger discards...");
+          setMessage(`${opponentName} discards...`);
           setAiDiscardedCard(decision.discardCard.id);
 
           // Add flying card animation for AI discard
@@ -299,7 +301,7 @@ const TavernRummy = () => {
 
             if (decision.shouldKnock) {
               setTimeout(() => {
-                setMessage("The Hooded Stranger knocks!");
+                setMessage(`${opponentName} knocks!`);
                 setTimeout(() => endRound('ai'), 800);
               }, 500);
             } else {
@@ -383,6 +385,7 @@ const TavernRummy = () => {
 
   const confirmDifficultyChange = () => {
     setDifficulty(pendingDifficulty);
+    setOpponentName(getRandomOpponentName(pendingDifficulty));
     setShowDifficultyConfirm(false);
     setPendingDifficulty(null);
     // Start a new round when difficulty changes
@@ -393,6 +396,7 @@ const TavernRummy = () => {
     setMatchMode(!matchMode);
     setScores({ player: 0, ai: 0 });
     setMatchWinner(null);
+    setOpponentName(getRandomOpponentName(difficulty));
     startNewRound();
   };
 
