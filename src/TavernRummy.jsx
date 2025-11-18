@@ -372,6 +372,56 @@ const TavernRummy = () => {
     }
   };
 
+  // Debug function: Auto-win current round with GIN
+  const handleDebugAutoWin = () => {
+    if (gameOver) {
+      console.log('[DEBUG] Cannot auto-win: Round already over');
+      return;
+    }
+
+    console.log('[DEBUG] Auto-win triggered');
+
+    // Create a perfect GIN hand (all cards in melds, 0 deadwood)
+    // Using three sets of three cards (9 total) + 1 card to complete a run
+    const perfectHand = [
+      // Set 1: Three 5s
+      { suit: '♥', rank: '5', value: 5, id: 'debug-5-H' },
+      { suit: '♦', rank: '5', value: 5, id: 'debug-5-D' },
+      { suit: '♠', rank: '5', value: 5, id: 'debug-5-S' },
+      // Set 2: Three 7s
+      { suit: '♥', rank: '7', value: 7, id: 'debug-7-H' },
+      { suit: '♦', rank: '7', value: 7, id: 'debug-7-D' },
+      { suit: '♠', rank: '7', value: 7, id: 'debug-7-S' },
+      // Run: A-2-3-4 of clubs
+      { suit: '♣', rank: 'A', value: 1, id: 'debug-A-C' },
+      { suit: '♣', rank: '2', value: 2, id: 'debug-2-C' },
+      { suit: '♣', rank: '3', value: 3, id: 'debug-3-C' },
+      { suit: '♣', rank: '4', value: 4, id: 'debug-4-C' }
+    ];
+
+    // Give AI a hand with some deadwood
+    const aiHandWithDeadwood = [
+      { suit: '♥', rank: 'K', value: 10, id: 'debug-ai-K-H' },
+      { suit: '♦', rank: 'Q', value: 10, id: 'debug-ai-Q-D' },
+      { suit: '♠', rank: 'J', value: 10, id: 'debug-ai-J-S' },
+      { suit: '♥', rank: '9', value: 9, id: 'debug-ai-9-H' },
+      { suit: '♦', rank: '8', value: 8, id: 'debug-ai-8-D' },
+      { suit: '♠', rank: '6', value: 6, id: 'debug-ai-6-S' },
+      { suit: '♥', rank: '4', value: 4, id: 'debug-ai-4-H' },
+      { suit: '♦', rank: '3', value: 3, id: 'debug-ai-3-D' },
+      { suit: '♠', rank: '2', value: 2, id: 'debug-ai-2-S' },
+      { suit: '♥', rank: 'A', value: 1, id: 'debug-ai-A-H' }
+    ];
+
+    // Update hands
+    setPlayerHand(perfectHand);
+    setAiHand(aiHandWithDeadwood);
+
+    // Show message and end round after brief delay
+    setMessage('[DEBUG] You knock with GIN!');
+    setTimeout(() => endRound('player', perfectHand, aiHandWithDeadwood), 500);
+  };
+
   const aiTurn = (playerCurrentHand) => {
     setTimeout(() => {
       const effectiveDifficulty = getEffectiveDifficulty();
@@ -940,6 +990,8 @@ const TavernRummy = () => {
           abilities={abilities}
           scores={scores}
           setScores={setScores}
+          onAutoWin={handleDebugAutoWin}
+          gameOver={gameOver}
         />
 
         <ChallengeModeConfirmModal

@@ -12,8 +12,10 @@ import { ABILITIES, getImplementedAbilities } from '../../utils/abilitiesUtils';
  * @param {Object} abilities - Abilities hook object
  * @param {Object} scores - Current game scores
  * @param {Function} setScores - Setter for game scores
+ * @param {Function} onAutoWin - Callback to instantly win current round
+ * @param {boolean} gameOver - Whether the current round is over
  */
-const DebugModal = ({ show, onClose, progression, abilities, scores, setScores }) => {
+const DebugModal = ({ show, onClose, progression, abilities, scores, setScores, onAutoWin, gameOver }) => {
   const [customXP, setCustomXP] = useState('');
   const [customAP, setCustomAP] = useState('');
   const [customGold, setCustomGold] = useState('');
@@ -357,6 +359,32 @@ const DebugModal = ({ show, onClose, progression, abilities, scores, setScores }
           </div>
         </div>
 
+        {/* Auto Win Controls */}
+        <div className="bg-gray-800 bg-opacity-70 p-4 rounded-lg border-2 border-amber-600 mb-4">
+          <h3 className="text-xl font-bold text-amber-400 mb-3">🏆 Game Controls</h3>
+          <div className="space-y-2">
+            <button
+              onClick={onAutoWin}
+              disabled={gameOver}
+              className={`w-full px-4 py-3 rounded-lg border-2 transition-all font-bold ${
+                gameOver
+                  ? 'bg-gray-700 border-gray-600 text-gray-500 cursor-not-allowed'
+                  : 'bg-amber-600 hover:bg-amber-500 text-white border-amber-400 hover:scale-105'
+              }`}
+            >
+              ⚡ Instant Win (GIN)
+            </button>
+            <div className="text-sm text-gray-400">
+              {gameOver
+                ? 'Round is over - start a new round first'
+                : 'Instantly win the current round with perfect GIN hand (0 deadwood)'}
+            </div>
+            <div className="text-xs text-amber-300 bg-amber-900 bg-opacity-30 p-2 rounded border border-amber-700">
+              💡 Use this to quickly test progression rewards, XP gain, and Challenge Mode tier advancement
+            </div>
+          </div>
+        </div>
+
         {/* Danger Zone */}
         <div className="bg-red-900 bg-opacity-30 p-4 rounded-lg border-2 border-red-600">
           <h3 className="text-xl font-bold text-red-400 mb-3">⚠️ Danger Zone</h3>
@@ -395,7 +423,9 @@ DebugModal.propTypes = {
     player: PropTypes.number.isRequired,
     ai: PropTypes.number.isRequired
   }).isRequired,
-  setScores: PropTypes.func.isRequired
+  setScores: PropTypes.func.isRequired,
+  onAutoWin: PropTypes.func.isRequired,
+  gameOver: PropTypes.bool.isRequired
 };
 
 export default DebugModal;
