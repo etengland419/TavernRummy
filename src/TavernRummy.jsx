@@ -560,6 +560,7 @@ const TavernRummy = () => {
 
   const confirmChallengeModeChange = () => {
     setGameMode(pendingGameMode);
+    setDifficulty(DIFFICULTY_LEVELS.HARD); // Challenge Mode always uses Hard difficulty
     setOpponentName(getRandomOpponentName(DIFFICULTY_LEVELS.HARD));
     setShowChallengeModeConfirm(false);
     setPendingGameMode(null);
