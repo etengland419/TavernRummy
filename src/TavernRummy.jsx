@@ -269,9 +269,8 @@ const TavernRummy = () => {
   const drawCard = (source) => {
     if (currentTurn !== 'player' || phase !== 'draw') return;
 
-    // Clear any previously saved game state (start of new turn)
-    abilities.saveGameState(null);
-
+    // Save game state BEFORE drawing for Redo Turn ability
+    // This ensures the drawn card can be returned to the deck/discard
     let drawnCard;
     let newDeck = [...deck];
     let newDiscard = [...discardPile];
@@ -283,6 +282,18 @@ const TavernRummy = () => {
         return;
       }
       drawnCard = newDeck.pop();
+
+      // Save state before modifying anything
+      abilities.saveGameState({
+        playerHand: [...playerHand],
+        discardPile: [...discardPile],
+        deck: [...deck], // Original deck with the card still in it
+        phase: 'draw',
+        currentTurn: 'player',
+        drawnCard: drawnCard, // Track which card was drawn
+        drawSource: 'deck' // Track where it was drawn from
+      });
+
       setDeck(newDeck);
       // sounds.cardDraw(); // Sound effects disabled
       // Add flying card animation from deck to player hand
@@ -290,6 +301,18 @@ const TavernRummy = () => {
     } else {
       if (discardPile.length === 0) return;
       drawnCard = newDiscard.pop();
+
+      // Save state before modifying anything
+      abilities.saveGameState({
+        playerHand: [...playerHand],
+        discardPile: [...discardPile], // Original discard with the card still in it
+        deck: [...deck],
+        phase: 'draw',
+        currentTurn: 'player',
+        drawnCard: drawnCard, // Track which card was drawn
+        drawSource: 'discard' // Track where it was drawn from
+      });
+
       setDiscardPile(newDiscard);
       // sounds.cardDraw(); // Sound effects disabled
       // Add flying card animation from discard to player hand
@@ -311,15 +334,6 @@ const TavernRummy = () => {
 
   const discardCard = (card) => {
     if (currentTurn !== 'player' || phase !== 'discard') return;
-
-    // Save game state before discarding for Redo Turn ability
-    abilities.saveGameState({
-      playerHand: [...playerHand],
-      discardPile: [...discardPile],
-      deck: [...deck],
-      phase: 'discard',
-      currentTurn: 'player'
-    });
 
     setDiscardingCard(card.id);
     // sounds.cardDiscard(); // Sound effects disabled
@@ -1163,13 +1177,13 @@ const TavernRummy = () => {
             if (abilityId === 'redo_turn') {
               const savedState = abilities.executeRedoTurn();
               if (savedState) {
-                // Restore the saved game state
+                // Restore the saved game state to BEFORE the draw
                 setPlayerHand(savedState.playerHand);
                 setDiscardPile(savedState.discardPile);
                 setDeck(savedState.deck);
-                setPhase(savedState.phase);
+                setPhase('draw'); // Reset to draw phase so player can draw again
                 setCurrentTurn(savedState.currentTurn);
-                setMessage('Redo Turn activated! Choose a different card to discard.');
+                setMessage('Redo Turn activated! Draw a card to start your turn again.');
                 setDiscardingCard(null);
                 setNewlyDrawnCard(null);
                 // sounds.cardDraw(); // Sound effects disabled (could add a special sound here)
