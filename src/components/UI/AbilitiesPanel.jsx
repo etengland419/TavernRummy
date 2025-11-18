@@ -14,6 +14,11 @@ const AbilitiesPanel = ({
 }) => {
   const [hoveredAbility, setHoveredAbility] = useState(null);
 
+  // Safety check: if unlockedAbilities is undefined, don't render anything
+  if (!unlockedAbilities) {
+    return null;
+  }
+
   // Get active abilities
   const activeAbilities = unlockedAbilities.active || [];
 
@@ -190,7 +195,7 @@ AbilitiesPanel.propTypes = {
   unlockedAbilities: PropTypes.shape({
     active: PropTypes.arrayOf(PropTypes.string),
     passive: PropTypes.object
-  }).isRequired,
+  }),
   abilityUses: PropTypes.object.isRequired,
   onUseAbility: PropTypes.func.isRequired,
   disabled: PropTypes.bool,

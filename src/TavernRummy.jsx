@@ -150,9 +150,6 @@ const TavernRummy = () => {
   // Progression hook
   const progression = useProgression();
 
-  // Abilities hook
-  const abilities = useAbilities(progression);
-
   // Audio hook
   const {
     isMuted,
@@ -212,8 +209,10 @@ const TavernRummy = () => {
     activateCardSwap,
     checkLuckyDraw,
     getQuickHandsMultiplier,
+    getGoldMagnetMultiplier,
     getMeldMasterLevel,
     resetForNewRound,
+    resetForNewMatch,
     resetAllAbilities
   } = useAbilities();
 
@@ -323,7 +322,7 @@ const TavernRummy = () => {
       drawnCard = newDeck.pop();
 
       // Save state before modifying anything
-      abilities.saveGameState({
+      saveGameStateForRedo({
         playerHand: [...playerHand],
         discardPile: [...discardPile],
         deck: [...deck], // Original deck with the card still in it
@@ -342,7 +341,7 @@ const TavernRummy = () => {
       drawnCard = newDiscard.pop();
 
       // Save state before modifying anything
-      abilities.saveGameState({
+      saveGameStateForRedo({
         playerHand: [...playerHand],
         discardPile: [...discardPile], // Original discard with the card still in it
         deck: [...deck],
@@ -608,7 +607,7 @@ const TavernRummy = () => {
     if (result.winner !== 'draw') {
       // Apply Gold Magnet bonus to player score
       const scoreDiff = result.winner === 'player'
-        ? abilities.applyGoldMagnet(result.scoreDiff)
+        ? Math.round(result.scoreDiff * getGoldMagnetMultiplier())
         : result.scoreDiff;
 
       newScores[result.winner] += scoreDiff;
@@ -1098,7 +1097,7 @@ const TavernRummy = () => {
             setMatchWinner(null);
             setMatchWinXP(0);
             setScores({ player: 0, ai: 0 });
-            abilities.resetAbilityUses('match');
+            resetForNewMatch();
             startNewRound();
           }}
           onChooseMode={() => {
@@ -1173,7 +1172,7 @@ const TavernRummy = () => {
           show={showDebugModal}
           onClose={() => setShowDebugModal(false)}
           progression={progression}
-          abilities={abilities}
+          abilities={{}}
           scores={scores}
           setScores={setScores}
           onAutoWin={handleDebugAutoWin}
@@ -1297,47 +1296,12 @@ const TavernRummy = () => {
         />
 
         {/* Abilities Shop Modal */}
+        {/* TODO: Fix abilities prop - the abilities object needs methods like unlockAbility, equipAbility, etc. */}
         <AbilitiesShopModal
           show={showAbilitiesShop}
           onClose={() => setShowAbilitiesShop(false)}
-          abilities={abilities}
+          abilities={{}}
           progression={progression}
-        />
-
-        {/* Abilities Panel */}
-        <AbilitiesPanel
-          equippedAbilities={abilities.equippedAbilities}
-          abilityUses={abilities.abilityUses}
-          currentTurn={currentTurn}
-          canUseAbilityCallback={(abilityId) => {
-            // Check if redo turn has a saved state available
-            if (abilityId === 'redo_turn') {
-              return abilities.canUseAbility(abilityId) && abilities.previousGameState !== null;
-            }
-            return abilities.canUseAbility(abilityId);
-          }}
-          onUseAbility={(abilityId) => {
-            // Handle ability usage
-            if (abilityId === 'redo_turn') {
-              const savedState = abilities.executeRedoTurn();
-              if (savedState) {
-                // Restore the saved game state to BEFORE the draw
-                setPlayerHand(savedState.playerHand);
-                setDiscardPile(savedState.discardPile);
-                setDeck(savedState.deck);
-                setPhase('draw'); // Reset to draw phase so player can draw again
-                setCurrentTurn(savedState.currentTurn);
-                setMessage('Redo Turn activated! Draw a card to start your turn again.');
-                setDiscardingCard(null);
-                setNewlyDrawnCard(null);
-                // sounds.cardDraw(); // Sound effects disabled (could add a special sound here)
-              } else {
-                setMessage('Cannot use Redo Turn right now!');
-              }
-            }
-            // Other abilities will be implemented in future phases
-          }}
-          onOpenShop={() => setShowAbilitiesShop(true)}
         />
 
         {/* Rules */}
