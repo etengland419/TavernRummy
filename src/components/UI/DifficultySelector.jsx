@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { DIFFICULTY_LEVELS, GAME_MODES } from '../../utils/constants';
 
 /**
  * DifficultySelector Component
  * Allows players to select game mode (Tutorial/Practice/Challenging) and difficulty
+ * This is a controlled component - the parent manages the state and confirmation
  *
  * @param {string} difficulty - Current difficulty level
  * @param {string} gameMode - Current game mode
@@ -12,9 +13,6 @@ import { DIFFICULTY_LEVELS, GAME_MODES } from '../../utils/constants';
  * @param {Function} onGameModeChange - Callback when game mode changes
  */
 const DifficultySelector = ({ difficulty, gameMode, onDifficultyChange, onGameModeChange }) => {
-  const [selectedMode, setSelectedMode] = useState(gameMode || GAME_MODES.PRACTICE);
-  const [selectedDifficulty, setSelectedDifficulty] = useState(difficulty || DIFFICULTY_LEVELS.EASY);
-
   const modes = [
     { mode: GAME_MODES.TUTORIAL, label: '📚 Tutorial', description: 'Learn the basics' },
     { mode: GAME_MODES.PRACTICE, label: '🎯 Practice', description: 'Hone your skills' },
@@ -30,36 +28,27 @@ const DifficultySelector = ({ difficulty, gameMode, onDifficultyChange, onGameMo
 
   const handleModeChange = (e) => {
     const mode = e.target.value;
-    setSelectedMode(mode);
-
-    // Auto-set difficulty based on mode
-    if (mode === GAME_MODES.TUTORIAL) {
-      setSelectedDifficulty(DIFFICULTY_LEVELS.TUTORIAL);
-      onDifficultyChange(DIFFICULTY_LEVELS.TUTORIAL);
-    } else if (mode === GAME_MODES.CHALLENGING) {
-      // Don't call onDifficultyChange for Challenge Mode
-      // The difficulty change is handled by the Challenge Mode confirmation flow
-      setSelectedDifficulty(DIFFICULTY_LEVELS.HARD);
-    }
-
+    // Just call the parent callback - don't update local state
+    // Parent will handle confirmation and state update
     onGameModeChange(mode);
   };
 
   const handleDifficultyChange = (e) => {
     const level = e.target.value;
-    setSelectedDifficulty(level);
+    // Just call the parent callback - don't update local state
+    // Parent will handle confirmation and state update
     onDifficultyChange(level);
   };
 
-  // Determine if difficulty selection should be shown
-  const showDifficultySelector = selectedMode === GAME_MODES.PRACTICE;
+  // Determine if difficulty selection should be shown based on current game mode
+  const showDifficultySelector = gameMode === GAME_MODES.PRACTICE;
 
   return (
     <>
       {/* Game Type Dropdown - Inline styled */}
       <select
         id="gameType"
-        value={selectedMode}
+        value={gameMode}
         onChange={handleModeChange}
         className="px-2 sm:px-3 py-1 bg-gray-800 border border-gray-600 rounded-lg text-gray-400 text-xs sm:text-sm
                    hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500
@@ -77,7 +66,7 @@ const DifficultySelector = ({ difficulty, gameMode, onDifficultyChange, onGameMo
       {showDifficultySelector && (
         <select
           id="difficulty"
-          value={selectedDifficulty}
+          value={difficulty}
           onChange={handleDifficultyChange}
           className="px-2 sm:px-3 py-1 bg-gray-800 border border-gray-600 rounded-lg text-gray-400 text-xs sm:text-sm
                      hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500
