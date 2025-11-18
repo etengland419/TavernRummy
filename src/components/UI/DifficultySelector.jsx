@@ -18,7 +18,7 @@ const DifficultySelector = ({ difficulty, gameMode, onDifficultyChange, onGameMo
   const modes = [
     { mode: GAME_MODES.TUTORIAL, label: '📚 Tutorial', description: 'Learn the basics' },
     { mode: GAME_MODES.PRACTICE, label: '🎯 Practice', description: 'Hone your skills' },
-    { mode: GAME_MODES.CHALLENGING, label: '⚔️ Challenging', description: 'Test your mastery' }
+    { mode: GAME_MODES.CHALLENGING, label: '⚔️ Challenge Mode', description: 'Test your mastery' }
   ];
 
   // Only show Easy, Medium, Hard for Practice mode (Tutorial is a separate game mode)

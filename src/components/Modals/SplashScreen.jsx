@@ -12,6 +12,7 @@ import { DIFFICULTY_LEVELS, GAME_MODES, MODE_DESCRIPTIONS } from '../../utils/co
 const SplashScreen = ({ show, onStart }) => {
   const [selectedGameMode, setSelectedGameMode] = useState(GAME_MODES.TUTORIAL);
   const [selectedMatchMode, setSelectedMatchMode] = useState(false);
+  const [selectedPracticeDifficulty, setSelectedPracticeDifficulty] = useState(DIFFICULTY_LEVELS.EASY);
 
   if (!show) return null;
 
@@ -21,9 +22,17 @@ const SplashScreen = ({ show, onStart }) => {
     { mode: GAME_MODES.CHALLENGING, icon: '⚔️', color: 'red', difficulty: DIFFICULTY_LEVELS.HARD, special: '⚡ Leveling & Abilities!' }
   ];
 
+  const practiceDifficulties = [
+    { level: DIFFICULTY_LEVELS.EASY, label: '😊 Easy', icon: '😊' },
+    { level: DIFFICULTY_LEVELS.MEDIUM, label: '🎯 Medium', icon: '🎯' },
+    { level: DIFFICULTY_LEVELS.HARD, label: '🔥 Hard', icon: '🔥' }
+  ];
+
   const handleStart = () => {
     const selectedMode = gameModes.find(m => m.mode === selectedGameMode);
-    onStart({ difficulty: selectedMode.difficulty, gameMode: selectedGameMode, matchMode: selectedMatchMode });
+    // Use selectedPracticeDifficulty for practice mode, otherwise use default difficulty
+    const difficulty = selectedGameMode === GAME_MODES.PRACTICE ? selectedPracticeDifficulty : selectedMode.difficulty;
+    onStart({ difficulty, gameMode: selectedGameMode, matchMode: selectedMatchMode });
   };
 
   return (
@@ -91,6 +100,31 @@ const SplashScreen = ({ show, onStart }) => {
               {MODE_DESCRIPTIONS[selectedGameMode].description}
             </p>
           </div>
+
+          {/* Difficulty Selector - Only for Practice mode */}
+          {selectedGameMode === GAME_MODES.PRACTICE && (
+            <div className="mb-3 md:mb-4">
+              <h3 className="text-amber-200 text-sm md:text-base mb-2 text-center font-semibold">Select Difficulty</h3>
+              <div className="grid grid-cols-3 gap-2 md:gap-3 max-w-xl mx-auto">
+                {practiceDifficulties.map(({ level, label, icon }) => (
+                  <button
+                    key={level}
+                    onClick={() => setSelectedPracticeDifficulty(level)}
+                    className={`px-2 py-2 md:px-3 md:py-3 rounded-lg border-2 transition-all ${
+                      selectedPracticeDifficulty === level
+                        ? 'bg-green-600 border-green-400 text-white shadow-lg transform scale-105'
+                        : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-lg md:text-xl mb-1">{icon}</div>
+                      <div className="text-xs md:text-sm font-semibold">{label}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Match Mode Toggle */}
           <div className="flex gap-2 md:gap-3 justify-center items-center mb-4 md:mb-6">
