@@ -148,14 +148,62 @@ export const ANIMATION_TIMINGS = {
 
 // Challenge Mode Tier Progression (Endless Mode)
 export const CHALLENGE_TIERS = {
-  0: { difficulty: DIFFICULTY_LEVELS.EASY, name: 'Novice', icon: '🌱' },
-  5: { difficulty: DIFFICULTY_LEVELS.MEDIUM, name: 'Apprentice', icon: '⚔️' },
-  10: { difficulty: DIFFICULTY_LEVELS.HARD, name: 'Veteran', icon: '🛡️' },
-  15: { difficulty: DIFFICULTY_LEVELS.EXPERT, name: 'Expert', icon: '🔥' },
-  20: { difficulty: DIFFICULTY_LEVELS.MASTER, name: 'Master', icon: '⭐' },
-  25: { difficulty: DIFFICULTY_LEVELS.LEGENDARY, name: 'Legendary', icon: '👑' },
-  30: { difficulty: DIFFICULTY_LEVELS.NIGHTMARE, name: 'Nightmare', icon: '💀' },
-  35: { difficulty: DIFFICULTY_LEVELS.INFINITE, name: 'Infinite', icon: '♾️' }
+  0: {
+    difficulty: DIFFICULTY_LEVELS.EASY,
+    name: 'Novice',
+    icon: '🌱',
+    opponentName: 'Tipsy Tom',
+    opponentIcon: '🍺'
+  },
+  5: {
+    difficulty: DIFFICULTY_LEVELS.MEDIUM,
+    name: 'Apprentice',
+    icon: '⚔️',
+    opponentName: 'Scarface Samuel',
+    opponentIcon: '🗡️'
+  },
+  10: {
+    difficulty: DIFFICULTY_LEVELS.HARD,
+    name: 'Veteran',
+    icon: '🛡️',
+    opponentName: 'Sir Grimwald the Merciless',
+    opponentIcon: '⚔️'
+  },
+  15: {
+    difficulty: DIFFICULTY_LEVELS.EXPERT,
+    name: 'Expert',
+    icon: '🔥',
+    opponentName: 'Countess Ravenna',
+    opponentIcon: '🎭'
+  },
+  20: {
+    difficulty: DIFFICULTY_LEVELS.MASTER,
+    name: 'Master',
+    icon: '⭐',
+    opponentName: 'The Grand Strategist',
+    opponentIcon: '🧙'
+  },
+  25: {
+    difficulty: DIFFICULTY_LEVELS.LEGENDARY,
+    name: 'Legendary',
+    icon: '👑',
+    opponentName: 'Lord Shadowmere',
+    opponentIcon: '👁️'
+  },
+  30: {
+    difficulty: DIFFICULTY_LEVELS.NIGHTMARE,
+    name: 'Nightmare',
+    icon: '💀',
+    opponentName: 'The Reaper',
+    opponentIcon: '☠️'
+  },
+  35: {
+    difficulty: DIFFICULTY_LEVELS.INFINITE,
+    name: 'Infinite',
+    icon: '♾️',
+    opponentName: 'The Eternal',
+    opponentIcon: '✨'
+  }
 };
 
 // Tier Milestone XP Bonuses

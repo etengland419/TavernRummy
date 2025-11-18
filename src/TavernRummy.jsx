@@ -9,7 +9,7 @@ import { findMelds, calculateDeadwood, calculateMinDeadwoodAfterDiscard, sortHan
 import { calculateRoundResult, checkMatchWinner } from './utils/scoringUtils';
 import { getRandomOpponentName } from './utils/opponentNames';
 import { XP_REWARDS } from './utils/progressionUtils';
-import { getDifficultyForWinStreak, checkTierMilestone, getTierReachedMessage, getCurrentTier } from './utils/challengeUtils';
+import { getDifficultyForWinStreak, checkTierMilestone, getTierReachedMessage, getCurrentTier, getOpponentNameForTier } from './utils/challengeUtils';
 import { updateChallengeWin, updateChallengeLoss, addMilestoneXP } from './utils/statsUtils';
 
 // AI
@@ -244,6 +244,12 @@ const TavernRummy = () => {
     setRoundEndData(null);
     setTutorialHighlight(null);
     setMessage('Draw a card from the deck or discard pile');
+
+    // Update opponent name based on current tier in Challenge Mode
+    if (gameMode === GAME_MODES.CHALLENGING) {
+      const currentWinStreak = stats.challengeMode?.currentWinStreak || 0;
+      setOpponentName(getOpponentNameForTier(currentWinStreak));
+    }
 
     // Reset tip tracking for new round
     setTurnCount(0);
@@ -606,11 +612,12 @@ const TavernRummy = () => {
           updatedStats = addMilestoneXP(updatedStats, milestone.xpBonus);
           progression.addXP(milestone.xpBonus, `Tier Milestone Bonus: ${milestone.tier.name}`);
 
-          // Show tier milestone notification
+          // Show tier milestone notification with round result
           setTierMilestone({
             tier: milestone.tier,
             xpBonus: milestone.xpBonus,
-            message: getTierReachedMessage(milestone.threshold)
+            message: getTierReachedMessage(milestone.threshold),
+            roundResult: result // Include round result in milestone
           });
           setShowTierMilestone(true);
 
@@ -708,7 +715,9 @@ const TavernRummy = () => {
   const confirmChallengeModeChange = () => {
     setGameMode(pendingGameMode);
     setDifficulty(DIFFICULTY_LEVELS.HARD); // Challenge Mode always uses Hard difficulty
-    setOpponentName(getRandomOpponentName(DIFFICULTY_LEVELS.HARD));
+    // Set opponent name based on current Challenge tier
+    const currentWinStreak = stats.challengeMode?.currentWinStreak || 0;
+    setOpponentName(getOpponentNameForTier(currentWinStreak));
     setShowChallengeModeConfirm(false);
     setPendingGameMode(null);
     // sounds.newRound(); // Sound effects disabled
@@ -952,7 +961,7 @@ const TavernRummy = () => {
 
         {/* Modals */}
         <RoundEndModal
-          roundEndData={roundEndData}
+          roundEndData={!showTierMilestone ? roundEndData : null}
           onNextRound={() => {
             setRoundEndData(null);
             startNewRound();
@@ -1121,7 +1130,12 @@ const TavernRummy = () => {
         <TierMilestoneModal
           show={showTierMilestone}
           milestone={tierMilestone}
-          onClose={() => setShowTierMilestone(false)}
+          roundResult={tierMilestone?.roundResult}
+          onClose={() => {
+            setShowTierMilestone(false);
+            setRoundEndData(null); // Also clear round end data since we showed it in tier modal
+            startNewRound(); // Start next round immediately after tier advancement
+          }}
         />
 
         {/* Abilities Shop Modal */}

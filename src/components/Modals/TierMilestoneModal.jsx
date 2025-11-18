@@ -5,12 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 /**
  * TierMilestoneModal Component
  * Displays a celebration modal when player reaches a new Challenge Mode tier
+ * Now also shows round result when advancing tiers
  *
  * @param {boolean} show - Whether to show the modal
  * @param {Object} milestone - Milestone data {tier, xpBonus, message}
+ * @param {Object} roundResult - Optional round result data {winner, playerDeadwood, aiDeadwood, scoreDiff, reason}
  * @param {Function} onClose - Callback when closing
  */
-const TierMilestoneModal = ({ show, milestone, onClose }) => {
+const TierMilestoneModal = ({ show, milestone, roundResult, onClose }) => {
   if (!show || !milestone) return null;
 
   return (
@@ -163,11 +165,40 @@ const TierMilestoneModal = ({ show, milestone, onClose }) => {
             </motion.div>
           )}
 
+          {/* Round Result (if provided) */}
+          {roundResult && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.9, duration: 0.4 }}
+              className="bg-gradient-to-br from-amber-900 to-gray-900 border-2 border-amber-500 rounded-lg p-4 mb-4 relative z-10"
+            >
+              <h3 className="text-lg font-bold text-amber-300 mb-2 text-center">
+                Round Result
+              </h3>
+              <div className="space-y-2 text-sm text-amber-100">
+                <p className="text-center italic">{roundResult.reason}</p>
+                <div className="flex justify-between border-t border-amber-700 pt-2">
+                  <span>Your Deadwood:</span>
+                  <span className="font-bold text-yellow-400">{roundResult.playerDeadwood}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Opponent Deadwood:</span>
+                  <span className="font-bold text-pink-400">{roundResult.aiDeadwood}</span>
+                </div>
+                <div className="flex justify-between border-t border-amber-700 pt-2 font-bold">
+                  <span>Gold Won:</span>
+                  <span className="text-yellow-400">{roundResult.scoreDiff}</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {/* Warning */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.9, duration: 0.4 }}
+            transition={{ delay: roundResult ? 1.1 : 0.9, duration: 0.4 }}
             className="bg-red-900 bg-opacity-30 border-2 border-red-500 rounded-lg p-3 mb-6 relative z-10"
           >
             <p className="text-center text-red-200 text-sm">
@@ -179,7 +210,7 @@ const TierMilestoneModal = ({ show, milestone, onClose }) => {
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.1, duration: 0.4 }}
+            transition={{ delay: roundResult ? 1.3 : 1.1, duration: 0.4 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onClose}
@@ -203,6 +234,13 @@ TierMilestoneModal.propTypes = {
     }),
     xpBonus: PropTypes.number,
     message: PropTypes.string
+  }),
+  roundResult: PropTypes.shape({
+    winner: PropTypes.string,
+    playerDeadwood: PropTypes.number,
+    aiDeadwood: PropTypes.number,
+    scoreDiff: PropTypes.number,
+    reason: PropTypes.string
   }),
   onClose: PropTypes.func.isRequired
 };
