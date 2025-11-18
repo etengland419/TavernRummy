@@ -96,7 +96,7 @@ const TavernRummy = () => {
   const sortedPlayerHand = useMemo(() => sortHand(playerHand, true), [playerHand]);
 
   // Tutorial hook
-  const { tutorialHighlight, setTutorialHighlight } = useTutorial(
+  const { tutorialMessage, tutorialHighlight, setTutorialHighlight } = useTutorial(
     difficulty,
     phase,
     playerHand,
@@ -585,7 +585,9 @@ const TavernRummy = () => {
         {/* Game Messages - Fixed height to prevent layout shifts */}
         <div className="mb-4 text-center min-h-[56px] flex items-center justify-center">
           <div className="px-6 py-3 bg-amber-900 bg-opacity-70 border-2 border-amber-600 rounded-lg">
-            <p className="text-amber-200 font-semibold">{message}</p>
+            <p className="text-amber-200 font-semibold">
+              {difficulty === DIFFICULTY_LEVELS.TUTORIAL && tutorialMessage ? tutorialMessage : message}
+            </p>
           </div>
         </div>
 
