@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import {
-  ABILITIES,
   ABILITY_TYPES,
   getImplementedAbilities,
   getAbilityUpgradeCost,
-  canAffordAbility
+  canAffordAbility,
+  getAbility
 } from '../../utils/abilitiesUtils';
 
 /**
@@ -50,8 +50,8 @@ const AbilitiesShopModal = ({ show, onClose, abilities, progression }) => {
     }
 
     // Auto-equip active abilities
-    const ability = ABILITIES[abilityId.toUpperCase().replace(/-/g, '_')];
-    if (ability.type === ABILITY_TYPES.ACTIVE) {
+    const ability = getAbility(abilityId);
+    if (ability && ability.type === ABILITY_TYPES.ACTIVE) {
       abilities.equipAbility(abilityId);
     }
   };
