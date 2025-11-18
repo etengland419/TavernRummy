@@ -53,10 +53,10 @@ import { useAchievements } from './hooks/useAchievements';
 import { useAudio } from './hooks/useAudio';
 import { useCardAnimation } from './hooks/useCardAnimation';
 import { useStrategyTips } from './hooks/useStrategyTips';
+import { useProgression } from './hooks/useProgression';
 import { useAbilities } from './hooks/useAbilities';
 
 // Ability Components
-import AbilitiesPanel from './components/UI/AbilitiesPanel';
 import DeckPeekModal from './components/Modals/DeckPeekModal';
 import CardSwapModal from './components/Modals/CardSwapModal';
 import LuckyDrawModal from './components/Modals/LuckyDrawModal';
@@ -754,6 +754,59 @@ const TavernRummy = () => {
     setMatchWinner(null);
     setOpponentName(getRandomOpponentName(difficulty));
     setShowMatchModeConfirm(false);
+    // sounds.newRound(); // Sound effects disabled
+    startNewRound();
+  };
+
+  const handleGameModeChange = (newMode) => {
+    // Don't show confirmation if selecting the same mode
+    if (gameMode === newMode) return;
+
+    setPendingGameMode(newMode);
+
+    // Show different confirmation modals based on the mode
+    if (newMode === GAME_MODES.CHALLENGING || gameMode === GAME_MODES.CHALLENGING) {
+      setShowChallengeModeConfirm(true);
+    } else {
+      setShowGameModeConfirm(true);
+    }
+    // sounds.buttonClick(); // Sound effects disabled
+  };
+
+  const confirmGameModeChange = () => {
+    setGameMode(pendingGameMode);
+    setScores({ player: 0, ai: 0 });
+    setMatchWinner(null);
+
+    // Update opponent name based on new mode
+    if (pendingGameMode === GAME_MODES.CHALLENGING) {
+      const tier = getCurrentTier(stats.challengeMode.currentWinStreak);
+      setOpponentName(getOpponentNameForTier(tier));
+    } else {
+      setOpponentName(getRandomOpponentName(difficulty));
+    }
+
+    setShowGameModeConfirm(false);
+    setPendingGameMode(null);
+    // sounds.newRound(); // Sound effects disabled
+    startNewRound();
+  };
+
+  const confirmChallengeModeChange = () => {
+    setGameMode(pendingGameMode);
+    setScores({ player: 0, ai: 0 });
+    setMatchWinner(null);
+
+    // Update opponent name based on new mode
+    if (pendingGameMode === GAME_MODES.CHALLENGING) {
+      const tier = getCurrentTier(stats.challengeMode.currentWinStreak);
+      setOpponentName(getOpponentNameForTier(tier));
+    } else {
+      setOpponentName(getRandomOpponentName(difficulty));
+    }
+
+    setShowChallengeModeConfirm(false);
+    setPendingGameMode(null);
     // sounds.newRound(); // Sound effects disabled
     startNewRound();
   };

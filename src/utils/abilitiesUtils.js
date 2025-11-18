@@ -421,3 +421,46 @@ export const getRemainingUses = (abilityId, abilityUses) => {
 
   return 'unlimited';
 };
+
+/**
+ * Get all implemented abilities as an array
+ * @returns {Array} Array of ability objects
+ */
+export const getImplementedAbilities = () => {
+  return Object.values(ABILITIES);
+};
+
+/**
+ * Get the cost to upgrade an ability to the next level
+ * @param {string} abilityId - The ability ID
+ * @param {number} currentLevel - Current level (0 for unlock, 1+ for upgrade)
+ * @returns {number} Cost in ability points
+ */
+export const getAbilityUpgradeCost = (abilityId, currentLevel) => {
+  const ability = getAbility(abilityId);
+  if (!ability) return 0;
+
+  // For active abilities, cost is the base cost (to unlock)
+  if (ability.type === ABILITY_TYPES.ACTIVE) {
+    return currentLevel === 0 ? ability.cost : 0;
+  }
+
+  // For passive abilities, cost is per level
+  if (ability.type === ABILITY_TYPES.PASSIVE) {
+    return ability.costPerLevel || 0;
+  }
+
+  return 0;
+};
+
+/**
+ * Check if player can afford an ability upgrade
+ * @param {number} abilityPoints - Player's current AP
+ * @param {string} abilityId - The ability ID
+ * @param {number} currentLevel - Current level
+ * @returns {boolean} True if player can afford the upgrade
+ */
+export const canAffordAbility = (abilityPoints, abilityId, currentLevel) => {
+  const cost = getAbilityUpgradeCost(abilityId, currentLevel);
+  return abilityPoints >= cost;
+};
