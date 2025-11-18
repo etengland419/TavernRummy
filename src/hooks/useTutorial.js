@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
-import { GAME_CONFIG, SUIT_SYMBOLS, DIFFICULTY_LEVELS } from '../utils/constants';
+import { GAME_CONFIG, SUIT_SYMBOLS, GAME_MODES } from '../utils/constants';
 import { findMelds, calculateDeadwood } from '../utils/meldUtils';
 
 /**
  * Custom hook for tutorial system
  * Provides guidance messages and highlights for tutorial mode
  *
- * @param {string} difficulty - Current difficulty level
+ * @param {string} difficulty - Current difficulty level (not used, kept for backward compatibility)
  * @param {string} gameMode - Current game mode
  * @param {string} phase - Current game phase ('draw' or 'discard')
  * @param {Array} playerHand - Player's current hand
@@ -15,13 +15,14 @@ import { findMelds, calculateDeadwood } from '../utils/meldUtils';
  * @param {string} currentTurn - Current turn ('player' or 'ai')
  * @returns {Object} {tutorialMessage, tutorialHighlight, updateTutorialGuidance}
  */
+// eslint-disable-next-line no-unused-vars
 export const useTutorial = (difficulty, gameMode, phase, playerHand, discardPile, deck, currentTurn) => {
   const [tutorialMessage, setTutorialMessage] = useState('');
   const [tutorialHighlight, setTutorialHighlight] = useState(null);
 
   const updateTutorialGuidance = useCallback(() => {
-    // Only show tutorial guidance during player's turn in tutorial mode (not in challenge mode)
-    if (difficulty !== DIFFICULTY_LEVELS.TUTORIAL || currentTurn !== 'player' || gameMode === 'challenging') {
+    // Only show tutorial guidance during player's turn in tutorial game mode specifically
+    if (gameMode !== GAME_MODES.TUTORIAL || currentTurn !== 'player') {
       setTutorialMessage('');
       setTutorialHighlight(null);
       return;
@@ -81,7 +82,7 @@ export const useTutorial = (difficulty, gameMode, phase, playerHand, discardPile
         }
       }
     }
-  }, [difficulty, gameMode, phase, playerHand, discardPile, currentTurn]);
+  }, [gameMode, phase, playerHand, discardPile, currentTurn]);
 
   useEffect(() => {
     updateTutorialGuidance();
