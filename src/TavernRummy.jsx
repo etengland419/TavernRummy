@@ -29,6 +29,7 @@ import StatsModal from './components/Modals/StatsModal';
 import AchievementsModal from './components/Modals/AchievementsModal';
 import ChallengeRulesModal from './components/Modals/ChallengeRulesModal';
 import ChallengeModeConfirmModal from './components/Modals/ChallengeModeConfirmModal';
+import GameModeConfirmModal from './components/Modals/GameModeConfirmModal';
 import AchievementNotification from './components/UI/AchievementNotification';
 import AnimatedCard from './components/UI/AnimatedCard';
 import AudioControls from './components/UI/AudioControls';
@@ -95,6 +96,7 @@ const TavernRummy = () => {
   const [showAbilitiesShop, setShowAbilitiesShop] = useState(false);
   const [pendingGameMode, setPendingGameMode] = useState(null);
   const [showChallengeModeConfirm, setShowChallengeModeConfirm] = useState(false);
+  const [showGameModeConfirm, setShowGameModeConfirm] = useState(false);
 
   // Refs
   const deckRef = useRef(null);
@@ -536,15 +538,17 @@ const TavernRummy = () => {
     // Don't show confirmation if selecting the same mode
     if (gameMode === newMode) return;
 
-    // Show confirmation when switching to Challenge Mode
+    // Always show confirmation when switching modes
+    setPendingGameMode(newMode);
+
+    // Show Challenge Mode specific confirmation when switching to Challenge Mode
     if (newMode === GAME_MODES.CHALLENGING) {
-      setPendingGameMode(newMode);
       setShowChallengeModeConfirm(true);
-      // sounds.buttonClick(); // Sound effects disabled
     } else {
-      // For non-Challenge modes, change directly
-      setGameMode(newMode);
+      // Show generic game mode confirmation for Tutorial and Practice
+      setShowGameModeConfirm(true);
     }
+    // sounds.buttonClick(); // Sound effects disabled
   };
 
   const confirmChallengeModeChange = () => {
@@ -554,6 +558,23 @@ const TavernRummy = () => {
     setPendingGameMode(null);
     // sounds.newRound(); // Sound effects disabled
     // Start a new round when entering Challenge Mode
+    startNewRound();
+  };
+
+  const confirmGameModeChange = () => {
+    setGameMode(pendingGameMode);
+    // Set appropriate difficulty based on mode
+    if (pendingGameMode === GAME_MODES.TUTORIAL) {
+      setDifficulty(DIFFICULTY_LEVELS.TUTORIAL);
+      setOpponentName(getRandomOpponentName(DIFFICULTY_LEVELS.TUTORIAL));
+    } else if (pendingGameMode === GAME_MODES.PRACTICE) {
+      // Keep current difficulty for Practice mode
+      setOpponentName(getRandomOpponentName(difficulty));
+    }
+    setShowGameModeConfirm(false);
+    setPendingGameMode(null);
+    // sounds.newRound(); // Sound effects disabled
+    // Start a new round when changing mode
     startNewRound();
   };
 
@@ -816,6 +837,17 @@ const TavernRummy = () => {
           onConfirm={confirmChallengeModeChange}
           onCancel={() => {
             setShowChallengeModeConfirm(false);
+            setPendingGameMode(null);
+          }}
+        />
+
+        <GameModeConfirmModal
+          show={showGameModeConfirm}
+          currentMode={gameMode}
+          newMode={pendingGameMode}
+          onConfirm={confirmGameModeChange}
+          onCancel={() => {
+            setShowGameModeConfirm(false);
             setPendingGameMode(null);
           }}
         />
