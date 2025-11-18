@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { DIFFICULTY_LEVELS, GAME_MODES, MODE_DESCRIPTIONS } from '../../utils/constants';
+import { DIFFICULTY_LEVELS, GAME_MODES } from '../../utils/constants';
 
 /**
  * DifficultySelector Component
@@ -54,71 +54,43 @@ const DifficultySelector = ({ difficulty, gameMode, onDifficultyChange, onGameMo
   const showDifficultySelector = selectedMode === GAME_MODES.PRACTICE;
 
   return (
-    <div className="space-y-3">
-      {/* Game Type Dropdown */}
-      <div>
-        <label htmlFor="gameType" className="text-amber-200 text-sm mb-2 block text-center font-semibold">
-          Game Type
-        </label>
+    <>
+      {/* Game Type Dropdown - Inline styled */}
+      <select
+        id="gameType"
+        value={selectedMode}
+        onChange={handleModeChange}
+        className="px-2 sm:px-3 py-1 bg-gray-800 border border-gray-600 rounded-lg text-gray-400 text-xs sm:text-sm
+                   hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500
+                   transition-all cursor-pointer"
+        title="Select game mode"
+      >
+        {modes.map(({ mode, label }) => (
+          <option key={mode} value={mode}>
+            {label}
+          </option>
+        ))}
+      </select>
+
+      {/* Difficulty Dropdown (only for Practice mode) - Inline styled */}
+      {showDifficultySelector && (
         <select
-          id="gameType"
-          value={selectedMode}
-          onChange={handleModeChange}
-          className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm
+          id="difficulty"
+          value={selectedDifficulty}
+          onChange={handleDifficultyChange}
+          className="px-2 sm:px-3 py-1 bg-gray-800 border border-gray-600 rounded-lg text-gray-400 text-xs sm:text-sm
                      hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500
                      transition-all cursor-pointer"
+          title="Select difficulty"
         >
-          {modes.map(({ mode, label, description }) => (
-            <option key={mode} value={mode}>
+          {difficulties.map(({ level, label }) => (
+            <option key={level} value={level}>
               {label}
             </option>
           ))}
         </select>
-
-        {/* Mode Description */}
-        <div className="mt-2 bg-gray-800 bg-opacity-40 rounded p-2 border border-gray-700">
-          <p className="text-gray-300 text-xs text-center">
-            {MODE_DESCRIPTIONS[selectedMode].description}
-          </p>
-        </div>
-      </div>
-
-      {/* Difficulty Dropdown (only for Practice mode) */}
-      {showDifficultySelector && (
-        <div>
-          <label htmlFor="difficulty" className="text-amber-200 text-sm mb-2 block text-center font-semibold">
-            Difficulty
-          </label>
-          <select
-            id="difficulty"
-            value={selectedDifficulty}
-            onChange={handleDifficultyChange}
-            className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm
-                       hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500
-                       transition-all cursor-pointer"
-          >
-            {difficulties.map(({ level, label }) => (
-              <option key={level} value={level}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
       )}
-
-      {/* Fixed difficulty notice for Tutorial and Challenging modes */}
-      {selectedMode === GAME_MODES.TUTORIAL && (
-        <div className="text-center text-xs text-blue-300 bg-blue-900 bg-opacity-30 p-2 rounded">
-          📚 Tutorial mode uses Tutorial difficulty
-        </div>
-      )}
-
-      {selectedMode === GAME_MODES.CHALLENGING && (
-        <div className="text-center text-xs text-red-300 bg-red-900 bg-opacity-30 p-2 rounded">
-          ⚔️ Hard difficulty - prepare for battle!
-        </div>
-      )}
-    </div>
+    </>
   );
 };
 

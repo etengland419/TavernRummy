@@ -26,6 +26,7 @@ import DifficultyConfirmModal from './components/Modals/DifficultyConfirmModal';
 import MatchModeConfirmModal from './components/Modals/MatchModeConfirmModal';
 import StatsModal from './components/Modals/StatsModal';
 import AchievementsModal from './components/Modals/AchievementsModal';
+import ChallengeRulesModal from './components/Modals/ChallengeRulesModal';
 import AchievementNotification from './components/UI/AchievementNotification';
 import AnimatedCard from './components/UI/AnimatedCard';
 import AudioControls from './components/UI/AudioControls';
@@ -87,6 +88,7 @@ const TavernRummy = () => {
   const [showTutorialComplete, setShowTutorialComplete] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
+  const [showChallengeRules, setShowChallengeRules] = useState(false);
   const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [showAbilitiesShop, setShowAbilitiesShop] = useState(false);
 
@@ -558,18 +560,16 @@ const TavernRummy = () => {
           </h1>
           <p className="text-amber-300 italic mb-4">A game of skill and fortune in the shadows</p>
 
-          {/* Difficulty Selector */}
-          <div className="mb-4">
+          {/* Game Options - All in one row */}
+          <div className="flex flex-wrap gap-2 justify-center items-center text-xs sm:text-sm">
+            {/* Difficulty Selector - Inline Style */}
             <DifficultySelector
               difficulty={difficulty}
               gameMode={gameMode}
               onDifficultyChange={changeDifficulty}
               onGameModeChange={setGameMode}
             />
-          </div>
 
-          {/* Game Options */}
-          <div className="flex flex-wrap gap-2 justify-center items-center text-xs sm:text-sm">
             <button
               onClick={handleMatchModeToggle}
               className={`px-2 sm:px-3 py-1 rounded-lg border transition-all ${
@@ -598,18 +598,38 @@ const TavernRummy = () => {
             >
               🏆 Achievements
             </button>
+            <button
+              onClick={() => {
+                // sounds.buttonClick(); // Sound effects disabled
+                setShowAbilitiesShop(true);
+              }}
+              className="px-2 sm:px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
+            >
+              ⚡ Abilities
+            </button>
+            <button
+              onClick={() => {
+                // sounds.buttonClick(); // Sound effects disabled
+                setShowChallengeRules(true);
+              }}
+              className="px-2 sm:px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
+            >
+              📖 Challenge Guide
+            </button>
           </div>
         </div>
 
-        {/* XP Bar */}
-        <div className="mb-4">
-          <XPBar
-            level={progression.level}
-            currentXP={progression.currentLevelXP}
-            xpToNext={progression.xpToNextLevel}
-            abilityPoints={progression.abilityPoints}
-          />
-        </div>
+        {/* XP Bar - Only show in Challenging mode */}
+        {gameMode === GAME_MODES.CHALLENGING && (
+          <div className="mb-4">
+            <XPBar
+              level={progression.level}
+              currentXP={progression.currentLevelXP}
+              xpToNext={progression.xpToNextLevel}
+              abilityPoints={progression.abilityPoints}
+            />
+          </div>
+        )}
 
         {/* Score Display */}
         <ScoreDisplay scores={scores} scoreAnimation={scoreAnimation} />
@@ -749,6 +769,11 @@ const TavernRummy = () => {
           achievements={getAllAchievements()}
           completionStats={getCompletionStats()}
           onClose={() => setShowAchievementsModal(false)}
+        />
+
+        <ChallengeRulesModal
+          show={showChallengeRules}
+          onClose={() => setShowChallengeRules(false)}
         />
 
         {/* Achievement Notifications */}
