@@ -1,7 +1,7 @@
-import { DIFFICULTY_LEVELS } from './constants';
+import { DIFFICULTY_LEVELS, GAME_MODES } from './constants';
 
 const STATS_STORAGE_KEY = 'tavernRummy_stats';
-const STATS_VERSION = '1.0';
+const STATS_VERSION = '1.1'; // Updated version for tutorial stats
 
 /**
  * Get default stats structure
@@ -44,6 +44,13 @@ const getDefaultStats = () => ({
       gamesLost: 0,
       gamesDrawn: 0
     }
+  },
+  // NEW: Tutorial mode stats (separate from regular stats)
+  tutorialStats: {
+    [DIFFICULTY_LEVELS.TUTORIAL]: 0,
+    [DIFFICULTY_LEVELS.EASY]: 0,
+    [DIFFICULTY_LEVELS.MEDIUM]: 0,
+    [DIFFICULTY_LEVELS.HARD]: 0
   },
   averageDeadwood: [],
   matchesPlayed: 0,
@@ -112,19 +119,38 @@ const migrateStats = (oldStats) => {
 /**
  * Record a game completion
  * @param {Object} stats - Current stats
- * @param {Object} data - Game data {winner, difficulty, playerDeadwood, isGin, isUndercut, isKnock, playerScore}
+ * @param {Object} data - Game data {winner, difficulty, playerDeadwood, isGin, isUndercut, isKnock, playerScore, gameMode}
  * @returns {Object} Updated stats
  */
 export const recordGame = (stats, data) => {
-  const { winner, difficulty, playerDeadwood, isGin, isUndercut, isKnock, playerScore } = data;
+  const { winner, difficulty, playerDeadwood, isGin, isUndercut, isKnock, playerScore, gameMode } = data;
 
   const newStats = { ...stats };
 
-  // Don't count tutorial games towards overall stats (only track difficulty-specific stats)
-  const isTutorial = difficulty === DIFFICULTY_LEVELS.TUTORIAL;
+  // Initialize tutorialStats if it doesn't exist (for migration)
+  if (!newStats.tutorialStats) {
+    newStats.tutorialStats = {
+      [DIFFICULTY_LEVELS.TUTORIAL]: 0,
+      [DIFFICULTY_LEVELS.EASY]: 0,
+      [DIFFICULTY_LEVELS.MEDIUM]: 0,
+      [DIFFICULTY_LEVELS.HARD]: 0
+    };
+  }
 
-  // Overall stats (skip for tutorial)
-  if (!isTutorial) {
+  // If in TUTORIAL mode, only update tutorial stats
+  if (gameMode === GAME_MODES.TUTORIAL) {
+    if (difficulty && newStats.tutorialStats[difficulty] !== undefined) {
+      newStats.tutorialStats[difficulty]++;
+    }
+    return newStats;
+  }
+
+  // For PRACTICE and CHALLENGING modes, update regular stats
+  // (Old code path for backwards compatibility if gameMode is undefined)
+  const isTutorialDifficulty = difficulty === DIFFICULTY_LEVELS.TUTORIAL;
+
+  // Overall stats (skip for tutorial difficulty only if no gameMode specified)
+  if (!isTutorialDifficulty || gameMode) {
     newStats.gamesPlayed++;
     if (winner === 'player') {
       newStats.gamesWon++;
@@ -172,8 +198,8 @@ export const recordGame = (stats, data) => {
     }
   }
 
-  // Average deadwood tracking (keep last 50 games, skip tutorial)
-  if (playerDeadwood !== undefined && !isTutorial) {
+  // Average deadwood tracking (keep last 50 games, skip tutorial difficulty)
+  if (playerDeadwood !== undefined && !isTutorialDifficulty) {
     newStats.averageDeadwood.push(playerDeadwood);
     if (newStats.averageDeadwood.length > 50) {
       newStats.averageDeadwood.shift();
