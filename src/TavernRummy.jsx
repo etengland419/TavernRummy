@@ -254,11 +254,17 @@ const TavernRummy = () => {
     // Reset ability uses for new round
     abilities.resetAbilityUses('round');
 
+    // Clear saved game state for new round
+    abilities.saveGameState(null);
+
     // sounds.cardShuffle(); // Sound effects disabled
   };
 
   const drawCard = (source) => {
     if (currentTurn !== 'player' || phase !== 'draw') return;
+
+    // Clear any previously saved game state (start of new turn)
+    abilities.saveGameState(null);
 
     let drawnCard;
     let newDeck = [...deck];
@@ -1130,6 +1136,14 @@ const TavernRummy = () => {
         <AbilitiesPanel
           equippedAbilities={abilities.equippedAbilities}
           abilityUses={abilities.abilityUses}
+          currentTurn={currentTurn}
+          canUseAbilityCallback={(abilityId) => {
+            // Check if redo turn has a saved state available
+            if (abilityId === 'redo_turn') {
+              return abilities.canUseAbility(abilityId) && abilities.previousGameState !== null;
+            }
+            return abilities.canUseAbility(abilityId);
+          }}
           onUseAbility={(abilityId) => {
             // Handle ability usage
             if (abilityId === 'redo_turn') {

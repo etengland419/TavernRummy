@@ -11,8 +11,10 @@ import { getAbilityById } from '../../utils/abilitiesUtils';
  * @param {Object} abilityUses - Object tracking ability uses
  * @param {Function} onUseAbility - Callback when ability is used
  * @param {Function} onOpenShop - Callback to open abilities shop
+ * @param {string} currentTurn - Current turn ('player' or 'ai')
+ * @param {Function} canUseAbilityCallback - Optional callback to check if ability can be used
  */
-const AbilitiesPanel = ({ equippedAbilities, abilityUses, onUseAbility, onOpenShop }) => {
+const AbilitiesPanel = ({ equippedAbilities, abilityUses, onUseAbility, onOpenShop, currentTurn = 'player', canUseAbilityCallback }) => {
   if (equippedAbilities.length === 0) {
     return (
       <div className="fixed bottom-4 right-4 z-30">
@@ -44,7 +46,12 @@ const AbilitiesPanel = ({ equippedAbilities, abilityUses, onUseAbility, onOpenSh
             const uses = abilityUses[abilityId] || 0;
             const maxUses = ability.usesPerRound || ability.usesPerMatch || 0;
             const remainingUses = maxUses - uses;
-            const canUse = remainingUses > 0;
+
+            // Check if ability can be used (including turn validation and custom callback)
+            let canUse = remainingUses > 0 && currentTurn === 'player';
+            if (canUse && canUseAbilityCallback) {
+              canUse = canUseAbilityCallback(abilityId);
+            }
 
             return (
               <motion.button
@@ -94,7 +101,9 @@ AbilitiesPanel.propTypes = {
   equippedAbilities: PropTypes.arrayOf(PropTypes.string).isRequired,
   abilityUses: PropTypes.object.isRequired,
   onUseAbility: PropTypes.func.isRequired,
-  onOpenShop: PropTypes.func.isRequired
+  onOpenShop: PropTypes.func.isRequired,
+  currentTurn: PropTypes.string,
+  canUseAbilityCallback: PropTypes.func
 };
 
 export default AbilitiesPanel;

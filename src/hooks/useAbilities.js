@@ -296,6 +296,7 @@ export const useAbilities = (progression) => {
     abilityLevels,
     equippedAbilities,
     abilityUses,
+    previousGameState,
 
     // Methods
     unlockAbility,
