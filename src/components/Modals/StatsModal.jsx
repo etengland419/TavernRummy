@@ -136,6 +136,41 @@ const StatsModal = ({ show, stats, derivedStats, onClose, onReset }) => {
           </div>
         </div>
 
+        {/* Tutorial Mode Stats */}
+        {stats.tutorialStats && Object.values(stats.tutorialStats).some(v => v > 0) && (
+          <div className="bg-blue-900 bg-opacity-30 p-6 rounded-lg border-2 border-blue-600 mb-6">
+            <h3 className="text-xl font-bold text-blue-300 mb-4 flex items-center gap-2">
+              <span>📚</span> Tutorial Games Played
+            </h3>
+            <p className="text-blue-200 text-sm mb-4 italic">
+              Tutorial games are for learning and don&apos;t count toward your competitive stats
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Object.entries(DIFFICULTY_LEVELS).map(([key, difficulty]) => {
+                const tutorialCount = stats.tutorialStats?.[difficulty] || 0;
+
+                const icons = {
+                  Tutorial: '📚',
+                  Easy: '😊',
+                  Medium: '🎯',
+                  Hard: '🔥'
+                };
+
+                return (
+                  <div key={difficulty} className="bg-blue-800 bg-opacity-30 p-4 rounded-lg border border-blue-500">
+                    <div className="text-center mb-2 text-2xl">{icons[difficulty]}</div>
+                    <div className="text-center text-blue-200 font-bold mb-2">{difficulty}</div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-blue-300">{tutorialCount}</div>
+                      <div className="text-xs text-blue-400">games</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Difficulty Breakdown */}
         <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg border-2 border-amber-700 mb-6">
           <h3 className="text-xl font-bold text-amber-400 mb-4">Performance by Difficulty</h3>

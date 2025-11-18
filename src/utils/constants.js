@@ -69,6 +69,35 @@ export const AI_KNOCK_THRESHOLDS = {
   [DIFFICULTY_LEVELS.HARD]: 10
 };
 
+// Game Modes
+export const GAME_MODES = {
+  TUTORIAL: 'tutorial',
+  PRACTICE: 'practice',
+  CHALLENGING: 'challenging'
+};
+
+// Game Mode Descriptions (initialized after difficulty levels are defined)
+export const MODE_DESCRIPTIONS = {
+  tutorial: {
+    title: "📚 Tutorial",
+    description: "Learn the basics with step-by-step guidance",
+    tips: "Forced guidance",
+    stats: "Tutorial stats only"
+  },
+  practice: {
+    title: "🎯 Practice",
+    description: "Hone your skills with optional strategy tips",
+    tips: "Subtle hints available",
+    stats: "Counts for stats & achievements"
+  },
+  challenging: {
+    title: "⚔️ Challenging",
+    description: "Test your mastery against the toughest AI",
+    tips: "No assistance",
+    stats: "Full stats + future roguelite rewards"
+  }
+};
+
 // Animation Timing Constants (in milliseconds)
 export const ANIMATION_TIMINGS = {
   CARD_DRAW: 500,           // Time for card to fly from deck/discard to hand

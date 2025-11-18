@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 
 // Constants
-import { GAME_CONFIG, DIFFICULTY_LEVELS, ANIMATION_TIMINGS } from './utils/constants';
+import { GAME_CONFIG, DIFFICULTY_LEVELS, GAME_MODES, ANIMATION_TIMINGS } from './utils/constants';
 
 // Utilities
 import { createDeck } from './utils/cardUtils';
@@ -30,6 +30,7 @@ import AchievementNotification from './components/UI/AchievementNotification';
 import AnimatedCard from './components/UI/AnimatedCard';
 import AudioControls from './components/UI/AudioControls';
 import SplashScreen from './components/Modals/SplashScreen';
+import StrategyTip from './components/UI/StrategyTip';
 
 // Hooks
 import { useTutorial } from './hooks/useTutorial';
@@ -37,6 +38,7 @@ import { useStats } from './hooks/useStats';
 import { useAchievements } from './hooks/useAchievements';
 import { useAudio } from './hooks/useAudio';
 import { useCardAnimation } from './hooks/useCardAnimation';
+import { useStrategyTips } from './hooks/useStrategyTips';
 
 const TavernRummy = () => {
   // Game State
@@ -58,8 +60,14 @@ const TavernRummy = () => {
 
   // Settings
   const [difficulty, setDifficulty] = useState(DIFFICULTY_LEVELS.TUTORIAL);
+  const [gameMode, setGameMode] = useState(GAME_MODES.PRACTICE);
   const [matchMode, setMatchMode] = useState(false);
   const [opponentName, setOpponentName] = useState(getRandomOpponentName(DIFFICULTY_LEVELS.TUTORIAL));
+
+  // Tip tracking
+  const [turnCount, setTurnCount] = useState(0);
+  const [opponentPicks, setOpponentPicks] = useState([]);
+  const [selectedCard, setSelectedCard] = useState(null);
 
   // UI State
   const [newlyDrawnCard, setNewlyDrawnCard] = useState(null);
@@ -116,6 +124,25 @@ const TavernRummy = () => {
   // Card animation hook
   const { flyingCards, addFlyingCard, addFlyingCardFromPosition } = useCardAnimation();
 
+  // Build game context for strategy tips
+  const gameContext = useMemo(() => ({
+    hand: playerHand,
+    deadwood: playerDeadwood,
+    phase,
+    currentTurn,
+    turnCount,
+    selectedCard,
+    opponentPicks,
+    difficulty,
+    deckSize: deck.length,
+    discardTop: discardPile.length > 0 ? discardPile[discardPile.length - 1] : null,
+    discardPile,
+    hasKnocked: gameOver
+  }), [playerHand, playerDeadwood, phase, currentTurn, turnCount, selectedCard, opponentPicks, difficulty, deck.length, discardPile, gameOver]);
+
+  // Strategy tips hook (only active in Practice mode)
+  const { activeTip, dismissTip, clearDismissed } = useStrategyTips(gameMode, gameContext);
+
   // Initialize game on mount (only after splash screen is dismissed)
   useEffect(() => {
     if (!showSplashScreen) {
@@ -156,6 +183,13 @@ const TavernRummy = () => {
     setRoundEndData(null);
     setTutorialHighlight(null);
     setMessage('Draw a card from the deck or discard pile');
+
+    // Reset tip tracking for new round
+    setTurnCount(0);
+    setOpponentPicks([]);
+    setSelectedCard(null);
+    clearDismissed();
+
     // sounds.cardShuffle(); // Sound effects disabled
   };
 
@@ -193,6 +227,7 @@ const TavernRummy = () => {
       setNewlyDrawnCard(drawnCard.id);
       setPhase('discard');
       setMessage('Discard a card or knock');
+      setTurnCount(prev => prev + 1);
 
       setTimeout(() => setNewlyDrawnCard(null), ANIMATION_TIMINGS.CARD_HIGHLIGHT);
     }, ANIMATION_TIMINGS.CARD_DRAW);
@@ -308,8 +343,11 @@ const TavernRummy = () => {
         setDeck(newDeck);
       } else {
         const newDiscard = [...discardPile];
-        newDiscard.pop();
+        const pickedCard = newDiscard.pop();
         setDiscardPile(newDiscard);
+
+        // Track opponent picks for defensive discard tips
+        setOpponentPicks(prev => [...prev.slice(-4), pickedCard]); // Keep last 5 picks
       }
 
       setTimeout(() => {
@@ -409,6 +447,7 @@ const TavernRummy = () => {
       trackGame({
         winner: result.winner,
         difficulty: difficulty,
+        gameMode: gameMode,
         playerDeadwood: result.playerDeadwood,
         isGin: result.playerDeadwood === 0 && knocker === 'player',
         isUndercut: (knocker === 'player' && result.winner === 'ai') || (knocker === 'ai' && result.winner === 'player'),
@@ -497,7 +536,12 @@ const TavernRummy = () => {
           <p className="text-amber-300 italic mb-4">A game of skill and fortune in the shadows</p>
 
           {/* Difficulty Selector */}
-          <DifficultySelector difficulty={difficulty} onDifficultyChange={changeDifficulty} />
+          <DifficultySelector
+            difficulty={difficulty}
+            gameMode={gameMode}
+            onDifficultyChange={changeDifficulty}
+            onGameModeChange={setGameMode}
+          />
 
           {/* Game Options */}
           <div className="flex gap-3 justify-center items-center text-sm">
@@ -679,6 +723,15 @@ const TavernRummy = () => {
             onDismiss={() => dismissNotification(achievementId)}
           />
         ))}
+
+        {/* Strategy Tip (Practice mode only) */}
+        {gameMode === GAME_MODES.PRACTICE && (
+          <StrategyTip
+            tip={activeTip}
+            onDismiss={dismissTip}
+            onApply={(tipId) => dismissTip(tipId, true)}
+          />
+        )}
 
         {/* Flying Card Animations */}
         {flyingCards.map(flyingCard => (
