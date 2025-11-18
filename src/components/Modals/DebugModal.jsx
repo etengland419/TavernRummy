@@ -104,9 +104,12 @@ const DebugModal = ({ show, onClose, progression, abilities, scores, setScores, 
   };
 
   const handleResetProgression = () => {
-    if (window.confirm('⚠️ This will reset ALL progression (XP, Level, AP, Abilities). Are you sure?')) {
-      // Clear localStorage
+    if (window.confirm('⚠️ This will reset ALL progression (XP, Level, AP, Abilities, Stats, Challenge Mode, Achievements). Are you sure?')) {
+      // Clear all localStorage keys
       localStorage.removeItem('tavernRummyProgression');
+      localStorage.removeItem('tavernRummy_stats');
+      localStorage.removeItem('tavernRummy_achievements');
+      localStorage.removeItem('tavernRummy_tipMastery');
       window.location.reload();
     }
   };
