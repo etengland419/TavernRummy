@@ -115,6 +115,7 @@ const TavernRummy = () => {
   // Tutorial hook
   const { tutorialMessage, tutorialHighlight, setTutorialHighlight } = useTutorial(
     difficulty,
+    gameMode,
     phase,
     playerHand,
     discardPile,

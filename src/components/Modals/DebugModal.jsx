@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { ABILITIES } from '../../utils/abilitiesUtils';
+import { ABILITIES, getImplementedAbilities } from '../../utils/abilitiesUtils';
 
 /**
  * DebugModal Component
@@ -352,7 +352,7 @@ const DebugModal = ({ show, onClose, progression, abilities, scores, setScores }
               🔓 Unlock All Abilities
             </button>
             <div className="text-sm text-gray-400">
-              Current: {abilities.unlockedAbilities.length} / {Object.keys(ABILITIES).length} unlocked
+              Current: {abilities.unlockedAbilities.length} / {getImplementedAbilities().length} unlocked (implemented only)
             </div>
           </div>
         </div>
