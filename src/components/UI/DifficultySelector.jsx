@@ -16,19 +16,20 @@ const DifficultySelector = ({ difficulty, gameMode, onDifficultyChange, onGameMo
   const [selectedDifficulty, setSelectedDifficulty] = useState(difficulty || DIFFICULTY_LEVELS.EASY);
 
   const modes = [
-    { mode: GAME_MODES.TUTORIAL, icon: '📚', color: 'blue' },
-    { mode: GAME_MODES.PRACTICE, icon: '🎯', color: 'green' },
-    { mode: GAME_MODES.CHALLENGING, icon: '⚔️', color: 'red' }
+    { mode: GAME_MODES.TUTORIAL, label: '📚 Tutorial', description: 'Learn the basics' },
+    { mode: GAME_MODES.PRACTICE, label: '🎯 Practice', description: 'Hone your skills' },
+    { mode: GAME_MODES.CHALLENGING, label: '⚔️ Challenging', description: 'Test your mastery' }
   ];
 
   // Only show Easy, Medium, Hard for Practice mode (Tutorial is a separate game mode)
   const difficulties = [
-    { level: DIFFICULTY_LEVELS.EASY, icon: '😊', color: 'green' },
-    { level: DIFFICULTY_LEVELS.MEDIUM, icon: '🎯', color: 'yellow' },
-    { level: DIFFICULTY_LEVELS.HARD, icon: '🔥', color: 'red' }
+    { level: DIFFICULTY_LEVELS.EASY, label: '😊 Easy' },
+    { level: DIFFICULTY_LEVELS.MEDIUM, label: '🎯 Medium' },
+    { level: DIFFICULTY_LEVELS.HARD, label: '🔥 Hard' }
   ];
 
-  const handleModeChange = (mode) => {
+  const handleModeChange = (e) => {
+    const mode = e.target.value;
     setSelectedMode(mode);
 
     // Auto-set difficulty based on mode
@@ -43,7 +44,8 @@ const DifficultySelector = ({ difficulty, gameMode, onDifficultyChange, onGameMo
     onGameModeChange(mode);
   };
 
-  const handleDifficultyChange = (level) => {
+  const handleDifficultyChange = (e) => {
+    const level = e.target.value;
     setSelectedDifficulty(level);
     onDifficultyChange(level);
   };
@@ -53,74 +55,66 @@ const DifficultySelector = ({ difficulty, gameMode, onDifficultyChange, onGameMo
 
   return (
     <div className="space-y-3">
-      {/* Game Mode Selection */}
+      {/* Game Type Dropdown */}
       <div>
-        <h3 className="text-amber-200 text-base mb-2 text-center font-semibold">Game Mode</h3>
-        <div className="grid grid-cols-3 gap-2 mb-2">
-          {modes.map(({ mode, icon, color }) => (
-            <button
-              key={mode}
-              onClick={() => handleModeChange(mode)}
-              className={`p-2 rounded-lg border transition-all ${
-                selectedMode === mode
-                  ? `bg-${color}-600 border-${color}-400 shadow-lg`
-                  : 'bg-gray-800 border-gray-600 hover:border-gray-500'
-              }`}
-            >
-              <div className="text-center">
-                <div className="text-base sm:text-lg mb-0.5">{icon}</div>
-                <div className={`font-semibold text-[10px] sm:text-xs ${
-                  selectedMode === mode ? 'text-white' : 'text-gray-300'
-                }`}>
-                  {MODE_DESCRIPTIONS[mode].title}
-                </div>
-              </div>
-            </button>
+        <label htmlFor="gameType" className="text-amber-200 text-sm mb-2 block text-center font-semibold">
+          Game Type
+        </label>
+        <select
+          id="gameType"
+          value={selectedMode}
+          onChange={handleModeChange}
+          className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm
+                     hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500
+                     transition-all cursor-pointer"
+        >
+          {modes.map(({ mode, label, description }) => (
+            <option key={mode} value={mode}>
+              {label}
+            </option>
           ))}
-        </div>
+        </select>
 
-        {/* Mode Description - Compact version */}
-        <div className="bg-gray-800 bg-opacity-40 rounded p-2 border border-gray-700">
-          <p className="text-gray-300 text-[11px] sm:text-xs text-center">
+        {/* Mode Description */}
+        <div className="mt-2 bg-gray-800 bg-opacity-40 rounded p-2 border border-gray-700">
+          <p className="text-gray-300 text-xs text-center">
             {MODE_DESCRIPTIONS[selectedMode].description}
           </p>
         </div>
       </div>
 
-      {/* Difficulty Selection (only for Practice mode) */}
+      {/* Difficulty Dropdown (only for Practice mode) */}
       {showDifficultySelector && (
         <div>
-          <h3 className="text-amber-200 text-base mb-2 text-center font-semibold">Difficulty</h3>
-          <div className="grid grid-cols-3 gap-2">
-            {difficulties.map(({ level, icon, color }) => (
-              <button
-                key={level}
-                onClick={() => handleDifficultyChange(level)}
-                className={`px-2 py-1.5 rounded-lg border transition-all ${
-                  selectedDifficulty === level
-                    ? `bg-${color}-600 border-${color}-400 text-white shadow-lg`
-                    : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                <div className="text-center">
-                  <div className="text-base sm:text-lg">{icon}</div>
-                  <div className="text-[10px] sm:text-xs font-semibold">{level}</div>
-                </div>
-              </button>
+          <label htmlFor="difficulty" className="text-amber-200 text-sm mb-2 block text-center font-semibold">
+            Difficulty
+          </label>
+          <select
+            id="difficulty"
+            value={selectedDifficulty}
+            onChange={handleDifficultyChange}
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm
+                       hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500
+                       transition-all cursor-pointer"
+          >
+            {difficulties.map(({ level, label }) => (
+              <option key={level} value={level}>
+                {label}
+              </option>
             ))}
-          </div>
+          </select>
         </div>
       )}
 
       {/* Fixed difficulty notice for Tutorial and Challenging modes */}
       {selectedMode === GAME_MODES.TUTORIAL && (
-        <div className="text-center text-[11px] sm:text-xs text-blue-300 bg-blue-900 bg-opacity-30 p-2 rounded">
+        <div className="text-center text-xs text-blue-300 bg-blue-900 bg-opacity-30 p-2 rounded">
           📚 Tutorial mode uses Tutorial difficulty
         </div>
       )}
 
       {selectedMode === GAME_MODES.CHALLENGING && (
-        <div className="text-center text-[11px] sm:text-xs text-red-300 bg-red-900 bg-opacity-30 p-2 rounded">
+        <div className="text-center text-xs text-red-300 bg-red-900 bg-opacity-30 p-2 rounded">
           ⚔️ Hard difficulty - prepare for battle!
         </div>
       )}
