@@ -360,7 +360,7 @@ const DebugModal = ({ show, onClose, progression, abilities, scores, setScores, 
               🔓 Unlock All Abilities
             </button>
             <div className="text-sm text-gray-400">
-              Current: {abilities.unlockedAbilities.length} / {getImplementedAbilities().length} unlocked (implemented only)
+              Current: {((abilities.unlockedAbilities?.active?.length || 0) + Object.values(abilities.unlockedAbilities?.passive || {}).filter(level => level > 0).length)} / {getImplementedAbilities().length} unlocked (implemented only)
             </div>
           </div>
         </div>
