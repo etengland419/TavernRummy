@@ -28,24 +28,25 @@ const ChallengeModeConfirmModal = ({ show, currentMode, onConfirm, onCancel }) =
           <div className="bg-gray-900 bg-opacity-50 p-4 rounded-lg border-2 border-amber-700">
             <h3 className="text-xl font-bold text-amber-400 mb-3">📖 What is Challenge Mode?</h3>
             <p className="mb-3">
-              Challenge Mode is the <strong className="text-yellow-300">Roguelite</strong> version of Tavern Rummy.
-              Battle against the toughest AI while earning XP, leveling up, and unlocking powerful abilities!
+              Challenge Mode is the <strong className="text-yellow-300">Endless Roguelite</strong> version of Tavern Rummy.
+              Battle through 8 AI difficulty tiers while earning XP, leveling up, and unlocking powerful abilities to survive!
             </p>
             <ul className="list-disc list-inside space-y-2">
-              <li><strong className="text-red-400">Hard Difficulty Only:</strong> Face the most strategic AI opponent</li>
+              <li><strong className="text-red-400">Endless Progression:</strong> Win streaks unlock harder AI every 5 wins!</li>
+              <li><strong className="text-purple-400">8 Difficulty Tiers:</strong> Easy → Expert → Master → Legendary → Nightmare → Infinite</li>
               <li><strong className="text-blue-400">No Strategy Tips:</strong> You're on your own - true mastery required!</li>
-              <li><strong className="text-purple-400">Progression System:</strong> Earn XP and level up after each round</li>
-              <li><strong className="text-yellow-400">Unlock Abilities:</strong> Gain Ability Points to unlock game-changing powers</li>
+              <li><strong className="text-yellow-400">Abilities Essential:</strong> Level up and unlock abilities to survive higher tiers!</li>
             </ul>
           </div>
 
           <div className="bg-blue-900 bg-opacity-30 p-4 rounded-lg border-2 border-blue-700">
-            <h3 className="text-xl font-bold text-blue-400 mb-2">⭐ How It Works</h3>
+            <h3 className="text-xl font-bold text-blue-400 mb-2">♾️ How Endless Mode Works</h3>
             <ul className="space-y-2 text-sm">
-              <li>• <strong className="text-green-300">Earn XP:</strong> Every round grants experience points (Win: 50+ XP, Loss: 10+ XP)</li>
+              <li>• <strong className="text-green-300">Build Win Streaks:</strong> Every 5 wins increases AI difficulty tier</li>
+              <li>• <strong className="text-orange-300">Earn Milestone XP:</strong> Bonus XP rewards for reaching new tiers (+50 to +1000 XP!)</li>
               <li>• <strong className="text-purple-300">Level Up:</strong> Gain Ability Points to unlock powerful abilities</li>
-              <li>• <strong className="text-yellow-300">Use Abilities:</strong> Equip up to 3 abilities to gain strategic advantages</li>
-              <li>• <strong className="text-pink-300">Match Mode Bonus:</strong> Win a match (first to 100 gold) for +50 XP bonus!</li>
+              <li>• <strong className="text-yellow-300">Use Abilities:</strong> Equip up to 3 abilities to survive higher tiers</li>
+              <li>• <strong className="text-red-300">Losing Resets:</strong> Defeat resets win streak to 0 - how far can you go?</li>
             </ul>
           </div>
 
