@@ -30,6 +30,7 @@ import AchievementsModal from './components/Modals/AchievementsModal';
 import ChallengeRulesModal from './components/Modals/ChallengeRulesModal';
 import ChallengeModeConfirmModal from './components/Modals/ChallengeModeConfirmModal';
 import GameModeConfirmModal from './components/Modals/GameModeConfirmModal';
+import DebugModal from './components/Modals/DebugModal';
 import AchievementNotification from './components/UI/AchievementNotification';
 import AnimatedCard from './components/UI/AnimatedCard';
 import AudioControls from './components/UI/AudioControls';
@@ -97,6 +98,7 @@ const TavernRummy = () => {
   const [pendingGameMode, setPendingGameMode] = useState(null);
   const [showChallengeModeConfirm, setShowChallengeModeConfirm] = useState(false);
   const [showGameModeConfirm, setShowGameModeConfirm] = useState(false);
+  const [showDebugModal, setShowDebugModal] = useState(false);
 
   // Refs
   const deckRef = useRef(null);
@@ -671,6 +673,15 @@ const TavernRummy = () => {
             >
               📖 Challenge Guide
             </button>
+            <button
+              onClick={() => {
+                // sounds.buttonClick(); // Sound effects disabled
+                setShowDebugModal(true);
+              }}
+              className="px-2 sm:px-3 py-1 rounded-lg border bg-red-900 border-red-600 text-red-400 hover:bg-red-800 transition-all"
+            >
+              🔧 Debug
+            </button>
           </div>
         </div>
 
@@ -829,6 +840,15 @@ const TavernRummy = () => {
         <ChallengeRulesModal
           show={showChallengeRules}
           onClose={() => setShowChallengeRules(false)}
+        />
+
+        <DebugModal
+          show={showDebugModal}
+          onClose={() => setShowDebugModal(false)}
+          progression={progression}
+          abilities={abilities}
+          scores={scores}
+          setScores={setScores}
         />
 
         <ChallengeModeConfirmModal
