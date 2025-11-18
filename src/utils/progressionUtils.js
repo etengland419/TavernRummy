@@ -14,6 +14,7 @@ export const XP_REWARDS = {
   UNDERCUT_BONUS: 20,
   FIRST_MELD: 3,
   LOSS_CONSOLATION: 5,
+  MATCH_WIN_BONUS: 50, // Extra XP for winning a match (first to 100)
 };
 
 /**

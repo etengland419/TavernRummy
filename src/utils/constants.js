@@ -91,7 +91,7 @@ export const MODE_DESCRIPTIONS = {
     stats: "Counts for stats & achievements"
   },
   challenging: {
-    title: "⚔️ Challenging",
+    title: "⚔️ Challenge Mode",
     description: "Test your mastery against the toughest AI - Earn XP, level up, and unlock powerful abilities!",
     tips: "No assistance",
     stats: "Full stats + XP progression & ability unlocks"

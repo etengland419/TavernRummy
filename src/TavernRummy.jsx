@@ -8,6 +8,7 @@ import { createDeck } from './utils/cardUtils';
 import { findMelds, calculateDeadwood, calculateMinDeadwoodAfterDiscard, sortHand } from './utils/meldUtils';
 import { calculateRoundResult, checkMatchWinner } from './utils/scoringUtils';
 import { getRandomOpponentName } from './utils/opponentNames';
+import { XP_REWARDS } from './utils/progressionUtils';
 
 // AI
 import { executeAITurn } from './ai/aiStrategy';
@@ -460,6 +461,11 @@ const TavernRummy = () => {
       // Track match completion
       if (trackMatch) {
         trackMatch(matchWinner);
+      }
+      // Award bonus XP for match win in Challenge Mode
+      if (gameMode === GAME_MODES.CHALLENGING && matchWinner === 'player') {
+        progression.addXP(XP_REWARDS.MATCH_WIN_BONUS, 'Match Victory Bonus: +50 XP');
+        console.log(`Match Win Bonus XP: +${XP_REWARDS.MATCH_WIN_BONUS} XP`);
       }
     }
 
