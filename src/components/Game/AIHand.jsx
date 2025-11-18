@@ -14,8 +14,9 @@ import PlayingCard from '../UI/PlayingCard';
  * @param {string} currentTurn - Current turn ('player' or 'ai')
  * @param {Object} aiHandRef - Ref for AI hand container
  * @param {string} opponentName - Name of the opponent to display
+ * @param {Object} challengeTier - Current challenge tier info {icon, name} (optional)
  */
-const AIHand = ({ hand, gameOver, aiDrawnCard, aiDiscardedCard, currentTurn, aiHandRef, opponentName }) => {
+const AIHand = ({ hand, gameOver, aiDrawnCard, aiDiscardedCard, currentTurn, aiHandRef, opponentName, challengeTier }) => {
   const isAiTurn = currentTurn === 'ai';
 
   return (
@@ -25,6 +26,11 @@ const AIHand = ({ hand, gameOver, aiDrawnCard, aiDiscardedCard, currentTurn, aiH
         <h2 className={`text-xl font-bold text-amber-400 transition-all duration-300 ${isAiTurn ? 'ai-turn-name-glow' : ''}`}>
           {opponentName}
         </h2>
+        {challengeTier && (
+          <span className="text-2xl" title={`${challengeTier.name} Tier`}>
+            {challengeTier.icon}
+          </span>
+        )}
       </div>
       <div className="flex justify-center gap-2">
         <AnimatePresence initial={false}>
@@ -58,7 +64,11 @@ AIHand.propTypes = {
   aiDiscardedCard: PropTypes.string,
   currentTurn: PropTypes.string,
   aiHandRef: PropTypes.object,
-  opponentName: PropTypes.string.isRequired
+  opponentName: PropTypes.string.isRequired,
+  challengeTier: PropTypes.shape({
+    icon: PropTypes.string,
+    name: PropTypes.string
+  })
 };
 
 export default AIHand;

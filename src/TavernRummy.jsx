@@ -9,7 +9,7 @@ import { findMelds, calculateDeadwood, calculateMinDeadwoodAfterDiscard, sortHan
 import { calculateRoundResult, checkMatchWinner } from './utils/scoringUtils';
 import { getRandomOpponentName } from './utils/opponentNames';
 import { XP_REWARDS } from './utils/progressionUtils';
-import { getDifficultyForWinStreak, checkTierMilestone, getTierReachedMessage } from './utils/challengeUtils';
+import { getDifficultyForWinStreak, checkTierMilestone, getTierReachedMessage, getCurrentTier } from './utils/challengeUtils';
 import { updateChallengeWin, updateChallengeLoss, addMilestoneXP } from './utils/statsUtils';
 
 // AI
@@ -43,6 +43,8 @@ import XPBar from './components/UI/XPBar';
 import LevelUpModal from './components/Modals/LevelUpModal';
 import AbilitiesPanel from './components/UI/AbilitiesPanel';
 import AbilitiesShopModal from './components/Modals/AbilitiesShopModal';
+import ChallengeTierDisplay from './components/UI/ChallengeTierDisplay';
+import ShopModal from './components/Modals/ShopModal';
 
 // Hooks
 import { useTutorial } from './hooks/useTutorial';
@@ -105,6 +107,7 @@ const TavernRummy = () => {
   const [tierMilestone, setTierMilestone] = useState(null);
   const [showTierMilestone, setShowTierMilestone] = useState(false);
   const [showDebugModal, setShowDebugModal] = useState(false);
+  const [showShopModal, setShowShopModal] = useState(false);
 
   // Refs
   const deckRef = useRef(null);
@@ -394,35 +397,36 @@ const TavernRummy = () => {
     console.log('[DEBUG] Auto-win triggered');
 
     // Create a perfect GIN hand (all cards in melds, 0 deadwood)
-    // Using three sets of three cards (9 total) + 1 card to complete a run
+    // Using medieval-themed suits: ⚔️ (Swords), 🏆 (Chalices), 💰 (Coins), 🔱 (Staves)
+    // Two sets of 3 + one run of 4 = 10 cards, all in melds
     const perfectHand = [
       // Set 1: Three 5s
-      { suit: '♥', rank: '5', value: 5, id: 'debug-5-H' },
-      { suit: '♦', rank: '5', value: 5, id: 'debug-5-D' },
-      { suit: '♠', rank: '5', value: 5, id: 'debug-5-S' },
+      { suit: '⚔️', rank: '5', value: 5, id: 'debug-5-S' },
+      { suit: '🏆', rank: '5', value: 5, id: 'debug-5-C' },
+      { suit: '💰', rank: '5', value: 5, id: 'debug-5-Co' },
       // Set 2: Three 7s
-      { suit: '♥', rank: '7', value: 7, id: 'debug-7-H' },
-      { suit: '♦', rank: '7', value: 7, id: 'debug-7-D' },
-      { suit: '♠', rank: '7', value: 7, id: 'debug-7-S' },
-      // Run: A-2-3-4 of clubs
-      { suit: '♣', rank: 'A', value: 1, id: 'debug-A-C' },
-      { suit: '♣', rank: '2', value: 2, id: 'debug-2-C' },
-      { suit: '♣', rank: '3', value: 3, id: 'debug-3-C' },
-      { suit: '♣', rank: '4', value: 4, id: 'debug-4-C' }
+      { suit: '⚔️', rank: '7', value: 7, id: 'debug-7-S' },
+      { suit: '🏆', rank: '7', value: 7, id: 'debug-7-C' },
+      { suit: '💰', rank: '7', value: 7, id: 'debug-7-Co' },
+      // Run: A-2-3-4 of Staves
+      { suit: '🔱', rank: 'A', value: 1, id: 'debug-A-St' },
+      { suit: '🔱', rank: '2', value: 2, id: 'debug-2-St' },
+      { suit: '🔱', rank: '3', value: 3, id: 'debug-3-St' },
+      { suit: '🔱', rank: '4', value: 4, id: 'debug-4-St' }
     ];
 
-    // Give AI a hand with some deadwood
+    // Give AI a hand with high deadwood
     const aiHandWithDeadwood = [
-      { suit: '♥', rank: 'K', value: 10, id: 'debug-ai-K-H' },
-      { suit: '♦', rank: 'Q', value: 10, id: 'debug-ai-Q-D' },
-      { suit: '♠', rank: 'J', value: 10, id: 'debug-ai-J-S' },
-      { suit: '♥', rank: '9', value: 9, id: 'debug-ai-9-H' },
-      { suit: '♦', rank: '8', value: 8, id: 'debug-ai-8-D' },
-      { suit: '♠', rank: '6', value: 6, id: 'debug-ai-6-S' },
-      { suit: '♥', rank: '4', value: 4, id: 'debug-ai-4-H' },
-      { suit: '♦', rank: '3', value: 3, id: 'debug-ai-3-D' },
-      { suit: '♠', rank: '2', value: 2, id: 'debug-ai-2-S' },
-      { suit: '♥', rank: 'A', value: 1, id: 'debug-ai-A-H' }
+      { suit: '⚔️', rank: 'K', value: 10, id: 'debug-ai-K-S' },
+      { suit: '🏆', rank: 'Q', value: 10, id: 'debug-ai-Q-C' },
+      { suit: '💰', rank: 'J', value: 10, id: 'debug-ai-J-Co' },
+      { suit: '⚔️', rank: '9', value: 9, id: 'debug-ai-9-S' },
+      { suit: '🏆', rank: '8', value: 8, id: 'debug-ai-8-C' },
+      { suit: '💰', rank: '6', value: 6, id: 'debug-ai-6-Co' },
+      { suit: '⚔️', rank: '4', value: 4, id: 'debug-ai-4-S' },
+      { suit: '🏆', rank: '3', value: 3, id: 'debug-ai-3-C' },
+      { suit: '💰', rank: '2', value: 2, id: 'debug-ai-2-Co' },
+      { suit: '⚔️', rank: 'A', value: 1, id: 'debug-ai-A-S' }
     ];
 
     // Update hands
@@ -810,11 +814,37 @@ const TavernRummy = () => {
             <button
               onClick={() => {
                 // sounds.buttonClick(); // Sound effects disabled
+                setShowShopModal(true);
+              }}
+              className="px-2 sm:px-3 py-1 rounded-lg border bg-purple-900 border-purple-600 text-purple-400 hover:bg-purple-800 transition-all"
+              title="Prestige Shop (Coming Soon)"
+            >
+              🏪 Shop
+            </button>
+            <button
+              onClick={() => {
+                // sounds.buttonClick(); // Sound effects disabled
                 setShowChallengeRules(true);
               }}
               className="px-2 sm:px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
             >
               📖 Challenge Guide
+            </button>
+          </div>
+
+          {/* Debug Controls Row - Separate from main controls */}
+          <div className="flex flex-wrap gap-2 justify-center items-center text-xs sm:text-sm mt-2">
+            <button
+              onClick={handleDebugAutoWin}
+              disabled={gameOver}
+              className={`px-2 sm:px-3 py-1 rounded-lg border transition-all font-bold ${
+                gameOver
+                  ? 'bg-gray-800 border-gray-600 text-gray-500 cursor-not-allowed'
+                  : 'bg-amber-600 border-amber-400 text-white hover:bg-amber-500 hover:scale-105'
+              }`}
+              title="Instantly win current round with GIN (Debug)"
+            >
+              ⚡ Auto-Win
             </button>
             <button
               onClick={() => {
@@ -823,7 +853,7 @@ const TavernRummy = () => {
               }}
               className="px-2 sm:px-3 py-1 rounded-lg border bg-red-900 border-red-600 text-red-400 hover:bg-red-800 transition-all"
             >
-              🔧 Debug
+              🔧 Debug Tools
             </button>
           </div>
         </div>
@@ -837,6 +867,13 @@ const TavernRummy = () => {
               xpToNext={progression.xpToNextLevel}
               abilityPoints={progression.abilityPoints}
             />
+          </div>
+        )}
+
+        {/* Challenge Tier Display - Only show in Challenge mode */}
+        {gameMode === GAME_MODES.CHALLENGING && (
+          <div className="mb-4">
+            <ChallengeTierDisplay winStreak={stats.challengeMode.currentWinStreak} compact={true} />
           </div>
         )}
 
@@ -869,6 +906,7 @@ const TavernRummy = () => {
           currentTurn={currentTurn}
           aiHandRef={aiHandRef}
           opponentName={opponentName}
+          challengeTier={gameMode === GAME_MODES.CHALLENGING ? getCurrentTier(stats.challengeMode.currentWinStreak) : null}
         />
 
         {/* Game Board (Deck & Discard) */}
@@ -1005,6 +1043,12 @@ const TavernRummy = () => {
           setScores={setScores}
           onAutoWin={handleDebugAutoWin}
           gameOver={gameOver}
+        />
+
+        <ShopModal
+          show={showShopModal}
+          onClose={() => setShowShopModal(false)}
+          prestigePoints={0}
         />
 
         <ChallengeModeConfirmModal
