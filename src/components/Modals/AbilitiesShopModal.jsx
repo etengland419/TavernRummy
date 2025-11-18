@@ -30,15 +30,29 @@ const AbilitiesShopModal = ({ show, onClose, abilities, progression }) => {
   const displayAbilities = selectedTab === 'active' ? activeAbilities : passiveAbilities;
 
   const handleUnlockAbility = (abilityId) => {
-    const success = abilities.unlockAbility(abilityId);
+    // Get current level and cost
+    const currentLevel = abilities.getAbilityLevel(abilityId);
+    const cost = getAbilityUpgradeCost(abilityId, currentLevel);
 
-    if (success) {
-      const ability = ABILITIES[abilityId.toUpperCase().replace(/-/g, '_')];
+    // Try to spend AP
+    const spendSuccess = progression.spendAP(cost);
+    if (!spendSuccess) {
+      return; // Not enough AP
+    }
 
-      // Auto-equip active abilities
-      if (ability.type === ABILITY_TYPES.ACTIVE) {
-        abilities.equipAbility(abilityId);
-      }
+    // Unlock/upgrade the ability
+    const unlockSuccess = abilities.unlockAbility(abilityId);
+
+    if (!unlockSuccess) {
+      // Refund AP if unlock failed
+      progression.refundAP(cost);
+      return;
+    }
+
+    // Auto-equip active abilities
+    const ability = ABILITIES[abilityId.toUpperCase().replace(/-/g, '_')];
+    if (ability.type === ABILITY_TYPES.ACTIVE) {
+      abilities.equipAbility(abilityId);
     }
   };
 
