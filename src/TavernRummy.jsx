@@ -31,6 +31,10 @@ import AnimatedCard from './components/UI/AnimatedCard';
 import AudioControls from './components/UI/AudioControls';
 import SplashScreen from './components/Modals/SplashScreen';
 import StrategyTip from './components/UI/StrategyTip';
+import XPBar from './components/UI/XPBar';
+import LevelUpModal from './components/Modals/LevelUpModal';
+import AbilitiesPanel from './components/UI/AbilitiesPanel';
+import AbilitiesShopModal from './components/Modals/AbilitiesShopModal';
 
 // Hooks
 import { useTutorial } from './hooks/useTutorial';
@@ -39,6 +43,8 @@ import { useAchievements } from './hooks/useAchievements';
 import { useAudio } from './hooks/useAudio';
 import { useCardAnimation } from './hooks/useCardAnimation';
 import { useStrategyTips } from './hooks/useStrategyTips';
+import { useProgression } from './hooks/useProgression';
+import { useAbilities } from './hooks/useAbilities';
 
 const TavernRummy = () => {
   // Game State
@@ -82,6 +88,7 @@ const TavernRummy = () => {
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
   const [showSplashScreen, setShowSplashScreen] = useState(true);
+  const [showAbilitiesShop, setShowAbilitiesShop] = useState(false);
 
   // Refs
   const deckRef = useRef(null);
@@ -110,6 +117,12 @@ const TavernRummy = () => {
 
   // Achievements hook
   const { newlyUnlocked, dismissNotification, getAchievement, getAllAchievements, getCompletionStats } = useAchievements(stats);
+
+  // Progression hook
+  const progression = useProgression();
+
+  // Abilities hook
+  const abilities = useAbilities(progression);
 
   // Audio hook
   const {
@@ -404,10 +417,19 @@ const TavernRummy = () => {
     // Update scores
     const newScores = { ...scores };
     if (result.winner !== 'draw') {
-      newScores[result.winner] += result.scoreDiff;
+      // Apply Gold Magnet bonus to player score
+      const scoreDiff = result.winner === 'player'
+        ? abilities.applyGoldMagnet(result.scoreDiff)
+        : result.scoreDiff;
+
+      newScores[result.winner] += scoreDiff;
       setScoreAnimation(result.winner);
       setTimeout(() => setScoreAnimation(null), ANIMATION_TIMINGS.SCORE_ANIMATION);
     }
+
+    // Award XP to player
+    const { xp, breakdown } = progression.addRoundXP(result);
+    console.log(`XP Gained: +${xp} XP`, breakdown);
 
     // Sound effects disabled - Play appropriate sound based on result
     // const isPlayerGin = result.playerDeadwood === 0 && knocker === 'player';
@@ -577,6 +599,16 @@ const TavernRummy = () => {
               🏆 Achievements
             </button>
           </div>
+        </div>
+
+        {/* XP Bar */}
+        <div className="mb-4">
+          <XPBar
+            level={progression.level}
+            currentXP={progression.currentLevelXP}
+            xpToNext={progression.xpToNextLevel}
+            abilityPoints={progression.abilityPoints}
+          />
         </div>
 
         {/* Score Display */}
@@ -749,6 +781,36 @@ const TavernRummy = () => {
             onComplete={flyingCard.onComplete}
           />
         ))}
+
+        {/* Level Up Modal */}
+        <LevelUpModal
+          show={progression.showLevelUpModal}
+          newLevel={progression.levelUpData?.newLevel}
+          apGained={progression.levelUpData?.apGained}
+          onClose={progression.closeLevelUpModal}
+        />
+
+        {/* Abilities Shop Modal */}
+        <AbilitiesShopModal
+          show={showAbilitiesShop}
+          onClose={() => setShowAbilitiesShop(false)}
+          abilities={abilities}
+          progression={progression}
+        />
+
+        {/* Abilities Panel */}
+        <AbilitiesPanel
+          equippedAbilities={abilities.equippedAbilities}
+          abilityUses={abilities.abilityUses}
+          onUseAbility={(abilityId) => {
+            // Handle ability usage (V1 just logs for now)
+            if (abilities.canUseAbility(abilityId)) {
+              console.log('Using ability:', abilityId);
+              // Actual ability logic will be implemented later
+            }
+          }}
+          onOpenShop={() => setShowAbilitiesShop(true)}
+        />
 
         {/* Rules */}
         <div className="mt-8 p-6 bg-gray-900 bg-opacity-70 rounded-lg border-2 border-amber-800">
