@@ -18,7 +18,7 @@ const SplashScreen = ({ show, onStart }) => {
   const gameModes = [
     { mode: GAME_MODES.TUTORIAL, icon: '📚', color: 'blue', difficulty: DIFFICULTY_LEVELS.TUTORIAL },
     { mode: GAME_MODES.PRACTICE, icon: '🎯', color: 'green', difficulty: DIFFICULTY_LEVELS.EASY },
-    { mode: GAME_MODES.CHALLENGING, icon: '⚔️', color: 'red', difficulty: DIFFICULTY_LEVELS.HARD }
+    { mode: GAME_MODES.CHALLENGING, icon: '⚔️', color: 'red', difficulty: DIFFICULTY_LEVELS.HARD, special: '⚡ Leveling & Abilities!' }
   ];
 
   const handleStart = () => {
@@ -62,7 +62,7 @@ const SplashScreen = ({ show, onStart }) => {
             <h3 className="text-amber-200 text-base md:text-lg mb-2 text-center font-semibold">Choose Your Path</h3>
           </div>
           <div className="grid grid-cols-3 gap-2 md:gap-3 mb-3 md:mb-4 max-w-2xl mx-auto">
-            {gameModes.map(({ mode, icon, color }) => (
+            {gameModes.map(({ mode, icon, color, special }) => (
               <button
                 key={mode}
                 onClick={() => setSelectedGameMode(mode)}
@@ -75,6 +75,11 @@ const SplashScreen = ({ show, onStart }) => {
                 <div className="text-center">
                   <div className="text-xl md:text-2xl mb-1">{icon}</div>
                   <div className="text-xs md:text-sm font-semibold">{MODE_DESCRIPTIONS[mode].title}</div>
+                  {special && (
+                    <div className="text-[10px] md:text-xs text-yellow-300 mt-1">
+                      {special}
+                    </div>
+                  )}
                 </div>
               </button>
             ))}

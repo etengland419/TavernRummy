@@ -92,9 +92,9 @@ export const MODE_DESCRIPTIONS = {
   },
   challenging: {
     title: "⚔️ Challenging",
-    description: "Test your mastery against the toughest AI",
+    description: "Test your mastery against the toughest AI - Earn XP, level up, and unlock powerful abilities!",
     tips: "No assistance",
-    stats: "Full stats + future roguelite rewards"
+    stats: "Full stats + XP progression & ability unlocks"
   }
 };
 
