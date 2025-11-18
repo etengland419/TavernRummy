@@ -68,6 +68,7 @@ const TavernRummy = () => {
   const [roundWinner, setRoundWinner] = useState(null);
   const [roundEndData, setRoundEndData] = useState(null);
   const [matchWinner, setMatchWinner] = useState(null);
+  const [matchWinXP, setMatchWinXP] = useState(0);
 
   // Settings
   const [difficulty, setDifficulty] = useState(DIFFICULTY_LEVELS.TUTORIAL);
@@ -473,7 +474,10 @@ const TavernRummy = () => {
       // Award bonus XP for match win in Challenge Mode
       if (gameMode === GAME_MODES.CHALLENGING && matchWinner === 'player') {
         progression.addXP(XP_REWARDS.MATCH_WIN_BONUS, 'Match Victory Bonus: +50 XP');
+        setMatchWinXP(XP_REWARDS.MATCH_WIN_BONUS);
         console.log(`Match Win Bonus XP: +${XP_REWARDS.MATCH_WIN_BONUS} XP`);
+      } else {
+        setMatchWinXP(0);
       }
     }
 
@@ -776,10 +780,19 @@ const TavernRummy = () => {
         <MatchWinnerModal
           matchWinner={matchWinner}
           scores={scores}
+          gameMode={gameMode}
+          xpGained={matchWinXP}
           onPlayAgain={() => {
             setMatchWinner(null);
+            setMatchWinXP(0);
             setScores({ player: 0, ai: 0 });
             startNewRound();
+          }}
+          onChooseMode={() => {
+            setMatchWinner(null);
+            setMatchWinXP(0);
+            setScores({ player: 0, ai: 0 });
+            setShowSplashScreen(true);
           }}
         />
 

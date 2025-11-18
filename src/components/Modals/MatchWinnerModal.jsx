@@ -8,9 +8,15 @@ import PropTypes from 'prop-types';
  * @param {string} matchWinner - 'player' or 'ai'
  * @param {Object} scores - Final scores {player, ai}
  * @param {Function} onPlayAgain - Callback when play again is clicked
+ * @param {Function} onChooseMode - Callback when choose mode is clicked
+ * @param {string} gameMode - Current game mode (to show XP in challenge mode)
+ * @param {number} xpGained - XP gained from match win (only for challenge mode)
  */
-const MatchWinnerModal = ({ matchWinner, scores, onPlayAgain }) => {
+const MatchWinnerModal = ({ matchWinner, scores, onPlayAgain, onChooseMode, gameMode, xpGained }) => {
   if (!matchWinner) return null;
+
+  const isChallenge = gameMode === 'challenging';
+  const showXP = isChallenge && matchWinner === 'player' && xpGained > 0;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[70]">
@@ -43,13 +49,38 @@ const MatchWinnerModal = ({ matchWinner, scores, onPlayAgain }) => {
               <div className="text-3xl font-bold text-pink-300">{scores.ai}</div>
             </div>
           </div>
+
+          {/* XP Reward Display (Challenge Mode Only) */}
+          {showXP && (
+            <div className="mt-6 p-4 bg-gradient-to-r from-purple-900 to-blue-900 rounded-lg border-2 border-purple-400 animate-pulse">
+              <div className="text-purple-300 text-xl font-semibold mb-2">
+                ⚡ Challenge Mastery Bonus ⚡
+              </div>
+              <div className="text-yellow-300 text-3xl font-bold">
+                +{xpGained} XP
+              </div>
+              <div className="text-purple-200 text-sm mt-1">
+                Match Victory Reward
+              </div>
+            </div>
+          )}
         </div>
-        <button
-          onClick={onPlayAgain}
-          className="w-full px-8 py-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white rounded-lg font-bold text-2xl border-2 border-amber-400 transition-all transform hover:scale-105"
-        >
-          ⚔️ Challenge the Stranger Anew!
-        </button>
+
+        <div className="space-y-3">
+          <button
+            onClick={onPlayAgain}
+            className="w-full px-8 py-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white rounded-lg font-bold text-2xl border-2 border-amber-400 transition-all transform hover:scale-105"
+          >
+            ⚔️ Challenge the Stranger Anew!
+          </button>
+
+          <button
+            onClick={onChooseMode}
+            className="w-full px-8 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white rounded-lg font-bold text-lg border-2 border-gray-400 transition-all transform hover:scale-105"
+          >
+            🎯 Choose Another Adventure
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -61,7 +92,10 @@ MatchWinnerModal.propTypes = {
     player: PropTypes.number.isRequired,
     ai: PropTypes.number.isRequired
   }).isRequired,
-  onPlayAgain: PropTypes.func.isRequired
+  onPlayAgain: PropTypes.func.isRequired,
+  onChooseMode: PropTypes.func.isRequired,
+  gameMode: PropTypes.string,
+  xpGained: PropTypes.number
 };
 
 export default MatchWinnerModal;
