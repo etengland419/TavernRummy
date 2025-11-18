@@ -1,0 +1,200 @@
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  ABILITIES
+} from '../../utils/abilitiesUtils';
+
+const AbilitiesPanel = ({
+  unlockedAbilities,
+  abilityUses,
+  onUseAbility,
+  disabled = false,
+  getMeldMasterLevel
+}) => {
+  const [hoveredAbility, setHoveredAbility] = useState(null);
+
+  // Get active abilities
+  const activeAbilities = unlockedAbilities.active || [];
+
+  // Get passive abilities with levels
+  const passiveAbilities = Object.entries(unlockedAbilities.passive || {})
+    .filter(([_, level]) => level > 0)
+    .map(([abilityId, level]) => ({ id: abilityId, level }));
+
+  if (activeAbilities.length === 0 && passiveAbilities.length === 0) {
+    return null; // Don't show panel if no abilities
+  }
+
+  const getRemainingUses = (abilityId) => {
+    const ability = ABILITIES[abilityId];
+    if (!ability) return '';
+
+    const currentUses = abilityUses[abilityId] || 0;
+
+    if (ability.usesPerRound !== undefined) {
+      const remaining = ability.usesPerRound - currentUses;
+      return remaining > 0 ? `${remaining}/round` : 'Used';
+    }
+
+    if (ability.usesPerMatch !== undefined) {
+      const remaining = ability.usesPerMatch - currentUses;
+      return remaining > 0 ? `${remaining}/match` : 'Used';
+    }
+
+    if (ability.usesPerSession !== undefined) {
+      const remaining = ability.usesPerSession - currentUses;
+      return remaining > 0 ? `${remaining}/session` : 'Used';
+    }
+
+    return 'Ready';
+  };
+
+  const canUseAbility = (abilityId) => {
+    const ability = ABILITIES[abilityId];
+    if (!ability) return false;
+
+    const currentUses = abilityUses[abilityId] || 0;
+
+    if (ability.usesPerRound !== undefined) {
+      return currentUses < ability.usesPerRound;
+    }
+
+    if (ability.usesPerMatch !== undefined) {
+      return currentUses < ability.usesPerMatch;
+    }
+
+    if (ability.usesPerSession !== undefined) {
+      return currentUses < ability.usesPerSession;
+    }
+
+    return true;
+  };
+
+  return (
+    <div className="fixed bottom-4 right-4 z-30">
+      <motion.div
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="bg-gradient-to-br from-amber-900 to-gray-900 rounded-lg border-4 border-amber-600 p-4 shadow-2xl"
+      >
+        <div className="text-amber-400 font-bold mb-3 text-center border-b-2 border-amber-600 pb-2">
+          ⚡ ABILITIES
+        </div>
+
+        {/* Active Abilities */}
+        {activeAbilities.length > 0 && (
+          <div className="space-y-2 mb-3">
+            <div className="text-amber-300 text-xs font-semibold mb-1">ACTIVE</div>
+            {activeAbilities.map(abilityId => {
+              const ability = ABILITIES[abilityId];
+              if (!ability) return null;
+
+              const isAvailable = canUseAbility(abilityId);
+              const usesText = getRemainingUses(abilityId);
+
+              return (
+                <motion.button
+                  key={abilityId}
+                  onClick={() => !disabled && isAvailable && onUseAbility(abilityId)}
+                  onMouseEnter={() => setHoveredAbility(abilityId)}
+                  onMouseLeave={() => setHoveredAbility(null)}
+                  disabled={disabled || !isAvailable}
+                  whileHover={isAvailable ? { scale: 1.05 } : {}}
+                  whileTap={isAvailable ? { scale: 0.95 } : {}}
+                  className={`
+                    w-full px-3 py-2 rounded-lg border-2 transition-all text-left
+                    ${isAvailable
+                      ? 'bg-amber-700 hover:bg-amber-600 border-amber-500 cursor-pointer'
+                      : 'bg-gray-700 border-gray-600 opacity-50 cursor-not-allowed'
+                    }
+                  `}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{ability.icon}</span>
+                      <div>
+                        <div className="text-white text-sm font-semibold">{ability.name}</div>
+                        <div className="text-amber-200 text-xs">{usesText}</div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Passive Abilities */}
+        {passiveAbilities.length > 0 && (
+          <div className="space-y-2 border-t-2 border-amber-600 pt-3">
+            <div className="text-amber-300 text-xs font-semibold mb-1">PASSIVE</div>
+            {passiveAbilities.map(({ id: abilityId, level }) => {
+              const ability = ABILITIES[abilityId];
+              if (!ability) return null;
+
+              return (
+                <div
+                  key={abilityId}
+                  onMouseEnter={() => setHoveredAbility(abilityId)}
+                  onMouseLeave={() => setHoveredAbility(null)}
+                  className="px-3 py-2 rounded-lg border-2 bg-purple-800 border-purple-600"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{ability.icon}</span>
+                      <div>
+                        <div className="text-white text-sm font-semibold">{ability.name}</div>
+                        <div className="text-purple-200 text-xs">
+                          Level {level}/{ability.maxLevel}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Tooltip */}
+        <AnimatePresence>
+          {hoveredAbility && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="absolute right-full mr-4 top-0 w-64 bg-gray-900 border-2 border-amber-600 rounded-lg p-3 shadow-xl"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-3xl">{ABILITIES[hoveredAbility].icon}</span>
+                <div className="text-amber-400 font-bold text-lg">
+                  {ABILITIES[hoveredAbility].name}
+                </div>
+              </div>
+              <div className="text-gray-300 text-sm leading-relaxed">
+                {ABILITIES[hoveredAbility].detailedDescription}
+              </div>
+              <div className="mt-2 text-amber-300 text-xs font-semibold">
+                Cost: {ABILITIES[hoveredAbility].cost || ABILITIES[hoveredAbility].costPerLevel} AP
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </div>
+  );
+};
+
+AbilitiesPanel.propTypes = {
+  unlockedAbilities: PropTypes.shape({
+    active: PropTypes.arrayOf(PropTypes.string),
+    passive: PropTypes.object
+  }).isRequired,
+  abilityUses: PropTypes.object.isRequired,
+  onUseAbility: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
+  getMeldMasterLevel: PropTypes.func
+};
+
+export default AbilitiesPanel;

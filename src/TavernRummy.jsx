@@ -39,6 +39,17 @@ import { useAchievements } from './hooks/useAchievements';
 import { useAudio } from './hooks/useAudio';
 import { useCardAnimation } from './hooks/useCardAnimation';
 import { useStrategyTips } from './hooks/useStrategyTips';
+import { useAbilities } from './hooks/useAbilities';
+
+// Ability Components
+import AbilitiesPanel from './components/UI/AbilitiesPanel';
+import DeckPeekModal from './components/Modals/DeckPeekModal';
+import CardSwapModal from './components/Modals/CardSwapModal';
+import LuckyDrawModal from './components/Modals/LuckyDrawModal';
+import DevPanel from './components/UI/DevPanel';
+
+// Ability Utils
+import { ACTIVE_ABILITIES } from './utils/abilitiesUtils';
 
 const TavernRummy = () => {
   // Game State
@@ -143,6 +154,30 @@ const TavernRummy = () => {
   // Strategy tips hook (only active in Practice mode)
   const { activeTip, dismissTip, clearDismissed } = useStrategyTips(gameMode, gameContext);
 
+  // Abilities hook
+  const {
+    unlockedAbilities,
+    abilityUses,
+    deckPeekCards,
+    showDeckPeekModal,
+    setShowDeckPeekModal,
+    showCardSwapModal,
+    setShowCardSwapModal,
+    luckyDrawCards,
+    showLuckyDrawModal,
+    unlockActiveAbility,
+    upgradePassiveAbility,
+    activateDeckPeek,
+    activateRedoTurn,
+    saveGameStateForRedo,
+    activateCardSwap,
+    checkLuckyDraw,
+    getQuickHandsMultiplier,
+    getMeldMasterLevel,
+    resetForNewRound,
+    resetAllAbilities
+  } = useAbilities();
+
   // Initialize game on mount (only after splash screen is dismissed)
   useEffect(() => {
     if (!showSplashScreen) {
@@ -190,6 +225,9 @@ const TavernRummy = () => {
     setSelectedCard(null);
     clearDismissed();
 
+    // Reset ability uses for new round
+    resetForNewRound();
+
     // sounds.cardShuffle(); // Sound effects disabled
   };
 
@@ -206,6 +244,15 @@ const TavernRummy = () => {
         handleDraw();
         return;
       }
+
+      // Check if Lucky Draw triggers (passive ability)
+      const luckyDrawCards = checkLuckyDraw(newDeck);
+      if (luckyDrawCards) {
+        // Lucky Draw triggered - let the modal handle the card selection
+        // The selection will be handled by handleLuckyDrawSelection
+        return;
+      }
+
       drawnCard = newDeck.pop();
       setDeck(newDeck);
       // sounds.cardDraw(); // Sound effects disabled
@@ -219,6 +266,13 @@ const TavernRummy = () => {
       // Add flying card animation from discard to player hand
       addFlyingCard(drawnCard, discardRef, playerHandRef, false);
     }
+
+    // Save game state for Redo Turn ability
+    saveGameStateForRedo({
+      playerHand,
+      deck: newDeck,
+      discardPile: newDiscard
+    });
 
     // Delay adding card to hand until animation completes
     setTimeout(() => {
@@ -315,6 +369,9 @@ const TavernRummy = () => {
   };
 
   const aiTurn = (playerCurrentHand) => {
+    // Apply Quick Hands speed multiplier (passive ability)
+    const speedMultiplier = getQuickHandsMultiplier();
+
     setTimeout(() => {
       const decision = executeAITurn(aiHand, deck, discardPile, difficulty);
 
@@ -369,17 +426,17 @@ const TavernRummy = () => {
             if (decision.shouldKnock) {
               setTimeout(() => {
                 setMessage(`${opponentName} knocks!`);
-                setTimeout(() => endRound('ai'), ANIMATION_TIMINGS.KNOCK_ANNOUNCEMENT);
-              }, 250);
+                setTimeout(() => endRound('ai'), ANIMATION_TIMINGS.KNOCK_ANNOUNCEMENT * speedMultiplier);
+              }, 250 * speedMultiplier);
             } else {
               setCurrentTurn('player');
               setPhase('draw');
               setMessage('Your turn - Draw a card');
             }
-          }, ANIMATION_TIMINGS.CARD_DISCARD);
-        }, ANIMATION_TIMINGS.AI_DISCARD_DELAY);
-      }, ANIMATION_TIMINGS.AI_DRAW_DELAY);
-    }, ANIMATION_TIMINGS.AI_TURN_START);
+          }, ANIMATION_TIMINGS.CARD_DISCARD * speedMultiplier);
+        }, ANIMATION_TIMINGS.AI_DISCARD_DELAY * speedMultiplier);
+      }, ANIMATION_TIMINGS.AI_DRAW_DELAY * speedMultiplier);
+    }, ANIMATION_TIMINGS.AI_TURN_START * speedMultiplier);
   };
 
   const handleDraw = () => {
@@ -497,6 +554,57 @@ const TavernRummy = () => {
     setShowMatchModeConfirm(false);
     // sounds.newRound(); // Sound effects disabled
     startNewRound();
+  };
+
+  // Ability Handlers
+  const handleUseAbility = (abilityId) => {
+    if (abilityId === ACTIVE_ABILITIES.DECK_PEEK) {
+      activateDeckPeek(deck);
+    } else if (abilityId === ACTIVE_ABILITIES.CARD_SWAP) {
+      setShowCardSwapModal(true);
+    } else if (abilityId === ACTIVE_ABILITIES.REDO_TURN) {
+      const savedState = activateRedoTurn();
+      if (savedState) {
+        setPlayerHand(savedState.playerHand);
+        setDeck(savedState.deck);
+        setDiscardPile(savedState.discardPile);
+        setPhase('discard');
+        setMessage('Turn undone! Discard a card or knock');
+      }
+    }
+  };
+
+  const handleCardSwap = (cardIndex) => {
+    const result = activateCardSwap(cardIndex, playerHand, deck);
+    if (result) {
+      setPlayerHand(result.newHand);
+      setDeck(result.newDeck);
+      setShowCardSwapModal(false);
+      setMessage(`Swapped ${result.discardedCard.rank} for ${result.newCard.rank}`);
+    }
+  };
+
+  const handleLuckyDrawSelection = (selectedCard) => {
+    const newDeck = [...deck];
+    // Remove both cards from deck
+    newDeck.shift();
+    newDeck.shift();
+    setDeck(newDeck);
+
+    // Add flying animation
+    addFlyingCard(selectedCard, deckRef, playerHandRef, true);
+
+    // Delay adding card to hand until animation completes
+    setTimeout(() => {
+      const newHand = [...playerHand, selectedCard];
+      setPlayerHand(newHand);
+      setNewlyDrawnCard(selectedCard.id);
+      setPhase('discard');
+      setMessage('Lucky Draw! Discard a card or knock');
+      setTurnCount(prev => prev + 1);
+
+      setTimeout(() => setNewlyDrawnCard(null), ANIMATION_TIMINGS.CARD_HIGHLIGHT);
+    }, ANIMATION_TIMINGS.CARD_DRAW);
   };
 
   return (
@@ -736,6 +844,44 @@ const TavernRummy = () => {
             onApply={(tipId) => dismissTip(tipId, true)}
           />
         )}
+
+        {/* Abilities Panel */}
+        <AbilitiesPanel
+          unlockedAbilities={unlockedAbilities}
+          abilityUses={abilityUses}
+          onUseAbility={handleUseAbility}
+          disabled={currentTurn !== 'player' || gameOver}
+          getMeldMasterLevel={getMeldMasterLevel}
+        />
+
+        {/* Dev Panel */}
+        <DevPanel
+          unlockedAbilities={unlockedAbilities}
+          onUnlockActiveAbility={unlockActiveAbility}
+          onUpgradePassiveAbility={upgradePassiveAbility}
+          onResetAbilities={resetAllAbilities}
+        />
+
+        {/* Ability Modals */}
+        <DeckPeekModal
+          show={showDeckPeekModal}
+          cards={deckPeekCards}
+          onClose={() => setShowDeckPeekModal(false)}
+        />
+
+        <CardSwapModal
+          show={showCardSwapModal}
+          hand={playerHand}
+          onSwap={handleCardSwap}
+          onClose={() => setShowCardSwapModal(false)}
+        />
+
+        <LuckyDrawModal
+          show={showLuckyDrawModal}
+          cards={luckyDrawCards}
+          onSelectCard={handleLuckyDrawSelection}
+          onClose={() => {}}
+        />
 
         {/* Flying Card Animations */}
         {flyingCards.map(flyingCard => (
