@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { DIFFICULTY_LEVELS } from '../../utils/constants';
+import { DIFFICULTY_LEVELS, GAME_MODES, MODE_DESCRIPTIONS } from '../../utils/constants';
 
 /**
  * SplashScreen Component
@@ -10,20 +10,20 @@ import { DIFFICULTY_LEVELS } from '../../utils/constants';
  * @param {Function} onStart - Callback when a game mode is selected (difficulty, matchMode)
  */
 const SplashScreen = ({ show, onStart }) => {
-  const [selectedDifficulty, setSelectedDifficulty] = useState(DIFFICULTY_LEVELS.TUTORIAL);
+  const [selectedGameMode, setSelectedGameMode] = useState(GAME_MODES.TUTORIAL);
   const [selectedMatchMode, setSelectedMatchMode] = useState(false);
 
   if (!show) return null;
 
-  const difficulties = [
-    { level: DIFFICULTY_LEVELS.TUTORIAL, icon: '📚', color: 'blue' },
-    { level: DIFFICULTY_LEVELS.EASY, icon: '😊', color: 'green' },
-    { level: DIFFICULTY_LEVELS.MEDIUM, icon: '🎯', color: 'yellow' },
-    { level: DIFFICULTY_LEVELS.HARD, icon: '🔥', color: 'red' }
+  const gameModes = [
+    { mode: GAME_MODES.TUTORIAL, icon: '📚', color: 'blue', difficulty: DIFFICULTY_LEVELS.TUTORIAL },
+    { mode: GAME_MODES.PRACTICE, icon: '🎯', color: 'green', difficulty: DIFFICULTY_LEVELS.EASY },
+    { mode: GAME_MODES.CHALLENGING, icon: '⚔️', color: 'red', difficulty: DIFFICULTY_LEVELS.HARD }
   ];
 
   const handleStart = () => {
-    onStart({ difficulty: selectedDifficulty, matchMode: selectedMatchMode });
+    const selectedMode = gameModes.find(m => m.mode === selectedGameMode);
+    onStart({ difficulty: selectedMode.difficulty, gameMode: selectedGameMode, matchMode: selectedMatchMode });
   };
 
   return (
@@ -57,21 +57,34 @@ const SplashScreen = ({ show, onStart }) => {
 
         {/* Compact game options */}
         <div className="mb-4 md:mb-6 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-          {/* Difficulty Selector */}
-          <div className="grid grid-cols-2 md:flex gap-2 md:gap-3 justify-center mb-3 md:mb-4 max-w-md mx-auto md:max-w-none">
-            {difficulties.map(({ level, icon, color }) => (
+          {/* Game Mode Selector */}
+          <div className="mb-2 md:mb-3">
+            <h3 className="text-amber-200 text-base md:text-lg mb-2 text-center font-semibold">Choose Your Path</h3>
+          </div>
+          <div className="grid grid-cols-3 gap-2 md:gap-3 mb-3 md:mb-4 max-w-2xl mx-auto">
+            {gameModes.map(({ mode, icon, color }) => (
               <button
-                key={level}
-                onClick={() => setSelectedDifficulty(level)}
-                className={`px-3 py-2 md:px-4 md:py-2 rounded-lg border-2 transition-all text-sm md:text-base ${
-                  selectedDifficulty === level
-                    ? `bg-${color}-600 border-${color}-400 text-white shadow-lg`
+                key={mode}
+                onClick={() => setSelectedGameMode(mode)}
+                className={`px-2 py-3 md:px-3 md:py-4 rounded-lg border-2 transition-all ${
+                  selectedGameMode === mode
+                    ? `bg-${color}-600 border-${color}-400 text-white shadow-lg transform scale-105`
                     : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
                 }`}
               >
-                <span className="block md:inline">{icon}</span> <span className="block md:inline text-xs md:text-base">{level}</span>
+                <div className="text-center">
+                  <div className="text-xl md:text-2xl mb-1">{icon}</div>
+                  <div className="text-xs md:text-sm font-semibold">{MODE_DESCRIPTIONS[mode].title}</div>
+                </div>
               </button>
             ))}
+          </div>
+
+          {/* Mode Description */}
+          <div className="bg-gray-800 bg-opacity-60 rounded-lg p-3 md:p-4 border border-gray-700 mb-3 md:mb-4 max-w-2xl mx-auto">
+            <p className="text-gray-300 text-xs md:text-sm text-center">
+              {MODE_DESCRIPTIONS[selectedGameMode].description}
+            </p>
           </div>
 
           {/* Match Mode Toggle */}
