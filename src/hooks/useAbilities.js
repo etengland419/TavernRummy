@@ -8,7 +8,9 @@ import {
   getRemainingUses,
   getPassiveEffect,
   PASSIVE_ABILITIES,
-  ACTIVE_ABILITIES
+  ACTIVE_ABILITIES,
+  ABILITY_TYPES,
+  getAbility
 } from '../utils/abilitiesUtils';
 
 /**
@@ -18,6 +20,9 @@ import {
 export const useAbilities = () => {
   // Player's unlocked abilities
   const [unlockedAbilities, setUnlockedAbilities] = useState(initializeAbilities());
+
+  // Equipped active abilities
+  const [equippedAbilities, setEquippedAbilities] = useState([]);
 
   // Current ability uses (resets per round/match)
   const [abilityUses, setAbilityUses] = useState({});
@@ -38,7 +43,8 @@ export const useAbilities = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setUnlockedAbilities(parsed);
+        setUnlockedAbilities(parsed.unlocked || parsed); // Handle both old and new format
+        setEquippedAbilities(parsed.equipped || []);
       } catch (e) {
         console.error('Failed to load abilities:', e);
       }
@@ -49,8 +55,11 @@ export const useAbilities = () => {
    * Save abilities to localStorage
    */
   useEffect(() => {
-    localStorage.setItem('tavernRummyAbilities', JSON.stringify(unlockedAbilities));
-  }, [unlockedAbilities]);
+    localStorage.setItem('tavernRummyAbilities', JSON.stringify({
+      unlocked: unlockedAbilities,
+      equipped: equippedAbilities
+    }));
+  }, [unlockedAbilities, equippedAbilities]);
 
   /**
    * Unlock an active ability
@@ -253,13 +262,87 @@ export const useAbilities = () => {
    */
   const resetAllAbilities = useCallback(() => {
     setUnlockedAbilities(initializeAbilities());
+    setEquippedAbilities([]);
     setAbilityUses({});
     setSavedGameState(null);
   }, []);
 
+  /**
+   * Check if an ability is unlocked
+   */
+  const isAbilityUnlocked = useCallback((abilityId) => {
+    const ability = getAbility(abilityId);
+    if (!ability) return false;
+
+    if (ability.type === ABILITY_TYPES.ACTIVE) {
+      return unlockedAbilities.active?.includes(abilityId) || false;
+    } else {
+      return (unlockedAbilities.passive?.[abilityId] || 0) > 0;
+    }
+  }, [unlockedAbilities]);
+
+  /**
+   * Get the current level of an ability
+   * For active abilities: returns 1 if unlocked, 0 if locked
+   * For passive abilities: returns the actual level (0-maxLevel)
+   */
+  const getAbilityLevel = useCallback((abilityId) => {
+    const ability = getAbility(abilityId);
+    if (!ability) return 0;
+
+    if (ability.type === ABILITY_TYPES.ACTIVE) {
+      return isAbilityUnlocked(abilityId) ? 1 : 0;
+    } else {
+      return unlockedAbilities.passive?.[abilityId] || 0;
+    }
+  }, [unlockedAbilities, isAbilityUnlocked]);
+
+  /**
+   * Equip an active ability
+   */
+  const equipAbility = useCallback((abilityId) => {
+    const ability = getAbility(abilityId);
+    if (!ability || ability.type !== ABILITY_TYPES.ACTIVE) return false;
+    if (!isAbilityUnlocked(abilityId)) return false;
+    if (equippedAbilities.includes(abilityId)) return false;
+
+    setEquippedAbilities(prev => [...prev, abilityId]);
+    return true;
+  }, [equippedAbilities, isAbilityUnlocked]);
+
+  /**
+   * Unequip an active ability
+   */
+  const unequipAbility = useCallback((abilityId) => {
+    setEquippedAbilities(prev => prev.filter(id => id !== abilityId));
+  }, []);
+
+  /**
+   * Unlock or upgrade an ability
+   * This doesn't handle AP spending - that should be done by the caller
+   */
+  const unlockAbility = useCallback((abilityId) => {
+    const ability = getAbility(abilityId);
+    if (!ability) return false;
+
+    if (ability.type === ABILITY_TYPES.ACTIVE) {
+      // Don't unlock if already unlocked
+      if (isAbilityUnlocked(abilityId)) return false;
+      unlockActiveAbility(abilityId);
+    } else {
+      // Don't upgrade if at max level
+      const currentLevel = getAbilityLevel(abilityId);
+      if (currentLevel >= ability.maxLevel) return false;
+      upgradePassiveAbility(abilityId);
+    }
+
+    return true;
+  }, [unlockActiveAbility, upgradePassiveAbility, isAbilityUnlocked, getAbilityLevel]);
+
   return {
     // State
     unlockedAbilities,
+    equippedAbilities,
     abilityUses,
     deckPeekCards,
     showDeckPeekModal,
@@ -272,6 +355,13 @@ export const useAbilities = () => {
     // Unlock functions
     unlockActiveAbility,
     upgradePassiveAbility,
+    unlockAbility,
+    isAbilityUnlocked,
+    getAbilityLevel,
+
+    // Equip functions
+    equipAbility,
+    unequipAbility,
 
     // Check functions
     checkCanUseAbility,

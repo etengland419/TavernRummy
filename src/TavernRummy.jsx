@@ -191,6 +191,9 @@ const TavernRummy = () => {
   const { activeTip, dismissTip, clearDismissed } = useStrategyTips(gameMode, gameContext);
 
   // Abilities hook
+  const abilities = useAbilities();
+
+  // Destructure commonly used abilities for convenience
   const {
     unlockedAbilities,
     abilityUses,
@@ -201,8 +204,6 @@ const TavernRummy = () => {
     setShowCardSwapModal,
     luckyDrawCards,
     showLuckyDrawModal,
-    unlockActiveAbility,
-    upgradePassiveAbility,
     activateDeckPeek,
     activateRedoTurn,
     saveGameStateForRedo,
@@ -214,7 +215,7 @@ const TavernRummy = () => {
     resetForNewRound,
     resetForNewMatch,
     resetAllAbilities
-  } = useAbilities();
+  } = abilities;
 
   // Initialize game on mount (only after splash screen is dismissed)
   useEffect(() => {
@@ -1236,8 +1237,8 @@ const TavernRummy = () => {
         {/* Dev Panel */}
         <DevPanel
           unlockedAbilities={unlockedAbilities}
-          onUnlockActiveAbility={unlockActiveAbility}
-          onUpgradePassiveAbility={upgradePassiveAbility}
+          onUnlockActiveAbility={abilities.unlockActiveAbility}
+          onUpgradePassiveAbility={abilities.upgradePassiveAbility}
           onResetAbilities={resetAllAbilities}
         />
 
@@ -1296,11 +1297,10 @@ const TavernRummy = () => {
         />
 
         {/* Abilities Shop Modal */}
-        {/* TODO: Fix abilities prop - the abilities object needs methods like unlockAbility, equipAbility, etc. */}
         <AbilitiesShopModal
           show={showAbilitiesShop}
           onClose={() => setShowAbilitiesShop(false)}
-          abilities={{}}
+          abilities={abilities}
           progression={progression}
         />
 
