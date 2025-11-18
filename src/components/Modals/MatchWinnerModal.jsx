@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { getCurrentTier, calculateMilestoneXP } from '../../utils/challengeUtils';
 
 /**
  * MatchWinnerModal Component
@@ -11,8 +12,9 @@ import PropTypes from 'prop-types';
  * @param {Function} onChooseMode - Callback when choose mode is clicked
  * @param {string} gameMode - Current game mode (to show XP in challenge mode)
  * @param {number} xpGained - XP gained from match win (only for challenge mode)
+ * @param {Object} stats - Stats object (for Challenge Mode run summary)
  */
-const MatchWinnerModal = ({ matchWinner, scores, onPlayAgain, onChooseMode, gameMode, xpGained }) => {
+const MatchWinnerModal = ({ matchWinner, scores, onPlayAgain, onChooseMode, gameMode, xpGained, stats }) => {
   if (!matchWinner) return null;
 
   const isChallenge = gameMode === 'challenging';
@@ -64,6 +66,40 @@ const MatchWinnerModal = ({ matchWinner, scores, onPlayAgain, onChooseMode, game
               </div>
             </div>
           )}
+
+          {/* Challenge Mode Run Summary (on loss) */}
+          {isChallenge && matchWinner === 'ai' && stats?.challengeMode && (
+            <div className="mt-6 bg-purple-900 bg-opacity-50 border-2 border-purple-500 rounded-lg p-4">
+              <h3 className="text-xl font-bold text-purple-200 mb-3 text-center">
+                💀 Challenge Run Ended
+              </h3>
+
+              <div className="space-y-2 text-purple-200">
+                <div className="flex justify-between">
+                  <span>Final Win Streak:</span>
+                  <span className="font-bold text-yellow-400">{stats.challengeMode.currentWinStreak}</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span>Highest Tier:</span>
+                  <span className="font-bold">{getCurrentTier(stats.challengeMode.currentWinStreak).name}</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span>Total Milestone XP:</span>
+                  <span className="font-bold text-green-400">
+                    +{calculateMilestoneXP(stats.challengeMode.currentWinStreak)} XP
+                  </span>
+                </div>
+              </div>
+
+              {stats.challengeMode.currentWinStreak >= 10 && (
+                <div className="mt-4 text-center text-purple-300 italic text-sm">
+                  "A valiant effort! Try again to reach even greater heights."
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="space-y-3">
@@ -95,7 +131,8 @@ MatchWinnerModal.propTypes = {
   onPlayAgain: PropTypes.func.isRequired,
   onChooseMode: PropTypes.func.isRequired,
   gameMode: PropTypes.string,
-  xpGained: PropTypes.number
+  xpGained: PropTypes.number,
+  stats: PropTypes.object
 };
 
 export default MatchWinnerModal;

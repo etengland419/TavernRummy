@@ -128,6 +128,110 @@ export const ACHIEVEMENTS = {
     description: 'Get Gin 10 times',
     icon: '💎',
     condition: (stats) => stats.ginsCount >= 10
+  },
+
+  // Challenge Mode Win Streak Achievements
+  CHALLENGE_STREAK_5: {
+    id: 'challenge_streak_5',
+    name: 'Warming Up',
+    description: 'Reach a 5 win streak in Challenge Mode',
+    icon: '🔥',
+    condition: (stats) => stats.challengeMode?.longestWinStreak >= 5
+  },
+  CHALLENGE_STREAK_10: {
+    id: 'challenge_streak_10',
+    name: 'On Fire',
+    description: 'Reach a 10 win streak in Challenge Mode',
+    icon: '🔥🔥',
+    condition: (stats) => stats.challengeMode?.longestWinStreak >= 10
+  },
+  CHALLENGE_STREAK_15: {
+    id: 'challenge_streak_15',
+    name: 'Unstoppable Force',
+    description: 'Reach a 15 win streak in Challenge Mode',
+    icon: '⚡',
+    condition: (stats) => stats.challengeMode?.longestWinStreak >= 15
+  },
+  CHALLENGE_STREAK_20: {
+    id: 'challenge_streak_20',
+    name: 'Legendary Run',
+    description: 'Reach a 20 win streak in Challenge Mode',
+    icon: '👑',
+    condition: (stats) => stats.challengeMode?.longestWinStreak >= 20
+  },
+  CHALLENGE_STREAK_25: {
+    id: 'challenge_streak_25',
+    name: 'Nightmare Fuel',
+    description: 'Reach a 25 win streak in Challenge Mode',
+    icon: '💀',
+    condition: (stats) => stats.challengeMode?.longestWinStreak >= 25
+  },
+  CHALLENGE_STREAK_30: {
+    id: 'challenge_streak_30',
+    name: 'Infinite Power',
+    description: 'Reach a 30 win streak in Challenge Mode',
+    icon: '♾️',
+    condition: (stats) => stats.challengeMode?.longestWinStreak >= 30
+  },
+  CHALLENGE_STREAK_35: {
+    id: 'challenge_streak_35',
+    name: 'Transcendent',
+    description: 'Reach a 35 win streak in Challenge Mode',
+    icon: '✨',
+    condition: (stats) => stats.challengeMode?.longestWinStreak >= 35
+  },
+
+  // Challenge Mode Tier Achievements
+  REACH_EXPERT: {
+    id: 'reach_expert',
+    name: 'Expert Challenger',
+    description: 'Reach Expert tier in Challenge Mode',
+    icon: '⚡',
+    condition: (stats) => {
+      const tierLevels = ['Easy', 'Medium', 'Hard', 'Expert'];
+      const highestIndex = tierLevels.indexOf(stats.challengeMode?.highestTierReached);
+      return highestIndex >= 3;
+    }
+  },
+  REACH_MASTER: {
+    id: 'reach_master',
+    name: 'Master Challenger',
+    description: 'Reach Master tier in Challenge Mode',
+    icon: '⭐',
+    condition: (stats) => {
+      const tierLevels = ['Easy', 'Medium', 'Hard', 'Expert', 'Master'];
+      const highestIndex = tierLevels.indexOf(stats.challengeMode?.highestTierReached);
+      return highestIndex >= 4;
+    }
+  },
+  REACH_LEGENDARY: {
+    id: 'reach_legendary',
+    name: 'Legendary Challenger',
+    description: 'Reach Legendary tier in Challenge Mode',
+    icon: '👑',
+    condition: (stats) => {
+      const tierLevels = ['Easy', 'Medium', 'Hard', 'Expert', 'Master', 'Legendary'];
+      const highestIndex = tierLevels.indexOf(stats.challengeMode?.highestTierReached);
+      return highestIndex >= 5;
+    }
+  },
+  REACH_NIGHTMARE: {
+    id: 'reach_nightmare',
+    name: 'Nightmare Conqueror',
+    description: 'Reach Nightmare tier in Challenge Mode',
+    icon: '💀',
+    condition: (stats) => {
+      const tierLevels = ['Easy', 'Medium', 'Hard', 'Expert', 'Master', 'Legendary', 'Nightmare'];
+      const highestIndex = tierLevels.indexOf(stats.challengeMode?.highestTierReached);
+      return highestIndex >= 6;
+    }
+  },
+  REACH_INFINITE: {
+    id: 'reach_infinite',
+    name: 'The Infinite',
+    description: 'Reach Infinite tier in Challenge Mode',
+    icon: '♾️',
+    condition: (stats) => stats.challengeMode?.highestTierReached === 'Infinite'
   }
 };
 
