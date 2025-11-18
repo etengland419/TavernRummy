@@ -248,6 +248,9 @@ const TavernRummy = () => {
     setSelectedCard(null);
     clearDismissed();
 
+    // Reset ability uses for new round
+    abilities.resetAbilityUses('round');
+
     // sounds.cardShuffle(); // Sound effects disabled
   };
 
@@ -293,6 +296,15 @@ const TavernRummy = () => {
 
   const discardCard = (card) => {
     if (currentTurn !== 'player' || phase !== 'discard') return;
+
+    // Save game state before discarding for Redo Turn ability
+    abilities.saveGameState({
+      playerHand: [...playerHand],
+      discardPile: [...discardPile],
+      deck: [...deck],
+      phase: 'discard',
+      currentTurn: 'player'
+    });
 
     setDiscardingCard(card.id);
     // sounds.cardDiscard(); // Sound effects disabled
@@ -913,6 +925,7 @@ const TavernRummy = () => {
             setMatchWinner(null);
             setMatchWinXP(0);
             setScores({ player: 0, ai: 0 });
+            abilities.resetAbilityUses('match');
             startNewRound();
           }}
           onChooseMode={() => {
@@ -1074,11 +1087,25 @@ const TavernRummy = () => {
           equippedAbilities={abilities.equippedAbilities}
           abilityUses={abilities.abilityUses}
           onUseAbility={(abilityId) => {
-            // Handle ability usage (V1 just logs for now)
-            if (abilities.canUseAbility(abilityId)) {
-              console.log('Using ability:', abilityId);
-              // Actual ability logic will be implemented later
+            // Handle ability usage
+            if (abilityId === 'redo_turn') {
+              const savedState = abilities.executeRedoTurn();
+              if (savedState) {
+                // Restore the saved game state
+                setPlayerHand(savedState.playerHand);
+                setDiscardPile(savedState.discardPile);
+                setDeck(savedState.deck);
+                setPhase(savedState.phase);
+                setCurrentTurn(savedState.currentTurn);
+                setMessage('Redo Turn activated! Choose a different card to discard.');
+                setDiscardingCard(null);
+                setNewlyDrawnCard(null);
+                // sounds.cardDraw(); // Sound effects disabled (could add a special sound here)
+              } else {
+                setMessage('Cannot use Redo Turn right now!');
+              }
             }
+            // Other abilities will be implemented in future phases
           }}
           onOpenShop={() => setShowAbilitiesShop(true)}
         />
