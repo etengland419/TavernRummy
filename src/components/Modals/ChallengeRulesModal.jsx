@@ -77,6 +77,14 @@ const ChallengeRulesModal = ({ show, onClose }) => {
               </div>
             </div>
 
+            <div className="bg-purple-900 bg-opacity-30 p-3 rounded border border-purple-600 mb-4">
+              <h4 className="font-bold text-purple-300 mb-2">🏅 Match Mode Bonus</h4>
+              <p className="text-amber-100 text-sm">
+                Win a Match Mode game (first to 100 gold) for a massive <strong className="text-yellow-300">+50 XP</strong> bonus!
+                This is one of the best ways to earn XP quickly in Challenge Mode.
+              </p>
+            </div>
+
             <div className="bg-blue-900 bg-opacity-30 p-3 rounded border border-blue-600">
               <p className="text-blue-200 text-sm">
                 <strong>💎 Level Up Rewards:</strong> Each time you level up, you earn <strong className="text-yellow-300">1 Ability Point (AP)</strong>

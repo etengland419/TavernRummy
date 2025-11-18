@@ -28,6 +28,7 @@ import MatchModeConfirmModal from './components/Modals/MatchModeConfirmModal';
 import StatsModal from './components/Modals/StatsModal';
 import AchievementsModal from './components/Modals/AchievementsModal';
 import ChallengeRulesModal from './components/Modals/ChallengeRulesModal';
+import ChallengeModeConfirmModal from './components/Modals/ChallengeModeConfirmModal';
 import AchievementNotification from './components/UI/AchievementNotification';
 import AnimatedCard from './components/UI/AnimatedCard';
 import AudioControls from './components/UI/AudioControls';
@@ -92,6 +93,8 @@ const TavernRummy = () => {
   const [showChallengeRules, setShowChallengeRules] = useState(false);
   const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [showAbilitiesShop, setShowAbilitiesShop] = useState(false);
+  const [pendingGameMode, setPendingGameMode] = useState(null);
+  const [showChallengeModeConfirm, setShowChallengeModeConfirm] = useState(false);
 
   // Refs
   const deckRef = useRef(null);
@@ -529,6 +532,31 @@ const TavernRummy = () => {
     startNewRound();
   };
 
+  const handleGameModeChange = (newMode) => {
+    // Don't show confirmation if selecting the same mode
+    if (gameMode === newMode) return;
+
+    // Show confirmation when switching to Challenge Mode
+    if (newMode === GAME_MODES.CHALLENGING) {
+      setPendingGameMode(newMode);
+      setShowChallengeModeConfirm(true);
+      // sounds.buttonClick(); // Sound effects disabled
+    } else {
+      // For non-Challenge modes, change directly
+      setGameMode(newMode);
+    }
+  };
+
+  const confirmChallengeModeChange = () => {
+    setGameMode(pendingGameMode);
+    setOpponentName(getRandomOpponentName(DIFFICULTY_LEVELS.HARD));
+    setShowChallengeModeConfirm(false);
+    setPendingGameMode(null);
+    // sounds.newRound(); // Sound effects disabled
+    // Start a new round when entering Challenge Mode
+    startNewRound();
+  };
+
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-gray-900 via-amber-950 to-gray-900 text-amber-100 p-8 relative overflow-hidden">
       {/* Splash Screen */}
@@ -573,7 +601,7 @@ const TavernRummy = () => {
               difficulty={difficulty}
               gameMode={gameMode}
               onDifficultyChange={changeDifficulty}
-              onGameModeChange={setGameMode}
+              onGameModeChange={handleGameModeChange}
             />
 
             <button
@@ -780,6 +808,16 @@ const TavernRummy = () => {
         <ChallengeRulesModal
           show={showChallengeRules}
           onClose={() => setShowChallengeRules(false)}
+        />
+
+        <ChallengeModeConfirmModal
+          show={showChallengeModeConfirm}
+          currentMode={gameMode}
+          onConfirm={confirmChallengeModeChange}
+          onCancel={() => {
+            setShowChallengeModeConfirm(false);
+            setPendingGameMode(null);
+          }}
         />
 
         {/* Achievement Notifications */}
