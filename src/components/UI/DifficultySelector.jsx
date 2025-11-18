@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import { DIFFICULTY_LEVELS, GAME_MODES, MODE_DESCRIPTIONS } from '../../utils/constants';
+import { DIFFICULTY_LEVELS, GAME_MODES } from '../../utils/constants';
 
 /**
  * DifficultySelector Component
  * Allows players to select game mode (Tutorial/Practice/Challenging) and difficulty
+ * This is a controlled component - the parent manages the state and confirmation
  *
  * @param {string} difficulty - Current difficulty level
  * @param {string} gameMode - Current game mode
@@ -12,119 +13,74 @@ import { DIFFICULTY_LEVELS, GAME_MODES, MODE_DESCRIPTIONS } from '../../utils/co
  * @param {Function} onGameModeChange - Callback when game mode changes
  */
 const DifficultySelector = ({ difficulty, gameMode, onDifficultyChange, onGameModeChange }) => {
-  const [selectedMode, setSelectedMode] = useState(gameMode || GAME_MODES.PRACTICE);
-  const [selectedDifficulty, setSelectedDifficulty] = useState(difficulty || DIFFICULTY_LEVELS.EASY);
-
   const modes = [
-    { mode: GAME_MODES.TUTORIAL, icon: '📚', color: 'blue' },
-    { mode: GAME_MODES.PRACTICE, icon: '🎯', color: 'green' },
-    { mode: GAME_MODES.CHALLENGING, icon: '⚔️', color: 'red' }
+    { mode: GAME_MODES.TUTORIAL, label: '📚 Tutorial', description: 'Learn the basics' },
+    { mode: GAME_MODES.PRACTICE, label: '🎯 Practice', description: 'Hone your skills' },
+    { mode: GAME_MODES.CHALLENGING, label: '⚔️ Challenge Mode', description: 'Test your mastery' }
   ];
 
   // Only show Easy, Medium, Hard for Practice mode (Tutorial is a separate game mode)
   const difficulties = [
-    { level: DIFFICULTY_LEVELS.EASY, icon: '😊', color: 'green' },
-    { level: DIFFICULTY_LEVELS.MEDIUM, icon: '🎯', color: 'yellow' },
-    { level: DIFFICULTY_LEVELS.HARD, icon: '🔥', color: 'red' }
+    { level: DIFFICULTY_LEVELS.EASY, label: '😊 Easy' },
+    { level: DIFFICULTY_LEVELS.MEDIUM, label: '🎯 Medium' },
+    { level: DIFFICULTY_LEVELS.HARD, label: '🔥 Hard' }
   ];
 
-  const handleModeChange = (mode) => {
-    setSelectedMode(mode);
-
-    // Auto-set difficulty based on mode
-    if (mode === GAME_MODES.TUTORIAL) {
-      setSelectedDifficulty(DIFFICULTY_LEVELS.TUTORIAL);
-      onDifficultyChange(DIFFICULTY_LEVELS.TUTORIAL);
-    } else if (mode === GAME_MODES.CHALLENGING) {
-      setSelectedDifficulty(DIFFICULTY_LEVELS.HARD);
-      onDifficultyChange(DIFFICULTY_LEVELS.HARD);
-    }
-
+  const handleModeChange = (e) => {
+    const mode = e.target.value;
+    // Just call the parent callback - don't update local state
+    // Parent will handle confirmation and state update
     onGameModeChange(mode);
   };
 
-  const handleDifficultyChange = (level) => {
-    setSelectedDifficulty(level);
+  const handleDifficultyChange = (e) => {
+    const level = e.target.value;
+    // Just call the parent callback - don't update local state
+    // Parent will handle confirmation and state update
     onDifficultyChange(level);
   };
 
-  // Determine if difficulty selection should be shown
-  const showDifficultySelector = selectedMode === GAME_MODES.PRACTICE;
+  // Determine if difficulty selection should be shown based on current game mode
+  const showDifficultySelector = gameMode === GAME_MODES.PRACTICE;
 
   return (
-    <div className="space-y-3">
-      {/* Game Mode Selection */}
-      <div>
-        <h3 className="text-amber-200 text-base mb-2 text-center font-semibold">Game Mode</h3>
-        <div className="grid grid-cols-3 gap-2 mb-2">
-          {modes.map(({ mode, icon, color }) => (
-            <button
-              key={mode}
-              onClick={() => handleModeChange(mode)}
-              className={`p-2 rounded-lg border transition-all ${
-                selectedMode === mode
-                  ? `bg-${color}-600 border-${color}-400 shadow-lg`
-                  : 'bg-gray-800 border-gray-600 hover:border-gray-500'
-              }`}
-            >
-              <div className="text-center">
-                <div className="text-base sm:text-lg mb-0.5">{icon}</div>
-                <div className={`font-semibold text-[10px] sm:text-xs ${
-                  selectedMode === mode ? 'text-white' : 'text-gray-300'
-                }`}>
-                  {MODE_DESCRIPTIONS[mode].title}
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
+    <>
+      {/* Game Type Dropdown - Inline styled */}
+      <select
+        id="gameType"
+        value={gameMode}
+        onChange={handleModeChange}
+        className="px-2 sm:px-3 py-1 bg-gray-800 border border-gray-600 rounded-lg text-gray-400 text-xs sm:text-sm
+                   hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500
+                   transition-all cursor-pointer"
+        title="Select game mode"
+      >
+        {modes.map(({ mode, label }) => (
+          <option key={mode} value={mode}>
+            {label}
+          </option>
+        ))}
+      </select>
 
-        {/* Mode Description - Compact version */}
-        <div className="bg-gray-800 bg-opacity-40 rounded p-2 border border-gray-700">
-          <p className="text-gray-300 text-[11px] sm:text-xs text-center">
-            {MODE_DESCRIPTIONS[selectedMode].description}
-          </p>
-        </div>
-      </div>
-
-      {/* Difficulty Selection (only for Practice mode) */}
+      {/* Difficulty Dropdown (only for Practice mode) - Inline styled */}
       {showDifficultySelector && (
-        <div>
-          <h3 className="text-amber-200 text-base mb-2 text-center font-semibold">Difficulty</h3>
-          <div className="grid grid-cols-3 gap-2">
-            {difficulties.map(({ level, icon, color }) => (
-              <button
-                key={level}
-                onClick={() => handleDifficultyChange(level)}
-                className={`px-2 py-1.5 rounded-lg border transition-all ${
-                  selectedDifficulty === level
-                    ? `bg-${color}-600 border-${color}-400 text-white shadow-lg`
-                    : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                <div className="text-center">
-                  <div className="text-base sm:text-lg">{icon}</div>
-                  <div className="text-[10px] sm:text-xs font-semibold">{level}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
+        <select
+          id="difficulty"
+          value={difficulty}
+          onChange={handleDifficultyChange}
+          className="px-2 sm:px-3 py-1 bg-gray-800 border border-gray-600 rounded-lg text-gray-400 text-xs sm:text-sm
+                     hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500
+                     transition-all cursor-pointer"
+          title="Select difficulty"
+        >
+          {difficulties.map(({ level, label }) => (
+            <option key={level} value={level}>
+              {label}
+            </option>
+          ))}
+        </select>
       )}
-
-      {/* Fixed difficulty notice for Tutorial and Challenging modes */}
-      {selectedMode === GAME_MODES.TUTORIAL && (
-        <div className="text-center text-[11px] sm:text-xs text-blue-300 bg-blue-900 bg-opacity-30 p-2 rounded">
-          📚 Tutorial mode uses Tutorial difficulty
-        </div>
-      )}
-
-      {selectedMode === GAME_MODES.CHALLENGING && (
-        <div className="text-center text-[11px] sm:text-xs text-red-300 bg-red-900 bg-opacity-30 p-2 rounded">
-          ⚔️ Hard difficulty - prepare for battle!
-        </div>
-      )}
-    </div>
+    </>
   );
 };
 

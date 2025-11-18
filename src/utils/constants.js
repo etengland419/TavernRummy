@@ -34,7 +34,12 @@ export const DIFFICULTY_LEVELS = {
   TUTORIAL: 'Tutorial',
   EASY: 'Easy',
   MEDIUM: 'Medium',
-  HARD: 'Hard'
+  HARD: 'Hard',
+  EXPERT: 'Expert',         // NEW - Challenge Mode tier 4
+  MASTER: 'Master',         // NEW - Challenge Mode tier 5
+  LEGENDARY: 'Legendary',   // NEW - Challenge Mode tier 6
+  NIGHTMARE: 'Nightmare',   // NEW - Challenge Mode tier 7
+  INFINITE: 'Infinite'      // NEW - Challenge Mode tier 8 (max)
 };
 
 // Difficulty Descriptions and Warnings
@@ -58,6 +63,31 @@ export const DIFFICULTY_DESCRIPTIONS = {
     title: "🔥 The Devil's Own Hand",
     description: "Dare you challenge the master of the cards? This fiend sees through your every stratagem and plays with supernatural cunning!",
     warning: "⚠️ WARNING: You're gonna die. Probably. A lot. Consider thy life choices!"
+  },
+  [DIFFICULTY_LEVELS.EXPERT]: {
+    title: "⚡ The Expert Duelist",
+    description: "This opponent reads your every move and never gives you an advantage. They've studied the art of cards for years.",
+    warning: "⚠️ Your abilities will be tested here!"
+  },
+  [DIFFICULTY_LEVELS.MASTER]: {
+    title: "🌟 The Master Tactician",
+    description: "A grandmaster who calculates probabilities in their head and times every knock perfectly. Mistakes are not forgiven.",
+    warning: "⚠️ Only the prepared survive this tier!"
+  },
+  [DIFFICULTY_LEVELS.LEGENDARY]: {
+    title: "👑 The Legendary Champion",
+    description: "Few have witnessed their prowess and lived to tell the tale. They seem to know your hand before you play it.",
+    warning: "⚠️ Abilities are essential for survival!"
+  },
+  [DIFFICULTY_LEVELS.NIGHTMARE]: {
+    title: "💀 The Nightmare Incarnate",
+    description: "An entity of pure strategic perfection. Some say they've made a pact with dark forces. Every decision is flawless.",
+    warning: "⚠️⚠️⚠️ EXTREME DIFFICULTY - Perfect play required!"
+  },
+  [DIFFICULTY_LEVELS.INFINITE]: {
+    title: "♾️ The Infinite",
+    description: "You've reached the peak of mortal capability. There is no stronger opponent. How long can you survive?",
+    warning: "⚠️⚠️⚠️ MAXIMUM DIFFICULTY - This is the end."
   }
 };
 
@@ -66,7 +96,12 @@ export const AI_KNOCK_THRESHOLDS = {
   [DIFFICULTY_LEVELS.TUTORIAL]: 5,
   [DIFFICULTY_LEVELS.EASY]: 5,
   [DIFFICULTY_LEVELS.MEDIUM]: 7,
-  [DIFFICULTY_LEVELS.HARD]: 10
+  [DIFFICULTY_LEVELS.HARD]: 10,
+  [DIFFICULTY_LEVELS.EXPERT]: 10,      // NEW
+  [DIFFICULTY_LEVELS.MASTER]: 10,      // NEW
+  [DIFFICULTY_LEVELS.LEGENDARY]: 10,   // NEW
+  [DIFFICULTY_LEVELS.NIGHTMARE]: 10,   // NEW
+  [DIFFICULTY_LEVELS.INFINITE]: 10     // NEW
 };
 
 // Game Modes
@@ -91,10 +126,10 @@ export const MODE_DESCRIPTIONS = {
     stats: "Counts for stats & achievements"
   },
   challenging: {
-    title: "⚔️ Challenging",
-    description: "Test your mastery against the toughest AI",
+    title: "⚔️ Challenge Mode",
+    description: "Endless progression mode! Win streaks unlock harder AI tiers - Earn XP, level up, and unlock powerful abilities to survive!",
     tips: "No assistance",
-    stats: "Full stats + future roguelite rewards"
+    stats: "Full stats + XP progression & ability unlocks + endless scaling"
   }
 };
 
@@ -109,4 +144,75 @@ export const ANIMATION_TIMINGS = {
   AI_TURN_START: 400,       // Initial delay before AI turn begins
   KNOCK_ANNOUNCEMENT: 400,  // Delay before knock announcement
   TUTORIAL_DELAY: 1500      // Delay before showing tutorial complete modal
+};
+
+// Challenge Mode Tier Progression (Endless Mode)
+export const CHALLENGE_TIERS = {
+  0: {
+    difficulty: DIFFICULTY_LEVELS.EASY,
+    name: 'Novice',
+    icon: '🌱',
+    opponentName: 'Tipsy Tom',
+    opponentIcon: '🍺'
+  },
+  5: {
+    difficulty: DIFFICULTY_LEVELS.MEDIUM,
+    name: 'Apprentice',
+    icon: '⚔️',
+    opponentName: 'Scarface Samuel',
+    opponentIcon: '🗡️'
+  },
+  10: {
+    difficulty: DIFFICULTY_LEVELS.HARD,
+    name: 'Veteran',
+    icon: '🛡️',
+    opponentName: 'Sir Grimwald the Merciless',
+    opponentIcon: '⚔️'
+  },
+  15: {
+    difficulty: DIFFICULTY_LEVELS.EXPERT,
+    name: 'Expert',
+    icon: '🔥',
+    opponentName: 'Countess Ravenna',
+    opponentIcon: '🎭'
+  },
+  20: {
+    difficulty: DIFFICULTY_LEVELS.MASTER,
+    name: 'Master',
+    icon: '⭐',
+    opponentName: 'The Grand Strategist',
+    opponentIcon: '🧙'
+  },
+  25: {
+    difficulty: DIFFICULTY_LEVELS.LEGENDARY,
+    name: 'Legendary',
+    icon: '👑',
+    opponentName: 'Lord Shadowmere',
+    opponentIcon: '👁️'
+  },
+  30: {
+    difficulty: DIFFICULTY_LEVELS.NIGHTMARE,
+    name: 'Nightmare',
+    icon: '💀',
+    opponentName: 'The Reaper',
+    opponentIcon: '☠️'
+  },
+  35: {
+    difficulty: DIFFICULTY_LEVELS.INFINITE,
+    name: 'Infinite',
+    icon: '♾️',
+    opponentName: 'The Eternal',
+    opponentIcon: '✨'
+  }
+};
+
+// Tier Milestone XP Bonuses
+export const TIER_MILESTONE_XP = {
+  5: 50,    // Reaching Medium (Apprentice)
+  10: 100,  // Reaching Hard (Veteran)
+  15: 200,  // Reaching Expert
+  20: 300,  // Reaching Master
+  25: 500,  // Reaching Legendary
+  30: 750,  // Reaching Nightmare
+  35: 1000  // Reaching Infinite
 };

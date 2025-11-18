@@ -8,6 +8,9 @@ import { createDeck } from './utils/cardUtils';
 import { findMelds, calculateDeadwood, calculateMinDeadwoodAfterDiscard, sortHand } from './utils/meldUtils';
 import { calculateRoundResult, checkMatchWinner } from './utils/scoringUtils';
 import { getRandomOpponentName } from './utils/opponentNames';
+import { XP_REWARDS } from './utils/progressionUtils';
+import { getDifficultyForWinStreak, checkTierMilestone, getTierReachedMessage, getCurrentTier, getOpponentNameForTier } from './utils/challengeUtils';
+import { updateChallengeWin, updateChallengeLoss, addMilestoneXP } from './utils/statsUtils';
 
 // AI
 import { executeAITurn } from './ai/aiStrategy';
@@ -26,11 +29,22 @@ import DifficultyConfirmModal from './components/Modals/DifficultyConfirmModal';
 import MatchModeConfirmModal from './components/Modals/MatchModeConfirmModal';
 import StatsModal from './components/Modals/StatsModal';
 import AchievementsModal from './components/Modals/AchievementsModal';
+import ChallengeRulesModal from './components/Modals/ChallengeRulesModal';
+import ChallengeModeConfirmModal from './components/Modals/ChallengeModeConfirmModal';
+import GameModeConfirmModal from './components/Modals/GameModeConfirmModal';
+import TierMilestoneModal from './components/Modals/TierMilestoneModal';
+import DebugModal from './components/Modals/DebugModal';
 import AchievementNotification from './components/UI/AchievementNotification';
 import AnimatedCard from './components/UI/AnimatedCard';
 import AudioControls from './components/UI/AudioControls';
 import SplashScreen from './components/Modals/SplashScreen';
 import StrategyTip from './components/UI/StrategyTip';
+import XPBar from './components/UI/XPBar';
+import LevelUpModal from './components/Modals/LevelUpModal';
+import AbilitiesPanel from './components/UI/AbilitiesPanel';
+import AbilitiesShopModal from './components/Modals/AbilitiesShopModal';
+import ChallengeTierDisplay from './components/UI/ChallengeTierDisplay';
+import ShopModal from './components/Modals/ShopModal';
 
 // Hooks
 import { useTutorial } from './hooks/useTutorial';
@@ -68,6 +82,7 @@ const TavernRummy = () => {
   const [roundWinner, setRoundWinner] = useState(null);
   const [roundEndData, setRoundEndData] = useState(null);
   const [matchWinner, setMatchWinner] = useState(null);
+  const [matchWinXP, setMatchWinXP] = useState(0);
 
   // Settings
   const [difficulty, setDifficulty] = useState(DIFFICULTY_LEVELS.TUTORIAL);
@@ -92,7 +107,16 @@ const TavernRummy = () => {
   const [showTutorialComplete, setShowTutorialComplete] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
+  const [showChallengeRules, setShowChallengeRules] = useState(false);
   const [showSplashScreen, setShowSplashScreen] = useState(true);
+  const [showAbilitiesShop, setShowAbilitiesShop] = useState(false);
+  const [pendingGameMode, setPendingGameMode] = useState(null);
+  const [showChallengeModeConfirm, setShowChallengeModeConfirm] = useState(false);
+  const [showGameModeConfirm, setShowGameModeConfirm] = useState(false);
+  const [tierMilestone, setTierMilestone] = useState(null);
+  const [showTierMilestone, setShowTierMilestone] = useState(false);
+  const [showDebugModal, setShowDebugModal] = useState(false);
+  const [showShopModal, setShowShopModal] = useState(false);
 
   // Refs
   const deckRef = useRef(null);
@@ -109,6 +133,7 @@ const TavernRummy = () => {
   // Tutorial hook
   const { tutorialMessage, tutorialHighlight, setTutorialHighlight } = useTutorial(
     difficulty,
+    gameMode,
     phase,
     playerHand,
     discardPile,
@@ -122,6 +147,12 @@ const TavernRummy = () => {
   // Achievements hook
   const { newlyUnlocked, dismissNotification, getAchievement, getAllAchievements, getCompletionStats } = useAchievements(stats);
 
+  // Progression hook
+  const progression = useProgression();
+
+  // Abilities hook
+  const abilities = useAbilities(progression);
+
   // Audio hook
   const {
     isMuted,
@@ -134,6 +165,14 @@ const TavernRummy = () => {
 
   // Card animation hook
   const { flyingCards, addFlyingCard, addFlyingCardFromPosition } = useCardAnimation();
+
+  // Get effective difficulty (uses win streak for Challenge Mode)
+  const getEffectiveDifficulty = () => {
+    if (gameMode === GAME_MODES.CHALLENGING) {
+      return getDifficultyForWinStreak(stats.challengeMode?.currentWinStreak || 0);
+    }
+    return difficulty;
+  };
 
   // Build game context for strategy tips
   const gameContext = useMemo(() => ({
@@ -200,6 +239,26 @@ const TavernRummy = () => {
     };
   }, [stopBackgroundMusic]);
 
+  // Auto-gin: Automatically knock when player has gin (0 deadwood)
+  useEffect(() => {
+    if (
+      phase === 'discard' &&
+      currentTurn === 'player' &&
+      !gameOver &&
+      playerMinDeadwoodAfterDiscard === 0 &&
+      playerHand.length > 0
+    ) {
+      // Player has gin! Auto-knock after a brief moment
+      const timer = setTimeout(() => {
+        setMessage('🎉 GIN! Auto-knocking for you...');
+        setTimeout(() => {
+          knock();
+        }, 800);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, currentTurn, gameOver, playerMinDeadwoodAfterDiscard, playerHand.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const startNewRound = () => {
     const newDeck = createDeck();
     const playerCards = newDeck.splice(0, GAME_CONFIG.STARTING_HAND_SIZE);
@@ -219,6 +278,12 @@ const TavernRummy = () => {
     setTutorialHighlight(null);
     setMessage('Draw a card from the deck or discard pile');
 
+    // Update opponent name based on current tier in Challenge Mode
+    if (gameMode === GAME_MODES.CHALLENGING) {
+      const currentWinStreak = stats.challengeMode?.currentWinStreak || 0;
+      setOpponentName(getOpponentNameForTier(currentWinStreak));
+    }
+
     // Reset tip tracking for new round
     setTurnCount(0);
     setOpponentPicks([]);
@@ -234,6 +299,8 @@ const TavernRummy = () => {
   const drawCard = (source) => {
     if (currentTurn !== 'player' || phase !== 'draw') return;
 
+    // Save game state BEFORE drawing for Redo Turn ability
+    // This ensures the drawn card can be returned to the deck/discard
     let drawnCard;
     let newDeck = [...deck];
     let newDiscard = [...discardPile];
@@ -254,6 +321,18 @@ const TavernRummy = () => {
       }
 
       drawnCard = newDeck.pop();
+
+      // Save state before modifying anything
+      abilities.saveGameState({
+        playerHand: [...playerHand],
+        discardPile: [...discardPile],
+        deck: [...deck], // Original deck with the card still in it
+        phase: 'draw',
+        currentTurn: 'player',
+        drawnCard: drawnCard, // Track which card was drawn
+        drawSource: 'deck' // Track where it was drawn from
+      });
+
       setDeck(newDeck);
       // sounds.cardDraw(); // Sound effects disabled
       // Add flying card animation from deck to player hand
@@ -261,6 +340,18 @@ const TavernRummy = () => {
     } else {
       if (discardPile.length === 0) return;
       drawnCard = newDiscard.pop();
+
+      // Save state before modifying anything
+      abilities.saveGameState({
+        playerHand: [...playerHand],
+        discardPile: [...discardPile], // Original discard with the card still in it
+        deck: [...deck],
+        phase: 'draw',
+        currentTurn: 'player',
+        drawnCard: drawnCard, // Track which card was drawn
+        drawSource: 'discard' // Track where it was drawn from
+      });
+
       setDiscardPile(newDiscard);
       // sounds.cardDraw(); // Sound effects disabled
       // Add flying card animation from discard to player hand
@@ -368,12 +459,64 @@ const TavernRummy = () => {
     }
   };
 
+  // Debug function: Auto-win current round with GIN
+  const handleDebugAutoWin = () => {
+    if (gameOver) {
+      console.log('[DEBUG] Cannot auto-win: Round already over');
+      return;
+    }
+
+    console.log('[DEBUG] Auto-win triggered');
+
+    // Create a perfect GIN hand (all cards in melds, 0 deadwood)
+    // Using medieval-themed suits: ⚔️ (Swords), 🏆 (Chalices), 💰 (Coins), 🔱 (Staves)
+    // Two sets of 3 + one run of 4 = 10 cards, all in melds
+    const perfectHand = [
+      // Set 1: Three 5s
+      { suit: '⚔️', rank: '5', value: 5, id: 'debug-5-S' },
+      { suit: '🏆', rank: '5', value: 5, id: 'debug-5-C' },
+      { suit: '💰', rank: '5', value: 5, id: 'debug-5-Co' },
+      // Set 2: Three 7s
+      { suit: '⚔️', rank: '7', value: 7, id: 'debug-7-S' },
+      { suit: '🏆', rank: '7', value: 7, id: 'debug-7-C' },
+      { suit: '💰', rank: '7', value: 7, id: 'debug-7-Co' },
+      // Run: A-2-3-4 of Staves
+      { suit: '🔱', rank: 'A', value: 1, id: 'debug-A-St' },
+      { suit: '🔱', rank: '2', value: 2, id: 'debug-2-St' },
+      { suit: '🔱', rank: '3', value: 3, id: 'debug-3-St' },
+      { suit: '🔱', rank: '4', value: 4, id: 'debug-4-St' }
+    ];
+
+    // Give AI a hand with high deadwood
+    const aiHandWithDeadwood = [
+      { suit: '⚔️', rank: 'K', value: 10, id: 'debug-ai-K-S' },
+      { suit: '🏆', rank: 'Q', value: 10, id: 'debug-ai-Q-C' },
+      { suit: '💰', rank: 'J', value: 10, id: 'debug-ai-J-Co' },
+      { suit: '⚔️', rank: '9', value: 9, id: 'debug-ai-9-S' },
+      { suit: '🏆', rank: '8', value: 8, id: 'debug-ai-8-C' },
+      { suit: '💰', rank: '6', value: 6, id: 'debug-ai-6-Co' },
+      { suit: '⚔️', rank: '4', value: 4, id: 'debug-ai-4-S' },
+      { suit: '🏆', rank: '3', value: 3, id: 'debug-ai-3-C' },
+      { suit: '💰', rank: '2', value: 2, id: 'debug-ai-2-Co' },
+      { suit: '⚔️', rank: 'A', value: 1, id: 'debug-ai-A-S' }
+    ];
+
+    // Update hands
+    setPlayerHand(perfectHand);
+    setAiHand(aiHandWithDeadwood);
+
+    // Show message and end round after brief delay
+    setMessage('[DEBUG] You knock with GIN!');
+    setTimeout(() => endRound('player', perfectHand, aiHandWithDeadwood), 500);
+  };
+
   const aiTurn = (playerCurrentHand) => {
     // Apply Quick Hands speed multiplier (passive ability)
     const speedMultiplier = getQuickHandsMultiplier();
 
     setTimeout(() => {
-      const decision = executeAITurn(aiHand, deck, discardPile, difficulty);
+      const effectiveDifficulty = getEffectiveDifficulty();
+      const decision = executeAITurn(aiHand, deck, discardPile, effectiveDifficulty);
 
       if (decision.deckEmpty) {
         setMessage('Deck is empty! Round ends in a draw.');
@@ -451,8 +594,10 @@ const TavernRummy = () => {
     setTutorialHighlight(null);
   };
 
-  const endRound = (knocker) => {
-    const result = calculateRoundResult(knocker, playerHand, aiHand);
+  const endRound = (knocker, playerHandOverride = null, aiHandOverride = null) => {
+    const finalPlayerHand = playerHandOverride || playerHand;
+    const finalAiHand = aiHandOverride || aiHand;
+    const result = calculateRoundResult(knocker, finalPlayerHand, finalAiHand);
 
     setGameOver(true);
     setTutorialHighlight(null);
@@ -461,10 +606,19 @@ const TavernRummy = () => {
     // Update scores
     const newScores = { ...scores };
     if (result.winner !== 'draw') {
-      newScores[result.winner] += result.scoreDiff;
+      // Apply Gold Magnet bonus to player score
+      const scoreDiff = result.winner === 'player'
+        ? abilities.applyGoldMagnet(result.scoreDiff)
+        : result.scoreDiff;
+
+      newScores[result.winner] += scoreDiff;
       setScoreAnimation(result.winner);
       setTimeout(() => setScoreAnimation(null), ANIMATION_TIMINGS.SCORE_ANIMATION);
     }
+
+    // Award XP to player
+    const { xp, breakdown } = progression.addRoundXP(result);
+    console.log(`XP Gained: +${xp} XP`, breakdown);
 
     // Sound effects disabled - Play appropriate sound based on result
     // const isPlayerGin = result.playerDeadwood === 0 && knocker === 'player';
@@ -493,6 +647,54 @@ const TavernRummy = () => {
       // Track match completion
       if (trackMatch) {
         trackMatch(matchWinner);
+      }
+      // Award bonus XP for match win in Challenge Mode
+      if (gameMode === GAME_MODES.CHALLENGING && matchWinner === 'player') {
+        progression.addXP(XP_REWARDS.MATCH_WIN_BONUS, 'Match Victory Bonus: +50 XP');
+        setMatchWinXP(XP_REWARDS.MATCH_WIN_BONUS);
+        console.log(`Match Win Bonus XP: +${XP_REWARDS.MATCH_WIN_BONUS} XP`);
+      } else {
+        setMatchWinXP(0);
+      }
+    }
+
+    // Handle Challenge Mode progression (Endless Mode)
+    if (gameMode === GAME_MODES.CHALLENGING && result.winner !== 'draw') {
+      if (result.winner === 'player') {
+        const previousStreak = stats.challengeMode?.currentWinStreak || 0;
+        const effectiveDifficulty = getEffectiveDifficulty();
+
+        // Update Challenge stats
+        let updatedStats = updateChallengeWin(stats, effectiveDifficulty);
+
+        // Check for tier milestone
+        const milestone = checkTierMilestone(previousStreak, updatedStats.challengeMode.currentWinStreak);
+
+        if (milestone) {
+          // Award milestone XP
+          updatedStats = addMilestoneXP(updatedStats, milestone.xpBonus);
+          progression.addXP(milestone.xpBonus, `Tier Milestone Bonus: ${milestone.tier.name}`);
+
+          // Show tier milestone notification with round result
+          setTierMilestone({
+            tier: milestone.tier,
+            xpBonus: milestone.xpBonus,
+            message: getTierReachedMessage(milestone.threshold),
+            roundResult: result // Include round result in milestone
+          });
+          setShowTierMilestone(true);
+
+          console.log(`🎊 TIER UP! Reached ${milestone.tier.name} tier! +${milestone.xpBonus} XP`);
+        }
+
+        // Update stats (this will be saved by useStats)
+        Object.assign(stats, updatedStats);
+
+      } else if (result.winner === 'ai') {
+        // Reset win streak on loss
+        const updatedStats = updateChallengeLoss(stats);
+        Object.assign(stats, updatedStats);
+        console.log('💀 Challenge run ended. Win streak reset to 0.');
       }
     }
 
@@ -644,18 +846,16 @@ const TavernRummy = () => {
           </h1>
           <p className="text-amber-300 italic mb-4">A game of skill and fortune in the shadows</p>
 
-          {/* Difficulty Selector */}
-          <div className="mb-4">
+          {/* Game Options - All in one row */}
+          <div className="flex flex-wrap gap-2 justify-center items-center text-xs sm:text-sm">
+            {/* Difficulty Selector - Inline Style */}
             <DifficultySelector
               difficulty={difficulty}
               gameMode={gameMode}
               onDifficultyChange={changeDifficulty}
-              onGameModeChange={setGameMode}
+              onGameModeChange={handleGameModeChange}
             />
-          </div>
 
-          {/* Game Options */}
-          <div className="flex flex-wrap gap-2 justify-center items-center text-xs sm:text-sm">
             <button
               onClick={handleMatchModeToggle}
               className={`px-2 sm:px-3 py-1 rounded-lg border transition-all ${
@@ -684,8 +884,80 @@ const TavernRummy = () => {
             >
               🏆 Achievements
             </button>
+            <button
+              onClick={() => {
+                // sounds.buttonClick(); // Sound effects disabled
+                setShowAbilitiesShop(true);
+              }}
+              className="px-2 sm:px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
+            >
+              ⚡ Abilities
+            </button>
+            <button
+              onClick={() => {
+                // sounds.buttonClick(); // Sound effects disabled
+                setShowShopModal(true);
+              }}
+              className="px-2 sm:px-3 py-1 rounded-lg border bg-purple-900 border-purple-600 text-purple-400 hover:bg-purple-800 transition-all"
+              title="Prestige Shop (Coming Soon)"
+            >
+              🏪 Shop
+            </button>
+            <button
+              onClick={() => {
+                // sounds.buttonClick(); // Sound effects disabled
+                setShowChallengeRules(true);
+              }}
+              className="px-2 sm:px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
+            >
+              📖 Challenge Guide
+            </button>
+          </div>
+
+          {/* Debug Controls Row - Separate from main controls */}
+          <div className="flex flex-wrap gap-2 justify-center items-center text-xs sm:text-sm mt-2">
+            <button
+              onClick={handleDebugAutoWin}
+              disabled={gameOver}
+              className={`px-2 sm:px-3 py-1 rounded-lg border transition-all font-bold ${
+                gameOver
+                  ? 'bg-gray-800 border-gray-600 text-gray-500 cursor-not-allowed'
+                  : 'bg-amber-600 border-amber-400 text-white hover:bg-amber-500 hover:scale-105'
+              }`}
+              title="Instantly win current round with GIN (Debug)"
+            >
+              ⚡ Auto-Win
+            </button>
+            <button
+              onClick={() => {
+                // sounds.buttonClick(); // Sound effects disabled
+                setShowDebugModal(true);
+              }}
+              className="px-2 sm:px-3 py-1 rounded-lg border bg-red-900 border-red-600 text-red-400 hover:bg-red-800 transition-all"
+            >
+              🔧 Debug Tools
+            </button>
           </div>
         </div>
+
+        {/* XP Bar - Only show in Challenging mode */}
+        {gameMode === GAME_MODES.CHALLENGING && (
+          <div className="mb-4">
+            <XPBar
+              level={progression.level}
+              currentXP={progression.currentLevelXP}
+              xpToNext={progression.xpToNextLevel}
+              abilityPoints={progression.abilityPoints}
+            />
+          </div>
+        )}
+
+        {/* Challenge Tier Display - Only show in Challenge mode */}
+        {gameMode === GAME_MODES.CHALLENGING && (
+          <div className="mb-4">
+            <ChallengeTierDisplay winStreak={stats.challengeMode.currentWinStreak} compact={true} />
+          </div>
+        )}
 
         {/* Score Display */}
         <ScoreDisplay scores={scores} scoreAnimation={scoreAnimation} />
@@ -716,6 +988,7 @@ const TavernRummy = () => {
           currentTurn={currentTurn}
           aiHandRef={aiHandRef}
           opponentName={opponentName}
+          challengeTier={gameMode === GAME_MODES.CHALLENGING ? getCurrentTier(stats.challengeMode.currentWinStreak) : null}
         />
 
         {/* Game Board (Deck & Discard) */}
@@ -755,7 +1028,7 @@ const TavernRummy = () => {
 
         {/* Modals */}
         <RoundEndModal
-          roundEndData={roundEndData}
+          roundEndData={!showTierMilestone ? roundEndData : null}
           onNextRound={() => {
             setRoundEndData(null);
             startNewRound();
@@ -765,10 +1038,21 @@ const TavernRummy = () => {
         <MatchWinnerModal
           matchWinner={matchWinner}
           scores={scores}
+          gameMode={gameMode}
+          xpGained={matchWinXP}
+          stats={stats}
           onPlayAgain={() => {
             setMatchWinner(null);
+            setMatchWinXP(0);
             setScores({ player: 0, ai: 0 });
+            abilities.resetAbilityUses('match');
             startNewRound();
+          }}
+          onChooseMode={() => {
+            setMatchWinner(null);
+            setMatchWinXP(0);
+            setScores({ player: 0, ai: 0 });
+            setShowSplashScreen(true);
           }}
         />
 
@@ -825,6 +1109,49 @@ const TavernRummy = () => {
           achievements={getAllAchievements()}
           completionStats={getCompletionStats()}
           onClose={() => setShowAchievementsModal(false)}
+        />
+
+        <ChallengeRulesModal
+          show={showChallengeRules}
+          onClose={() => setShowChallengeRules(false)}
+        />
+
+        <DebugModal
+          show={showDebugModal}
+          onClose={() => setShowDebugModal(false)}
+          progression={progression}
+          abilities={abilities}
+          scores={scores}
+          setScores={setScores}
+          onAutoWin={handleDebugAutoWin}
+          gameOver={gameOver}
+        />
+
+        <ShopModal
+          show={showShopModal}
+          onClose={() => setShowShopModal(false)}
+          prestigePoints={0}
+        />
+
+        <ChallengeModeConfirmModal
+          show={showChallengeModeConfirm}
+          currentMode={gameMode}
+          onConfirm={confirmChallengeModeChange}
+          onCancel={() => {
+            setShowChallengeModeConfirm(false);
+            setPendingGameMode(null);
+          }}
+        />
+
+        <GameModeConfirmModal
+          show={showGameModeConfirm}
+          currentMode={gameMode}
+          newMode={pendingGameMode}
+          onConfirm={confirmGameModeChange}
+          onCancel={() => {
+            setShowGameModeConfirm(false);
+            setPendingGameMode(null);
+          }}
         />
 
         {/* Achievement Notifications */}
@@ -895,6 +1222,70 @@ const TavernRummy = () => {
             onComplete={flyingCard.onComplete}
           />
         ))}
+
+        {/* Level Up Modal */}
+        <LevelUpModal
+          show={progression.showLevelUpModal}
+          newLevel={progression.levelUpData?.newLevel}
+          apGained={progression.levelUpData?.apGained}
+          onClose={progression.closeLevelUpModal}
+        />
+
+        {/* Tier Milestone Modal (Challenge Mode) */}
+        <TierMilestoneModal
+          show={showTierMilestone}
+          milestone={tierMilestone}
+          roundResult={tierMilestone?.roundResult}
+          onClose={() => {
+            setShowTierMilestone(false);
+            setRoundEndData(null); // Also clear round end data since we showed it in tier modal
+            startNewRound(); // Start next round immediately after tier advancement
+          }}
+        />
+
+        {/* Abilities Shop Modal */}
+        <AbilitiesShopModal
+          show={showAbilitiesShop}
+          onClose={() => setShowAbilitiesShop(false)}
+          abilities={abilities}
+          progression={progression}
+        />
+
+        {/* Abilities Panel */}
+        <AbilitiesPanel
+          equippedAbilities={abilities.equippedAbilities}
+          abilityUses={abilities.abilityUses}
+          currentTurn={currentTurn}
+          canUseAbilityCallback={(abilityId) => {
+            // Check if redo turn has a saved state available
+            if (abilityId === 'redo_turn') {
+              return abilities.canUseAbility(abilityId) && abilities.previousGameState !== null;
+            }
+            return abilities.canUseAbility(abilityId);
+          }}
+          onUseAbility={(abilityId) => {
+            // Handle ability usage
+            if (abilityId === 'redo_turn') {
+              const savedState = abilities.executeRedoTurn();
+              if (savedState) {
+                // Restore the saved game state to BEFORE the draw
+                setPlayerHand(savedState.playerHand);
+                setDiscardPile(savedState.discardPile);
+                setDeck(savedState.deck);
+                setPhase('draw'); // Reset to draw phase so player can draw again
+                setCurrentTurn(savedState.currentTurn);
+                setMessage('Redo Turn activated! Draw a card to start your turn again.');
+                setDiscardingCard(null);
+                setNewlyDrawnCard(null);
+                // sounds.cardDraw(); // Sound effects disabled (could add a special sound here)
+              } else {
+                setMessage('Cannot use Redo Turn right now!');
+              }
+            }
+            // Other abilities will be implemented in future phases
+          }}
+          onOpenShop={() => setShowAbilitiesShop(true)}
+        />
 
         {/* Rules */}
         <div className="mt-8 p-6 bg-gray-900 bg-opacity-70 rounded-lg border-2 border-amber-800">
