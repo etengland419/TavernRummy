@@ -37,8 +37,9 @@ const DifficultySelector = ({ difficulty, gameMode, onDifficultyChange, onGameMo
       setSelectedDifficulty(DIFFICULTY_LEVELS.TUTORIAL);
       onDifficultyChange(DIFFICULTY_LEVELS.TUTORIAL);
     } else if (mode === GAME_MODES.CHALLENGING) {
+      // Don't call onDifficultyChange for Challenge Mode
+      // The difficulty change is handled by the Challenge Mode confirmation flow
       setSelectedDifficulty(DIFFICULTY_LEVELS.HARD);
-      onDifficultyChange(DIFFICULTY_LEVELS.HARD);
     }
 
     onGameModeChange(mode);
