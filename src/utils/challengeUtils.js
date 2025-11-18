@@ -160,3 +160,13 @@ export const getProgressDisplay = (winStreak) => {
     isMaxTier: false
   };
 };
+
+/**
+ * Get the opponent name for the current Challenge Mode tier
+ * @param {number} winStreak - Current win streak
+ * @returns {string} Opponent name for the tier
+ */
+export const getOpponentNameForTier = (winStreak) => {
+  const tier = getCurrentTier(winStreak);
+  return tier.opponentName || 'The Stranger';
+};

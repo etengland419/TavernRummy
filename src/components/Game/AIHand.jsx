@@ -22,7 +22,9 @@ const AIHand = ({ hand, gameOver, aiDrawnCard, aiDiscardedCard, currentTurn, aiH
   return (
     <div ref={aiHandRef} className="mb-8 rounded-lg p-4 transition-all duration-300">
       <div className="flex items-center justify-center gap-2 mb-3">
-        <span className="text-2xl">👤</span>
+        <span className="text-2xl">
+          {challengeTier?.opponentIcon || '👤'}
+        </span>
         <h2 className={`text-xl font-bold text-amber-400 transition-all duration-300 ${isAiTurn ? 'ai-turn-name-glow' : ''}`}>
           {opponentName}
         </h2>

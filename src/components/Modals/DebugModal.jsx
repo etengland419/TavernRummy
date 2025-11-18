@@ -104,7 +104,10 @@ const DebugModal = ({ show, onClose, progression, abilities, scores, setScores, 
   };
 
   const handleResetProgression = () => {
-    if (window.confirm('⚠️ This will reset ALL progression (XP, Level, AP, Abilities, Stats, Challenge Mode, Achievements). Are you sure?')) {
+    if (window.confirm('⚠️ This will reset ALL progression (XP, Level, AP, Abilities, Stats, Challenge Mode, Achievements, Gold). Are you sure?')) {
+      // Reset gold/scores immediately before clearing storage
+      setScores({ player: 0, ai: 0 });
+
       // Clear all localStorage keys
       localStorage.removeItem('tavernRummyProgression');
       localStorage.removeItem('tavernRummy_stats');
