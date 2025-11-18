@@ -96,7 +96,7 @@ const TavernRummy = () => {
   const sortedPlayerHand = useMemo(() => sortHand(playerHand, true), [playerHand]);
 
   // Tutorial hook
-  const { tutorialMessage, tutorialHighlight, setTutorialHighlight } = useTutorial(
+  const { tutorialHighlight, setTutorialHighlight } = useTutorial(
     difficulty,
     phase,
     playerHand,
@@ -504,10 +504,11 @@ const TavernRummy = () => {
       {/* Splash Screen */}
       <SplashScreen
         show={showSplashScreen}
-        onStart={({ difficulty: selectedDifficulty, matchMode: selectedMatchMode }) => {
+        onStart={({ difficulty: selectedDifficulty, gameMode: selectedGameMode, matchMode: selectedMatchMode }) => {
           setShowSplashScreen(false);
-          // Set the selected difficulty and match mode
+          // Set the selected difficulty, game mode, and match mode
           setDifficulty(selectedDifficulty);
+          setGameMode(selectedGameMode);
           setMatchMode(selectedMatchMode);
           setOpponentName(getRandomOpponentName(selectedDifficulty));
           // Start background music on user interaction
@@ -536,18 +537,20 @@ const TavernRummy = () => {
           <p className="text-amber-300 italic mb-4">A game of skill and fortune in the shadows</p>
 
           {/* Difficulty Selector */}
-          <DifficultySelector
-            difficulty={difficulty}
-            gameMode={gameMode}
-            onDifficultyChange={changeDifficulty}
-            onGameModeChange={setGameMode}
-          />
+          <div className="mb-4">
+            <DifficultySelector
+              difficulty={difficulty}
+              gameMode={gameMode}
+              onDifficultyChange={changeDifficulty}
+              onGameModeChange={setGameMode}
+            />
+          </div>
 
           {/* Game Options */}
-          <div className="flex gap-3 justify-center items-center text-sm">
+          <div className="flex flex-wrap gap-2 justify-center items-center text-xs sm:text-sm">
             <button
               onClick={handleMatchModeToggle}
-              className={`px-3 py-1 rounded-lg border transition-all ${
+              className={`px-2 sm:px-3 py-1 rounded-lg border transition-all ${
                 matchMode
                   ? 'bg-purple-600 border-purple-400 text-white'
                   : 'bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700'
@@ -560,7 +563,7 @@ const TavernRummy = () => {
                 // sounds.buttonClick(); // Sound effects disabled
                 setShowStatsModal(true);
               }}
-              className="px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
+              className="px-2 sm:px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
             >
               📊 Statistics
             </button>
@@ -569,7 +572,7 @@ const TavernRummy = () => {
                 // sounds.buttonClick(); // Sound effects disabled
                 setShowAchievementsModal(true);
               }}
-              className="px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
+              className="px-2 sm:px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
             >
               🏆 Achievements
             </button>
@@ -584,15 +587,6 @@ const TavernRummy = () => {
           <div className="px-6 py-3 bg-amber-900 bg-opacity-70 border-2 border-amber-600 rounded-lg">
             <p className="text-amber-200 font-semibold">{message}</p>
           </div>
-        </div>
-
-        {/* Tutorial Message - Fixed height container to prevent layout shifts */}
-        <div className="mb-4 min-h-[80px] flex items-center justify-center">
-          {tutorialMessage && difficulty === DIFFICULTY_LEVELS.TUTORIAL && (
-            <div className="px-6 py-4 bg-blue-900 bg-opacity-80 border-2 border-blue-400 rounded-lg w-full">
-              <p className="text-blue-200">{tutorialMessage}</p>
-            </div>
-          )}
         </div>
 
         {/* AI Hand */}
