@@ -9,6 +9,8 @@ import { findMelds, calculateDeadwood, calculateMinDeadwoodAfterDiscard, sortHan
 import { calculateRoundResult, checkMatchWinner } from './utils/scoringUtils';
 import { getRandomOpponentName } from './utils/opponentNames';
 import { XP_REWARDS } from './utils/progressionUtils';
+import { getDifficultyForWinStreak, checkTierMilestone, getTierReachedMessage } from './utils/challengeUtils';
+import { updateChallengeWin, updateChallengeLoss, addMilestoneXP } from './utils/statsUtils';
 
 // AI
 import { executeAITurn } from './ai/aiStrategy';
@@ -30,6 +32,7 @@ import AchievementsModal from './components/Modals/AchievementsModal';
 import ChallengeRulesModal from './components/Modals/ChallengeRulesModal';
 import ChallengeModeConfirmModal from './components/Modals/ChallengeModeConfirmModal';
 import GameModeConfirmModal from './components/Modals/GameModeConfirmModal';
+import TierMilestoneModal from './components/Modals/TierMilestoneModal';
 import DebugModal from './components/Modals/DebugModal';
 import AchievementNotification from './components/UI/AchievementNotification';
 import AnimatedCard from './components/UI/AnimatedCard';
@@ -99,6 +102,8 @@ const TavernRummy = () => {
   const [pendingGameMode, setPendingGameMode] = useState(null);
   const [showChallengeModeConfirm, setShowChallengeModeConfirm] = useState(false);
   const [showGameModeConfirm, setShowGameModeConfirm] = useState(false);
+  const [tierMilestone, setTierMilestone] = useState(null);
+  const [showTierMilestone, setShowTierMilestone] = useState(false);
   const [showDebugModal, setShowDebugModal] = useState(false);
 
   // Refs
@@ -148,6 +153,14 @@ const TavernRummy = () => {
 
   // Card animation hook
   const { flyingCards, addFlyingCard, addFlyingCardFromPosition } = useCardAnimation();
+
+  // Get effective difficulty (uses win streak for Challenge Mode)
+  const getEffectiveDifficulty = () => {
+    if (gameMode === GAME_MODES.CHALLENGING) {
+      return getDifficultyForWinStreak(stats.challengeMode?.currentWinStreak || 0);
+    }
+    return difficulty;
+  };
 
   // Build game context for strategy tips
   const gameContext = useMemo(() => ({
@@ -361,7 +374,8 @@ const TavernRummy = () => {
 
   const aiTurn = (playerCurrentHand) => {
     setTimeout(() => {
-      const decision = executeAITurn(aiHand, deck, discardPile, difficulty);
+      const effectiveDifficulty = getEffectiveDifficulty();
+      const decision = executeAITurn(aiHand, deck, discardPile, effectiveDifficulty);
 
       if (decision.deckEmpty) {
         setMessage('Deck is empty! Round ends in a draw.');
@@ -500,6 +514,45 @@ const TavernRummy = () => {
         console.log(`Match Win Bonus XP: +${XP_REWARDS.MATCH_WIN_BONUS} XP`);
       } else {
         setMatchWinXP(0);
+      }
+    }
+
+    // Handle Challenge Mode progression (Endless Mode)
+    if (gameMode === GAME_MODES.CHALLENGING && result.winner !== 'draw') {
+      if (result.winner === 'player') {
+        const previousStreak = stats.challengeMode?.currentWinStreak || 0;
+        const effectiveDifficulty = getEffectiveDifficulty();
+
+        // Update Challenge stats
+        let updatedStats = updateChallengeWin(stats, effectiveDifficulty);
+
+        // Check for tier milestone
+        const milestone = checkTierMilestone(previousStreak, updatedStats.challengeMode.currentWinStreak);
+
+        if (milestone) {
+          // Award milestone XP
+          updatedStats = addMilestoneXP(updatedStats, milestone.xpBonus);
+          progression.addXP(milestone.xpBonus, `Tier Milestone Bonus: ${milestone.tier.name}`);
+
+          // Show tier milestone notification
+          setTierMilestone({
+            tier: milestone.tier,
+            xpBonus: milestone.xpBonus,
+            message: getTierReachedMessage(milestone.threshold)
+          });
+          setShowTierMilestone(true);
+
+          console.log(`🎊 TIER UP! Reached ${milestone.tier.name} tier! +${milestone.xpBonus} XP`);
+        }
+
+        // Update stats (this will be saved by useStats)
+        Object.assign(stats, updatedStats);
+
+      } else if (result.winner === 'ai') {
+        // Reset win streak on loss
+        const updatedStats = updateChallengeLoss(stats);
+        Object.assign(stats, updatedStats);
+        console.log('💀 Challenge run ended. Win streak reset to 0.');
       }
     }
 
@@ -805,6 +858,7 @@ const TavernRummy = () => {
           scores={scores}
           gameMode={gameMode}
           xpGained={matchWinXP}
+          stats={stats}
           onPlayAgain={() => {
             setMatchWinner(null);
             setMatchWinXP(0);
@@ -946,6 +1000,13 @@ const TavernRummy = () => {
           newLevel={progression.levelUpData?.newLevel}
           apGained={progression.levelUpData?.apGained}
           onClose={progression.closeLevelUpModal}
+        />
+
+        {/* Tier Milestone Modal (Challenge Mode) */}
+        <TierMilestoneModal
+          show={showTierMilestone}
+          milestone={tierMilestone}
+          onClose={() => setShowTierMilestone(false)}
         />
 
         {/* Abilities Shop Modal */}

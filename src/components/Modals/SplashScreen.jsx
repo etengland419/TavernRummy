@@ -19,7 +19,7 @@ const SplashScreen = ({ show, onStart }) => {
   const gameModes = [
     { mode: GAME_MODES.TUTORIAL, icon: '📚', color: 'blue', difficulty: DIFFICULTY_LEVELS.TUTORIAL },
     { mode: GAME_MODES.PRACTICE, icon: '🎯', color: 'green', difficulty: DIFFICULTY_LEVELS.EASY },
-    { mode: GAME_MODES.CHALLENGING, icon: '⚔️', color: 'red', difficulty: DIFFICULTY_LEVELS.HARD, special: '⚡ Leveling & Abilities!' }
+    { mode: GAME_MODES.CHALLENGING, icon: '⚔️', color: 'red', difficulty: DIFFICULTY_LEVELS.HARD, special: '♾️ Endless Scaling!' }
   ];
 
   const practiceDifficulties = [

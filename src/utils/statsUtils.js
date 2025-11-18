@@ -1,7 +1,7 @@
 import { DIFFICULTY_LEVELS, GAME_MODES } from './constants';
 
 const STATS_STORAGE_KEY = 'tavernRummy_stats';
-const STATS_VERSION = '1.1'; // Updated version for tutorial stats
+const STATS_VERSION = '1.2'; // Updated version for Challenge Mode endless progression
 
 /**
  * Get default stats structure
@@ -55,6 +55,36 @@ const getDefaultStats = () => ({
   averageDeadwood: [],
   matchesPlayed: 0,
   matchesWon: 0,
+  // Challenge Mode specific stats (Endless Mode)
+  challengeMode: {
+    currentWinStreak: 0,
+    longestWinStreak: 0,
+    totalChallengeWins: 0,
+    totalChallengeLosses: 0,
+    currentTier: DIFFICULTY_LEVELS.EASY,
+    highestTierReached: DIFFICULTY_LEVELS.EASY,
+    tierReached: {
+      [DIFFICULTY_LEVELS.EASY]: 0,
+      [DIFFICULTY_LEVELS.MEDIUM]: 0,
+      [DIFFICULTY_LEVELS.HARD]: 0,
+      [DIFFICULTY_LEVELS.EXPERT]: 0,
+      [DIFFICULTY_LEVELS.MASTER]: 0,
+      [DIFFICULTY_LEVELS.LEGENDARY]: 0,
+      [DIFFICULTY_LEVELS.NIGHTMARE]: 0,
+      [DIFFICULTY_LEVELS.INFINITE]: 0
+    },
+    winsPerTier: {
+      [DIFFICULTY_LEVELS.EASY]: 0,
+      [DIFFICULTY_LEVELS.MEDIUM]: 0,
+      [DIFFICULTY_LEVELS.HARD]: 0,
+      [DIFFICULTY_LEVELS.EXPERT]: 0,
+      [DIFFICULTY_LEVELS.MASTER]: 0,
+      [DIFFICULTY_LEVELS.LEGENDARY]: 0,
+      [DIFFICULTY_LEVELS.NIGHTMARE]: 0,
+      [DIFFICULTY_LEVELS.INFINITE]: 0
+    },
+    totalMilestoneXP: 0
+  },
   createdAt: Date.now(),
   lastPlayed: Date.now()
 });
@@ -280,4 +310,99 @@ export const importStats = (jsonString) => {
     console.error('Error importing stats:', error);
     return null;
   }
+};
+
+/**
+ * Update Challenge Mode stats after a win
+ * @param {Object} stats - Current stats
+ * @param {string} currentDifficulty - Current difficulty tier
+ * @returns {Object} Updated stats
+ */
+export const updateChallengeWin = (stats, currentDifficulty) => {
+  const newStats = { ...stats };
+
+  // Initialize challengeMode if it doesn't exist (for migration)
+  if (!newStats.challengeMode) {
+    newStats.challengeMode = getDefaultStats().challengeMode;
+  }
+
+  // Increment win streak
+  newStats.challengeMode.currentWinStreak += 1;
+  newStats.challengeMode.totalChallengeWins += 1;
+
+  // Update longest streak
+  if (newStats.challengeMode.currentWinStreak > newStats.challengeMode.longestWinStreak) {
+    newStats.challengeMode.longestWinStreak = newStats.challengeMode.currentWinStreak;
+  }
+
+  // Update tier stats
+  newStats.challengeMode.currentTier = currentDifficulty;
+  if (newStats.challengeMode.winsPerTier[currentDifficulty] !== undefined) {
+    newStats.challengeMode.winsPerTier[currentDifficulty] += 1;
+  }
+
+  // Track tier reached
+  const tierLevels = [
+    DIFFICULTY_LEVELS.EASY,
+    DIFFICULTY_LEVELS.MEDIUM,
+    DIFFICULTY_LEVELS.HARD,
+    DIFFICULTY_LEVELS.EXPERT,
+    DIFFICULTY_LEVELS.MASTER,
+    DIFFICULTY_LEVELS.LEGENDARY,
+    DIFFICULTY_LEVELS.NIGHTMARE,
+    DIFFICULTY_LEVELS.INFINITE
+  ];
+
+  const currentTierIndex = tierLevels.indexOf(currentDifficulty);
+  const highestTierIndex = tierLevels.indexOf(newStats.challengeMode.highestTierReached);
+
+  if (currentTierIndex > highestTierIndex) {
+    newStats.challengeMode.highestTierReached = currentDifficulty;
+  }
+
+  // Increment tier reached count
+  if (newStats.challengeMode.tierReached[currentDifficulty] !== undefined) {
+    newStats.challengeMode.tierReached[currentDifficulty] += 1;
+  }
+
+  return newStats;
+};
+
+/**
+ * Update Challenge Mode stats after a loss
+ * @param {Object} stats - Current stats
+ * @returns {Object} Updated stats
+ */
+export const updateChallengeLoss = (stats) => {
+  const newStats = { ...stats };
+
+  // Initialize challengeMode if it doesn't exist (for migration)
+  if (!newStats.challengeMode) {
+    newStats.challengeMode = getDefaultStats().challengeMode;
+  }
+
+  // Reset win streak
+  newStats.challengeMode.currentWinStreak = 0;
+  newStats.challengeMode.currentTier = DIFFICULTY_LEVELS.EASY;
+  newStats.challengeMode.totalChallengeLosses += 1;
+
+  return newStats;
+};
+
+/**
+ * Add milestone XP to Challenge Mode stats
+ * @param {Object} stats - Current stats
+ * @param {number} xpAmount - XP to add
+ * @returns {Object} Updated stats
+ */
+export const addMilestoneXP = (stats, xpAmount) => {
+  const newStats = { ...stats };
+
+  // Initialize challengeMode if it doesn't exist (for migration)
+  if (!newStats.challengeMode) {
+    newStats.challengeMode = getDefaultStats().challengeMode;
+  }
+
+  newStats.challengeMode.totalMilestoneXP += xpAmount;
+  return newStats;
 };

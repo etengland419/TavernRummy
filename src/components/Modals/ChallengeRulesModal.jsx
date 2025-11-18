@@ -36,15 +36,58 @@ const ChallengeRulesModal = ({ show, onClose }) => {
           <h3 className="text-2xl font-bold text-amber-400 mb-3">📖 What is Challenge Mode?</h3>
           <div className="bg-gray-900 bg-opacity-50 p-4 rounded-lg border-2 border-amber-700">
             <p className="text-amber-100 mb-3">
-              Challenge Mode is the <strong className="text-yellow-300">Roguelite</strong> version of Tavern Rummy.
-              Battle against the toughest AI opponent while earning experience, leveling up, and unlocking powerful abilities!
+              Challenge Mode is the <strong className="text-yellow-300">Endless Roguelite</strong> version of Tavern Rummy.
+              Battle through increasingly difficult AI tiers while earning experience, leveling up, and unlocking powerful abilities!
             </p>
             <ul className="list-disc list-inside space-y-2 text-amber-100">
-              <li><strong className="text-red-400">Hard Difficulty Only:</strong> Face the most strategic AI opponent</li>
+              <li><strong className="text-red-400">Endless Progression:</strong> Win streaks unlock harder AI tiers every 5 wins!</li>
+              <li><strong className="text-purple-400">8 Difficulty Tiers:</strong> Easy → Medium → Hard → Expert → Master → Legendary → Nightmare → Infinite</li>
               <li><strong className="text-blue-400">No Strategy Tips:</strong> You're on your own - true mastery required!</li>
-              <li><strong className="text-purple-400">Progression System:</strong> Earn XP and level up after each round</li>
-              <li><strong className="text-yellow-400">Unlock Abilities:</strong> Gain Ability Points and unlock game-changing powers</li>
+              <li><strong className="text-yellow-400">XP & Abilities Essential:</strong> Level up and unlock abilities to survive higher tiers!</li>
             </ul>
+          </div>
+        </div>
+
+        {/* Endless Progression System */}
+        <div className="mb-6">
+          <h3 className="text-2xl font-bold text-amber-400 mb-3">♾️ Endless Progression System</h3>
+          <div className="bg-gray-900 bg-opacity-50 p-4 rounded-lg border-2 border-amber-700">
+            <p className="text-amber-100 mb-3">
+              Build your win streak to face increasingly powerful opponents:
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="bg-green-900 bg-opacity-30 p-2 rounded border border-green-600">
+                <p className="text-green-300 text-sm"><strong>🌱 Wins 0-4: Novice (Easy)</strong></p>
+              </div>
+              <div className="bg-green-900 bg-opacity-30 p-2 rounded border border-green-600">
+                <p className="text-green-300 text-sm"><strong>⚔️ Wins 5-9: Apprentice (Medium)</strong></p>
+              </div>
+              <div className="bg-yellow-900 bg-opacity-30 p-2 rounded border border-yellow-600">
+                <p className="text-yellow-300 text-sm"><strong>🛡️ Wins 10-14: Veteran (Hard)</strong></p>
+              </div>
+              <div className="bg-orange-900 bg-opacity-30 p-2 rounded border border-orange-600">
+                <p className="text-orange-300 text-sm"><strong>🔥 Wins 15-19: Expert</strong></p>
+              </div>
+              <div className="bg-purple-900 bg-opacity-30 p-2 rounded border border-purple-600">
+                <p className="text-purple-300 text-sm"><strong>⭐ Wins 20-24: Master</strong></p>
+              </div>
+              <div className="bg-pink-900 bg-opacity-30 p-2 rounded border border-pink-600">
+                <p className="text-pink-300 text-sm"><strong>👑 Wins 25-29: Legendary</strong></p>
+              </div>
+              <div className="bg-red-900 bg-opacity-30 p-2 rounded border border-red-600">
+                <p className="text-red-300 text-sm"><strong>💀 Wins 30-34: Nightmare</strong></p>
+              </div>
+              <div className="bg-gray-900 bg-opacity-50 p-2 rounded border border-gray-500">
+                <p className="text-gray-300 text-sm"><strong>♾️ Wins 35+: Infinite (Max)</strong></p>
+              </div>
+            </div>
+
+            <div className="mt-4 bg-red-900 bg-opacity-30 p-3 rounded border border-red-600">
+              <p className="text-red-200 text-sm">
+                <strong>⚠️ Warning:</strong> Losing a game resets your win streak to 0! How far can you push your limits?
+              </p>
+            </div>
           </div>
         </div>
 
@@ -90,6 +133,22 @@ const ChallengeRulesModal = ({ show, onClose }) => {
                 <strong>💎 Level Up Rewards:</strong> Each time you level up, you earn <strong className="text-yellow-300">1 Ability Point (AP)</strong>
                 to unlock or upgrade abilities!
               </p>
+            </div>
+
+            <div className="bg-purple-900 bg-opacity-30 p-3 rounded border border-purple-600 mt-4">
+              <h4 className="font-bold text-purple-300 mb-2">🎊 Tier Milestone Bonuses</h4>
+              <p className="text-purple-200 text-sm mb-2">
+                Reaching a new tier grants massive XP bonuses!
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-purple-100">
+                <div>5 wins: <strong className="text-yellow-300">+50 XP</strong></div>
+                <div>10 wins: <strong className="text-yellow-300">+100 XP</strong></div>
+                <div>15 wins: <strong className="text-yellow-300">+200 XP</strong></div>
+                <div>20 wins: <strong className="text-yellow-300">+300 XP</strong></div>
+                <div>25 wins: <strong className="text-yellow-300">+500 XP</strong></div>
+                <div>30 wins: <strong className="text-yellow-300">+750 XP</strong></div>
+                <div>35 wins: <strong className="text-yellow-300">+1000 XP</strong></div>
+              </div>
             </div>
           </div>
         </div>

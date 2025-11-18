@@ -37,7 +37,7 @@ const GameModeConfirmModal = ({ show, currentMode, newMode, onConfirm, onCancel 
         return {
           icon: '⚔️',
           name: 'Challenge Mode',
-          description: 'Roguelite progression with XP and abilities',
+          description: 'Endless progression! Win streaks unlock harder AI tiers. XP and abilities essential for survival!',
           color: 'from-red-900 to-gray-900',
           borderColor: 'border-red-600'
         };
@@ -78,7 +78,7 @@ const GameModeConfirmModal = ({ show, currentMode, newMode, onConfirm, onCancel 
           {newMode === GAME_MODES.CHALLENGING && (
             <div className="mt-3 p-3 bg-red-900 bg-opacity-30 rounded border border-red-600">
               <p className="text-red-200 text-sm">
-                <strong>⚠️ Note:</strong> Challenge Mode features Hard difficulty only and no strategy tips!
+                <strong>⚠️ Note:</strong> Challenge Mode features endless scaling difficulty! Win streaks increase AI strength every 5 wins. No strategy tips!
               </p>
             </div>
           )}
