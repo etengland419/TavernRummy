@@ -190,6 +190,26 @@ const TavernRummy = () => {
     };
   }, [stopBackgroundMusic]);
 
+  // Auto-gin: Automatically knock when player has gin (0 deadwood)
+  useEffect(() => {
+    if (
+      phase === 'discard' &&
+      currentTurn === 'player' &&
+      !gameOver &&
+      playerMinDeadwoodAfterDiscard === 0 &&
+      playerHand.length > 0
+    ) {
+      // Player has gin! Auto-knock after a brief moment
+      const timer = setTimeout(() => {
+        setMessage('🎉 GIN! Auto-knocking for you...');
+        setTimeout(() => {
+          knock();
+        }, 800);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, currentTurn, gameOver, playerMinDeadwoodAfterDiscard, playerHand.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const startNewRound = () => {
     const newDeck = createDeck();
     const playerCards = newDeck.splice(0, GAME_CONFIG.STARTING_HAND_SIZE);
@@ -394,7 +414,7 @@ const TavernRummy = () => {
             if (decision.shouldKnock) {
               setTimeout(() => {
                 setMessage(`${opponentName} knocks!`);
-                setTimeout(() => endRound('ai'), ANIMATION_TIMINGS.KNOCK_ANNOUNCEMENT);
+                setTimeout(() => endRound('ai', null, decision.finalHand), ANIMATION_TIMINGS.KNOCK_ANNOUNCEMENT);
               }, 250);
             } else {
               setCurrentTurn('player');
@@ -419,8 +439,10 @@ const TavernRummy = () => {
     setTutorialHighlight(null);
   };
 
-  const endRound = (knocker) => {
-    const result = calculateRoundResult(knocker, playerHand, aiHand);
+  const endRound = (knocker, playerHandOverride = null, aiHandOverride = null) => {
+    const finalPlayerHand = playerHandOverride || playerHand;
+    const finalAiHand = aiHandOverride || aiHand;
+    const result = calculateRoundResult(knocker, finalPlayerHand, finalAiHand);
 
     setGameOver(true);
     setTutorialHighlight(null);
