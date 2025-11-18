@@ -1,315 +1,299 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
-  ABILITIES,
-  getAbilityById,
-  getAbilityUpgradeCost,
-  canAffordAbility,
-  applyGoldMagnetBonus
+  initializeAbilities,
+  resetRoundAbilityUses,
+  resetMatchAbilityUses,
+  canUseAbility,
+  useAbility as markAbilityUsed,
+  getRemainingUses,
+  getPassiveEffect,
+  PASSIVE_ABILITIES,
+  ACTIVE_ABILITIES
 } from '../utils/abilitiesUtils';
-import { saveProgression, loadProgression } from '../utils/storageUtils';
 
 /**
- * useAbilities Hook
- * Manages player abilities: unlocking, upgrading, and using abilities
- *
- * @param {Object} progression - Progression object from useProgression
- * @returns {Object} Abilities state and methods
+ * Custom hook for managing player abilities
+ * @returns {Object} Ability state and functions
  */
-export const useAbilities = (progression) => {
-  const [unlockedAbilities, setUnlockedAbilities] = useState([]);
-  const [abilityLevels, setAbilityLevels] = useState({});
-  const [equippedAbilities, setEquippedAbilities] = useState([]);
-  const [abilityUses, setAbilityUses] = useState({}); // Track uses per match/round
-  const [previousGameState, setPreviousGameState] = useState(null); // For Redo Turn
+export const useAbilities = () => {
+  // Player's unlocked abilities
+  const [unlockedAbilities, setUnlockedAbilities] = useState(initializeAbilities());
 
-  // Load abilities from storage on mount
+  // Current ability uses (resets per round/match)
+  const [abilityUses, setAbilityUses] = useState({});
+
+  // Temporary state for abilities
+  const [deckPeekCards, setDeckPeekCards] = useState(null);
+  const [showDeckPeekModal, setShowDeckPeekModal] = useState(false);
+  const [showCardSwapModal, setShowCardSwapModal] = useState(false);
+  const [luckyDrawCards, setLuckyDrawCards] = useState(null);
+  const [showLuckyDrawModal, setShowLuckyDrawModal] = useState(false);
+  const [savedGameState, setSavedGameState] = useState(null);
+
+  /**
+   * Load abilities from localStorage
+   */
   useEffect(() => {
-    const savedData = loadProgression();
-    setUnlockedAbilities(savedData.unlockedAbilities || []);
-    setAbilityLevels(savedData.abilityLevels || {});
-    setEquippedAbilities(savedData.equippedAbilities || []);
+    const saved = localStorage.getItem('tavernRummyAbilities');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setUnlockedAbilities(parsed);
+      } catch (e) {
+        console.error('Failed to load abilities:', e);
+      }
+    }
   }, []);
 
-  // Save abilities whenever they change
+  /**
+   * Save abilities to localStorage
+   */
   useEffect(() => {
-    const savedData = loadProgression();
-    saveProgression({
-      ...savedData,
-      unlockedAbilities,
-      abilityLevels,
-      equippedAbilities
-    });
-  }, [unlockedAbilities, abilityLevels, equippedAbilities]);
-
-  /**
-   * Unlock or upgrade an ability
-   *
-   * @param {string} abilityId - Ability ID to unlock/upgrade
-   * @returns {boolean} True if successful
-   */
-  const unlockAbility = useCallback((abilityId) => {
-    const ability = getAbilityById(abilityId);
-
-    if (!ability) {
-      return false;
-    }
-
-    if (ability.type === 'active') {
-      // Active ability - simple unlock
-      if (unlockedAbilities.includes(abilityId)) {
-        return false; // Already unlocked
-      }
-
-      if (!canAffordAbility(progression.abilityPoints, abilityId)) {
-        return false; // Can't afford
-      }
-
-      // Spend AP and unlock
-      if (progression.spendAP(ability.cost)) {
-        setUnlockedAbilities(prev => [...prev, abilityId]);
-        return true;
-      }
-    } else {
-      // Passive ability - upgrade level
-      const currentLevel = abilityLevels[abilityId] || 0;
-      const upgradeCost = getAbilityUpgradeCost(abilityId, currentLevel);
-
-      if (currentLevel >= ability.maxLevel) {
-        return false; // Max level
-      }
-
-      if (!canAffordAbility(progression.abilityPoints, abilityId, currentLevel)) {
-        return false; // Can't afford
-      }
-
-      // Spend AP and upgrade
-      if (progression.spendAP(upgradeCost)) {
-        setAbilityLevels(prev => ({
-          ...prev,
-          [abilityId]: currentLevel + 1
-        }));
-
-        // Add to unlocked if first time
-        if (!unlockedAbilities.includes(abilityId)) {
-          setUnlockedAbilities(prev => [...prev, abilityId]);
-        }
-
-        return true;
-      }
-    }
-
-    return false;
-  }, [unlockedAbilities, abilityLevels, progression]);
-
-  /**
-   * Equip an active ability
-   *
-   * @param {string} abilityId - Ability ID to equip
-   * @returns {boolean} True if successful
-   */
-  const equipAbility = useCallback((abilityId) => {
-    if (!unlockedAbilities.includes(abilityId)) {
-      return false; // Not unlocked
-    }
-
-    const ability = getAbilityById(abilityId);
-    if (ability.type !== 'active') {
-      return false; // Only active abilities can be equipped
-    }
-
-    if (equippedAbilities.includes(abilityId)) {
-      return false; // Already equipped
-    }
-
-    // Limit to 3 equipped abilities (V1 has only 1, but prepare for future)
-    if (equippedAbilities.length >= 3) {
-      return false;
-    }
-
-    setEquippedAbilities(prev => [...prev, abilityId]);
-    return true;
-  }, [unlockedAbilities, equippedAbilities]);
-
-  /**
-   * Unequip an active ability
-   *
-   * @param {string} abilityId - Ability ID to unequip
-   */
-  const unequipAbility = useCallback((abilityId) => {
-    setEquippedAbilities(prev => prev.filter(id => id !== abilityId));
-  }, []);
-
-  /**
-   * Check if ability can be used
-   *
-   * @param {string} abilityId - Ability ID
-   * @returns {boolean} True if ability can be used
-   */
-  const canUseAbility = useCallback((abilityId) => {
-    const ability = getAbilityById(abilityId);
-
-    if (!ability || !equippedAbilities.includes(abilityId)) {
-      return false;
-    }
-
-    const uses = abilityUses[abilityId] || 0;
-
-    if (ability.usesPerRound !== undefined) {
-      return uses < ability.usesPerRound;
-    }
-
-    if (ability.usesPerMatch !== undefined) {
-      return uses < ability.usesPerMatch;
-    }
-
-    return true;
-  }, [equippedAbilities, abilityUses]);
-
-  /**
-   * Use an ability (increment use counter)
-   *
-   * @param {string} abilityId - Ability ID
-   * @returns {boolean} True if successful
-   */
-  const activateAbility = useCallback((abilityId) => {
-    if (!canUseAbility(abilityId)) {
-      return false;
-    }
-
-    setAbilityUses(prev => ({
-      ...prev,
-      [abilityId]: (prev[abilityId] || 0) + 1
-    }));
-
-    return true;
-  }, [canUseAbility]);
-
-  /**
-   * Reset ability uses (call at end of round/match)
-   *
-   * @param {string} scope - 'round' or 'match'
-   */
-  const resetAbilityUses = useCallback((scope = 'round') => {
-    setAbilityUses(prev => {
-      const newUses = { ...prev };
-
-      equippedAbilities.forEach(abilityId => {
-        const ability = getAbilityById(abilityId);
-
-        if (scope === 'round' && ability.usesPerRound !== undefined) {
-          newUses[abilityId] = 0;
-        } else if (scope === 'match' && ability.usesPerMatch !== undefined) {
-          newUses[abilityId] = 0;
-        }
-      });
-
-      return newUses;
-    });
-  }, [equippedAbilities]);
-
-  /**
-   * Save game state for Redo Turn ability
-   *
-   * @param {Object} gameState - Current game state
-   */
-  const saveGameState = useCallback((gameState) => {
-    setPreviousGameState(gameState);
-  }, []);
-
-  /**
-   * Use Redo Turn ability
-   *
-   * @returns {Object|null} Previous game state or null if not available
-   */
-  const executeRedoTurn = useCallback(() => {
-    if (!canUseAbility(ABILITIES.REDO_TURN.id)) {
-      return null;
-    }
-
-    if (!previousGameState) {
-      return null;
-    }
-
-    activateAbility(ABILITIES.REDO_TURN.id);
-    const state = previousGameState;
-    setPreviousGameState(null); // Clear after use
-    return state;
-  }, [canUseAbility, activateAbility, previousGameState]);
-
-  /**
-   * Apply Gold Magnet bonus to score
-   *
-   * @param {number} baseScore - Base score
-   * @returns {number} Modified score
-   */
-  const applyGoldMagnet = useCallback((baseScore) => {
-    const goldMagnetLevel = abilityLevels[ABILITIES.GOLD_MAGNET.id] || 0;
-    return applyGoldMagnetBonus(baseScore, goldMagnetLevel);
-  }, [abilityLevels]);
-
-  /**
-   * Get ability level
-   *
-   * @param {string} abilityId - Ability ID
-   * @returns {number} Current level (0 if not unlocked)
-   */
-  const getAbilityLevel = useCallback((abilityId) => {
-    return abilityLevels[abilityId] || 0;
-  }, [abilityLevels]);
-
-  /**
-   * Check if ability is unlocked
-   *
-   * @param {string} abilityId - Ability ID
-   * @returns {boolean} True if unlocked
-   */
-  const isAbilityUnlocked = useCallback((abilityId) => {
-    return unlockedAbilities.includes(abilityId);
+    localStorage.setItem('tavernRummyAbilities', JSON.stringify(unlockedAbilities));
   }, [unlockedAbilities]);
 
   /**
-   * Get remaining uses for an ability
-   *
-   * @param {string} abilityId - Ability ID
-   * @returns {number} Remaining uses
+   * Unlock an active ability
    */
-  const getRemainingUses = useCallback((abilityId) => {
-    const ability = getAbilityById(abilityId);
-    if (!ability) return 0;
+  const unlockActiveAbility = useCallback((abilityId) => {
+    setUnlockedAbilities(prev => ({
+      ...prev,
+      active: [...(prev.active || []), abilityId]
+    }));
+  }, []);
 
-    const used = abilityUses[abilityId] || 0;
+  /**
+   * Upgrade a passive ability
+   */
+  const upgradePassiveAbility = useCallback((abilityId) => {
+    setUnlockedAbilities(prev => ({
+      ...prev,
+      passive: {
+        ...prev.passive,
+        [abilityId]: (prev.passive[abilityId] || 0) + 1
+      }
+    }));
+  }, []);
 
-    if (ability.usesPerRound !== undefined) {
-      return Math.max(0, ability.usesPerRound - used);
-    }
+  /**
+   * Check if an ability can be used
+   */
+  const checkCanUseAbility = useCallback((abilityId) => {
+    return canUseAbility(abilityId, abilityUses, unlockedAbilities);
+  }, [abilityUses, unlockedAbilities]);
 
-    if (ability.usesPerMatch !== undefined) {
-      return Math.max(0, ability.usesPerMatch - used);
-    }
-
-    return Infinity;
+  /**
+   * Get remaining uses for an ability
+   */
+  const getAbilityRemainingUses = useCallback((abilityId) => {
+    return getRemainingUses(abilityId, abilityUses);
   }, [abilityUses]);
+
+  /**
+   * Activate Deck Peek ability
+   */
+  const activateDeckPeek = useCallback((deck) => {
+    const { canUse } = checkCanUseAbility(ACTIVE_ABILITIES.DECK_PEEK);
+    if (!canUse) return false;
+
+    // Get top 3 cards
+    const topCards = deck.slice(0, 3);
+    setDeckPeekCards(topCards);
+    setShowDeckPeekModal(true);
+
+    // Mark as used
+    setAbilityUses(prev => markAbilityUsed(ACTIVE_ABILITIES.DECK_PEEK, prev));
+
+    return true;
+  }, [checkCanUseAbility]);
+
+  /**
+   * Activate Redo Turn ability
+   */
+  const activateRedoTurn = useCallback(() => {
+    const { canUse } = checkCanUseAbility(ACTIVE_ABILITIES.REDO_TURN);
+    if (!canUse || !savedGameState) return null;
+
+    // Mark as used
+    setAbilityUses(prev => markAbilityUsed(ACTIVE_ABILITIES.REDO_TURN, prev));
+
+    // Return the saved state
+    const state = savedGameState;
+    setSavedGameState(null);
+    return state;
+  }, [checkCanUseAbility, savedGameState]);
+
+  /**
+   * Save game state for Redo Turn ability
+   */
+  const saveGameStateForRedo = useCallback((gameState) => {
+    // Only save if ability is unlocked
+    if (unlockedAbilities.active?.includes(ACTIVE_ABILITIES.REDO_TURN)) {
+      setSavedGameState(gameState);
+    }
+  }, [unlockedAbilities]);
+
+  /**
+   * Activate Card Swap ability
+   */
+  const activateCardSwap = useCallback((selectedCardIndex, playerHand, deck) => {
+    const { canUse } = checkCanUseAbility(ACTIVE_ABILITIES.CARD_SWAP);
+    if (!canUse) return null;
+
+    if (selectedCardIndex === null || selectedCardIndex === undefined) {
+      setShowCardSwapModal(true);
+      return null;
+    }
+
+    // Mark as used
+    setAbilityUses(prev => markAbilityUsed(ACTIVE_ABILITIES.CARD_SWAP, prev));
+
+    // Perform the swap
+    const newHand = [...playerHand];
+    const discardedCard = newHand[selectedCardIndex];
+    const newCard = deck[0];
+    newHand[selectedCardIndex] = newCard;
+
+    return {
+      newHand,
+      newDeck: deck.slice(1),
+      discardedCard,
+      newCard
+    };
+  }, [checkCanUseAbility]);
+
+  /**
+   * Check Lucky Draw passive ability
+   * Returns cards if lucky draw triggers, null otherwise
+   */
+  const checkLuckyDraw = useCallback((deck) => {
+    const level = unlockedAbilities.passive?.[PASSIVE_ABILITIES.LUCKY_DRAW] || 0;
+    if (level === 0) return null;
+
+    const chance = getPassiveEffect(PASSIVE_ABILITIES.LUCKY_DRAW, level);
+    const triggered = Math.random() < chance;
+
+    if (triggered && deck.length >= 2) {
+      const cards = [deck[0], deck[1]];
+      setLuckyDrawCards(cards);
+      setShowLuckyDrawModal(true);
+      return cards;
+    }
+
+    return null;
+  }, [unlockedAbilities]);
+
+  /**
+   * Apply Lucky Draw selection
+   */
+  const selectLuckyDrawCard = useCallback((selectedCard) => {
+    setLuckyDrawCards(null);
+    setShowLuckyDrawModal(false);
+    return selectedCard;
+  }, []);
+
+  /**
+   * Get Quick Hands speed multiplier
+   */
+  const getQuickHandsMultiplier = useCallback(() => {
+    const level = unlockedAbilities.passive?.[PASSIVE_ABILITIES.QUICK_HANDS] || 0;
+    if (level === 0) return 1.0;
+
+    const speedBoost = getPassiveEffect(PASSIVE_ABILITIES.QUICK_HANDS, level);
+    return 1.0 - speedBoost; // Reduces animation time
+  }, [unlockedAbilities]);
+
+  /**
+   * Get Gold Magnet multiplier
+   */
+  const getGoldMagnetMultiplier = useCallback(() => {
+    const level = unlockedAbilities.passive?.[PASSIVE_ABILITIES.GOLD_MAGNET] || 0;
+    if (level === 0) return 1.0;
+
+    const bonus = getPassiveEffect(PASSIVE_ABILITIES.GOLD_MAGNET, level);
+    return 1.0 + bonus;
+  }, [unlockedAbilities]);
+
+  /**
+   * Get Meld Master level
+   */
+  const getMeldMasterLevel = useCallback(() => {
+    return unlockedAbilities.passive?.[PASSIVE_ABILITIES.MELD_MASTER] || 0;
+  }, [unlockedAbilities]);
+
+  /**
+   * Get XP Boost multiplier
+   */
+  const getXPBoostMultiplier = useCallback(() => {
+    const level = unlockedAbilities.passive?.[PASSIVE_ABILITIES.XP_BOOST] || 0;
+    if (level === 0) return 1.0;
+
+    const bonus = getPassiveEffect(PASSIVE_ABILITIES.XP_BOOST, level);
+    return 1.0 + bonus;
+  }, [unlockedAbilities]);
+
+  /**
+   * Reset abilities for new round
+   */
+  const resetForNewRound = useCallback(() => {
+    setAbilityUses(prev => resetRoundAbilityUses(prev));
+    setSavedGameState(null);
+  }, []);
+
+  /**
+   * Reset abilities for new match
+   */
+  const resetForNewMatch = useCallback(() => {
+    setAbilityUses(resetMatchAbilityUses());
+    setSavedGameState(null);
+  }, []);
+
+  /**
+   * Reset all abilities (for testing)
+   */
+  const resetAllAbilities = useCallback(() => {
+    setUnlockedAbilities(initializeAbilities());
+    setAbilityUses({});
+    setSavedGameState(null);
+  }, []);
 
   return {
     // State
     unlockedAbilities,
-    abilityLevels,
-    equippedAbilities,
     abilityUses,
-    previousGameState,
+    deckPeekCards,
+    showDeckPeekModal,
+    setShowDeckPeekModal,
+    showCardSwapModal,
+    setShowCardSwapModal,
+    luckyDrawCards,
+    showLuckyDrawModal,
 
-    // Methods
-    unlockAbility,
-    equipAbility,
-    unequipAbility,
-    canUseAbility,
-    activateAbility,
-    resetAbilityUses,
-    saveGameState,
-    executeRedoTurn,
-    applyGoldMagnet,
-    getAbilityLevel,
-    isAbilityUnlocked,
-    getRemainingUses,
+    // Unlock functions
+    unlockActiveAbility,
+    upgradePassiveAbility,
+
+    // Check functions
+    checkCanUseAbility,
+    getAbilityRemainingUses,
+
+    // Active ability functions
+    activateDeckPeek,
+    activateRedoTurn,
+    saveGameStateForRedo,
+    activateCardSwap,
+
+    // Passive ability functions
+    checkLuckyDraw,
+    selectLuckyDrawCard,
+    getQuickHandsMultiplier,
+    getGoldMagnetMultiplier,
+    getMeldMasterLevel,
+    getXPBoostMultiplier,
+
+    // Reset functions
+    resetForNewRound,
+    resetForNewMatch,
+    resetAllAbilities
   };
 };

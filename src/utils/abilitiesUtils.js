@@ -1,283 +1,423 @@
 /**
- * Abilities System Utilities
- * Defines all abilities (active and passive) for the roguelite progression
+ * Ability Definitions and Utilities
+ *
+ * This module contains all ability definitions, costs, effects,
+ * and helper functions for the ability system.
  */
 
-/**
- * Ability Types
- */
+// Ability Types
 export const ABILITY_TYPES = {
   ACTIVE: 'active',
   PASSIVE: 'passive'
 };
 
-/**
- * All available abilities
- * Phase 1 (V1): Only Redo Turn and Gold Magnet are implemented
- */
+// Active Abilities
+export const ACTIVE_ABILITIES = {
+  DECK_PEEK: 'deck_peek',
+  REDO_TURN: 'redo_turn',
+  CARD_SWAP: 'card_swap',
+  MYSTIC_EYE: 'mystic_eye',
+  SHIELD: 'shield',
+  AGGRESSIVE_KNOCK: 'aggressive_knock',
+  PERFECT_VISION: 'perfect_vision',
+  PHOENIX_REVIVAL: 'phoenix_revival'
+};
+
+// Passive Abilities
+export const PASSIVE_ABILITIES = {
+  LUCKY_DRAW: 'lucky_draw',
+  GOLD_MAGNET: 'gold_magnet',
+  MELD_MASTER: 'meld_master',
+  QUICK_HANDS: 'quick_hands',
+  XP_BOOST: 'xp_boost'
+};
+
+// Ability Definitions
 export const ABILITIES = {
-  // ===== ACTIVE ABILITIES =====
-  REDO_TURN: {
-    id: 'redo_turn',
-    name: 'Redo Turn',
-    type: ABILITY_TYPES.ACTIVE,
-    icon: '🔄',
-    description: 'Undo your last discard and choose a different card',
-    cost: 2, // AP cost to unlock
-    usesPerRound: 1,
-    cooldown: 0, // No cooldown between uses
-    implemented: true, // V1 implementation
-    shortDesc: 'Undo last discard',
-  },
-
-  MYSTIC_EYE: {
-    id: 'mystic_eye',
-    name: 'Mystic Eye',
-    type: ABILITY_TYPES.ACTIVE,
-    icon: '🔮',
-    description: 'Reveal one random card from opponent\'s hand',
-    cost: 3,
-    usesPerMatch: 1,
-    cooldown: 0,
-    implemented: false, // Phase 2
-    shortDesc: 'See opponent card',
-  },
-
-  CARD_SWAP: {
-    id: 'card_swap',
-    name: 'Card Swap',
-    type: ABILITY_TYPES.ACTIVE,
-    icon: '🎴',
-    description: 'Discard a card and immediately draw a new one',
-    cost: 2,
-    usesPerMatch: 2,
-    cooldown: 0,
-    implemented: false, // Phase 2
-    shortDesc: 'Instant card swap',
-  },
-
-  DECK_PEEK: {
-    id: 'deck_peek',
+  // Active Abilities
+  [ACTIVE_ABILITIES.DECK_PEEK]: {
+    id: ACTIVE_ABILITIES.DECK_PEEK,
     name: 'Deck Peek',
-    type: ABILITY_TYPES.ACTIVE,
     icon: '👁️',
-    description: 'Look at the top 3 cards of the deck',
+    type: ABILITY_TYPES.ACTIVE,
     cost: 1,
+    description: 'See the top 3 cards of the deck',
+    detailedDescription: 'Reveals the top 3 cards in the deck, allowing you to make more informed decisions about whether to draw from the deck or discard pile.',
     usesPerMatch: 3,
-    cooldown: 0,
-    implemented: false, // Phase 2
-    shortDesc: 'Peek top 3 cards',
+    cooldown: 0
   },
 
-  // ===== PASSIVE ABILITIES =====
-  GOLD_MAGNET: {
-    id: 'gold_magnet',
-    name: 'Gold Magnet',
-    type: ABILITY_TYPES.PASSIVE,
-    icon: '💰',
-    description: 'Increase gold earned from wins',
-    cost: 2, // Cost for level 1
-    maxLevel: 3,
-    levels: [
-      { level: 1, cost: 2, effect: '+10% gold', multiplier: 1.10 },
-      { level: 2, cost: 2, effect: '+20% gold', multiplier: 1.20 },
-      { level: 3, cost: 2, effect: '+30% gold', multiplier: 1.30 }
-    ],
-    implemented: true, // V1 implementation
-    shortDesc: 'More gold from wins',
+  [ACTIVE_ABILITIES.REDO_TURN]: {
+    id: ACTIVE_ABILITIES.REDO_TURN,
+    name: 'Redo Turn',
+    icon: '🔄',
+    type: ABILITY_TYPES.ACTIVE,
+    cost: 2,
+    description: 'Undo your last discard',
+    detailedDescription: 'Takes back your last discard and returns it to your hand, allowing you to reconsider your move. Can only be used once per round.',
+    usesPerRound: 1,
+    cooldown: 0
   },
 
-  LUCKY_DRAW: {
-    id: 'lucky_draw',
+  [ACTIVE_ABILITIES.CARD_SWAP]: {
+    id: ACTIVE_ABILITIES.CARD_SWAP,
+    name: 'Card Swap',
+    icon: '🎴',
+    type: ABILITY_TYPES.ACTIVE,
+    cost: 2,
+    description: 'Discard a card and draw a new one instantly',
+    detailedDescription: 'Immediately discard one card from your hand and draw a replacement from the deck. Great for getting rid of unwanted cards without ending your turn.',
+    usesPerMatch: 2,
+    cooldown: 0
+  },
+
+  [ACTIVE_ABILITIES.MYSTIC_EYE]: {
+    id: ACTIVE_ABILITIES.MYSTIC_EYE,
+    name: 'Mystic Eye',
+    icon: '🔮',
+    type: ABILITY_TYPES.ACTIVE,
+    cost: 3,
+    description: "See one of your opponent's cards",
+    detailedDescription: "Reveals a random card from your opponent's hand for 5 seconds, giving you insight into their strategy.",
+    usesPerMatch: 1,
+    cooldown: 0
+  },
+
+  [ACTIVE_ABILITIES.SHIELD]: {
+    id: ACTIVE_ABILITIES.SHIELD,
+    name: 'Shield',
+    icon: '🛡️',
+    type: ABILITY_TYPES.ACTIVE,
+    cost: 3,
+    description: 'Reduce gold loss by 50%',
+    detailedDescription: 'When you lose a round, you only lose half the normal gold. This effect is always active once purchased.',
+    passive: true
+  },
+
+  [ACTIVE_ABILITIES.AGGRESSIVE_KNOCK]: {
+    id: ACTIVE_ABILITIES.AGGRESSIVE_KNOCK,
+    name: 'Aggressive Knock',
+    icon: '⚔️',
+    type: ABILITY_TYPES.ACTIVE,
+    cost: 2,
+    description: 'Knock with up to 15 deadwood',
+    detailedDescription: 'Allows you to knock even with higher deadwood (up to 15 instead of the normal 10). Use this to catch opponents off guard.',
+    usesPerMatch: 1,
+    cooldown: 0
+  },
+
+  [ACTIVE_ABILITIES.PERFECT_VISION]: {
+    id: ACTIVE_ABILITIES.PERFECT_VISION,
+    name: 'Perfect Vision',
+    icon: '🎯',
+    type: ABILITY_TYPES.ACTIVE,
+    cost: 4,
+    description: 'Show the optimal card to discard',
+    detailedDescription: 'Highlights the best card to discard based on your current hand and potential melds.',
+    usesPerMatch: 5,
+    cooldown: 0
+  },
+
+  [ACTIVE_ABILITIES.PHOENIX_REVIVAL]: {
+    id: ACTIVE_ABILITIES.PHOENIX_REVIVAL,
+    name: 'Phoenix Revival',
+    icon: '🔥',
+    type: ABILITY_TYPES.ACTIVE,
+    cost: 5,
+    description: 'Respawn with 50 gold if you reach 0',
+    detailedDescription: 'If your gold reaches 0, automatically revive with 50 gold. Can only be used once per session.',
+    usesPerSession: 1,
+    cooldown: 0
+  },
+
+  // Passive Abilities
+  [PASSIVE_ABILITIES.LUCKY_DRAW]: {
+    id: PASSIVE_ABILITIES.LUCKY_DRAW,
     name: 'Lucky Draw',
-    type: ABILITY_TYPES.PASSIVE,
     icon: '📊',
-    description: 'Chance to draw 2 cards and pick 1',
-    cost: 1,
+    type: ABILITY_TYPES.PASSIVE,
+    costPerLevel: 1,
     maxLevel: 3,
+    description: 'Chance to draw 2 cards and pick one',
+    detailedDescription: 'When drawing from the deck, you have a chance to draw 2 cards and choose which one to keep.',
     levels: [
-      { level: 1, cost: 1, effect: '20% chance', chance: 0.20 },
-      { level: 2, cost: 1, effect: '40% chance', chance: 0.40 },
-      { level: 3, cost: 1, effect: '60% chance', chance: 0.60 }
-    ],
-    implemented: false, // Phase 2
-    shortDesc: 'Draw 2, pick 1',
+      { level: 1, effect: '20% chance', value: 0.20 },
+      { level: 2, effect: '40% chance', value: 0.40 },
+      { level: 3, effect: '60% chance', value: 0.60 }
+    ]
   },
 
-  MELD_MASTER: {
-    id: 'meld_master',
+  [PASSIVE_ABILITIES.GOLD_MAGNET]: {
+    id: PASSIVE_ABILITIES.GOLD_MAGNET,
+    name: 'Gold Magnet',
+    icon: '💰',
+    type: ABILITY_TYPES.PASSIVE,
+    costPerLevel: 2,
+    maxLevel: 3,
+    description: 'Earn extra gold from wins',
+    detailedDescription: 'Increases the amount of gold you earn when you win a round.',
+    levels: [
+      { level: 1, effect: '+10% gold', value: 0.10 },
+      { level: 2, effect: '+20% gold', value: 0.20 },
+      { level: 3, effect: '+30% gold', value: 0.30 }
+    ]
+  },
+
+  [PASSIVE_ABILITIES.MELD_MASTER]: {
+    id: PASSIVE_ABILITIES.MELD_MASTER,
     name: 'Meld Master',
-    type: ABILITY_TYPES.PASSIVE,
     icon: '🧠',
-    description: 'Enhanced meld highlighting and hints',
-    cost: 2,
+    type: ABILITY_TYPES.PASSIVE,
+    costPerLevel: 2,
     maxLevel: 3,
+    description: 'Better meld visibility and hints',
+    detailedDescription: 'Highlights potential melds more clearly and suggests cards that could complete melds.',
     levels: [
-      { level: 1, cost: 2, effect: 'Show potential melds' },
-      { level: 2, cost: 2, effect: 'Show best discard' },
-      { level: 3, cost: 2, effect: 'Show optimal plays' }
-    ],
-    implemented: false, // Phase 2
-    shortDesc: 'Better meld hints',
+      { level: 1, effect: 'Basic hints', value: 1 },
+      { level: 2, effect: 'Advanced hints', value: 2 },
+      { level: 3, effect: 'Expert hints', value: 3 }
+    ]
   },
 
-  QUICK_HANDS: {
-    id: 'quick_hands',
+  [PASSIVE_ABILITIES.QUICK_HANDS]: {
+    id: PASSIVE_ABILITIES.QUICK_HANDS,
     name: 'Quick Hands',
-    type: ABILITY_TYPES.PASSIVE,
     icon: '⚡',
-    description: 'Speed up AI turn animations',
-    cost: 1,
-    maxLevel: 3,
-    levels: [
-      { level: 1, cost: 1, effect: '20% faster', speedMultiplier: 0.80 },
-      { level: 2, cost: 1, effect: '40% faster', speedMultiplier: 0.60 },
-      { level: 3, cost: 1, effect: '60% faster', speedMultiplier: 0.40 }
-    ],
-    implemented: false, // Phase 2
-    shortDesc: 'Faster AI turns',
-  },
-
-  XP_BOOST: {
-    id: 'xp_boost',
-    name: 'XP Boost',
     type: ABILITY_TYPES.PASSIVE,
-    icon: '🎓',
-    description: 'Earn more XP from games',
-    cost: 2,
-    maxLevel: 2,
+    costPerLevel: 1,
+    maxLevel: 3,
+    description: 'Speed up AI turn animations',
+    detailedDescription: 'Reduces the time it takes for the AI to complete their turn, making games faster.',
     levels: [
-      { level: 1, cost: 2, effect: '+25% XP', multiplier: 1.25 },
-      { level: 2, cost: 2, effect: '+50% XP', multiplier: 1.50 }
-    ],
-    implemented: false, // Phase 2
-    shortDesc: 'More XP earned',
+      { level: 1, effect: '20% faster', value: 0.20 },
+      { level: 2, effect: '40% faster', value: 0.40 },
+      { level: 3, effect: '60% faster', value: 0.60 }
+    ]
   },
+
+  [PASSIVE_ABILITIES.XP_BOOST]: {
+    id: PASSIVE_ABILITIES.XP_BOOST,
+    name: 'XP Boost',
+    icon: '🎓',
+    type: ABILITY_TYPES.PASSIVE,
+    costPerLevel: 2,
+    maxLevel: 2,
+    description: 'Earn extra XP from all sources',
+    detailedDescription: 'Increases the amount of XP you earn from playing games, winning, and special actions.',
+    levels: [
+      { level: 1, effect: '+25% XP', value: 0.25 },
+      { level: 2, effect: '+50% XP', value: 0.50 }
+    ]
+  }
 };
 
 /**
- * Get all active abilities
- *
- * @returns {Array} Array of active ability objects
+ * Get ability definition by ID
+ * @param {string} abilityId - The ability ID
+ * @returns {Object|null} The ability definition or null
  */
-export const getActiveAbilities = () => {
-  return Object.values(ABILITIES).filter(ability => ability.type === ABILITY_TYPES.ACTIVE);
+export const getAbility = (abilityId) => {
+  return ABILITIES[abilityId] || null;
 };
 
 /**
- * Get all passive abilities
- *
- * @returns {Array} Array of passive ability objects
+ * Check if an ability is active type
+ * @param {string} abilityId - The ability ID
+ * @returns {boolean} True if active ability
  */
-export const getPassiveAbilities = () => {
-  return Object.values(ABILITIES).filter(ability => ability.type === ABILITY_TYPES.PASSIVE);
+export const isActiveAbility = (abilityId) => {
+  const ability = getAbility(abilityId);
+  return ability && ability.type === ABILITY_TYPES.ACTIVE;
 };
 
 /**
- * Get implemented abilities only (for V1)
- *
- * @returns {Array} Array of implemented ability objects
+ * Check if an ability is passive type
+ * @param {string} abilityId - The ability ID
+ * @returns {boolean} True if passive ability
  */
-export const getImplementedAbilities = () => {
-  return Object.values(ABILITIES).filter(ability => ability.implemented);
+export const isPassiveAbility = (abilityId) => {
+  const ability = getAbility(abilityId);
+  return ability && ability.type === ABILITY_TYPES.PASSIVE;
 };
 
 /**
- * Get ability by ID
- *
- * @param {string} abilityId - Ability ID
- * @returns {Object|null} Ability object or null
+ * Calculate total AP cost for a passive ability at a given level
+ * @param {string} abilityId - The passive ability ID
+ * @param {number} level - The target level
+ * @returns {number} Total AP cost
  */
-export const getAbilityById = (abilityId) => {
-  return Object.values(ABILITIES).find(ability => ability.id === abilityId) || null;
+export const calculatePassiveCost = (abilityId, level) => {
+  const ability = getAbility(abilityId);
+  if (!ability || !isPassiveAbility(abilityId)) return 0;
+
+  return ability.costPerLevel * level;
 };
 
 /**
- * Calculate cost for upgrading a passive ability
- *
- * @param {string} abilityId - Ability ID
- * @param {number} currentLevel - Current level (0 if not owned)
- * @returns {number} Cost in AP
+ * Get the effect value for a passive ability at a given level
+ * @param {string} abilityId - The passive ability ID
+ * @param {number} level - The ability level
+ * @returns {number} The effect value
  */
-export const getAbilityUpgradeCost = (abilityId, currentLevel = 0) => {
-  const ability = getAbilityById(abilityId);
+export const getPassiveEffect = (abilityId, level) => {
+  const ability = getAbility(abilityId);
+  if (!ability || !isPassiveAbility(abilityId)) return 0;
 
-  if (!ability || ability.type !== ABILITY_TYPES.PASSIVE) {
-    return 0;
+  const levelData = ability.levels.find(l => l.level === level);
+  return levelData ? levelData.value : 0;
+};
+
+/**
+ * Get all unlocked abilities from player data
+ * @param {Object} playerAbilities - Player's ability data
+ * @returns {Array} Array of unlocked ability IDs
+ */
+export const getUnlockedAbilities = (playerAbilities) => {
+  if (!playerAbilities) return [];
+
+  const unlocked = [];
+
+  // Active abilities
+  if (playerAbilities.active) {
+    unlocked.push(...playerAbilities.active);
   }
 
-  const nextLevel = currentLevel + 1;
-  if (nextLevel > ability.maxLevel) {
-    return 0; // Max level reached
+  // Passive abilities (check for level > 0)
+  if (playerAbilities.passive) {
+    Object.entries(playerAbilities.passive).forEach(([abilityId, level]) => {
+      if (level > 0) {
+        unlocked.push(abilityId);
+      }
+    });
   }
 
-  const levelData = ability.levels.find(l => l.level === nextLevel);
-  return levelData ? levelData.cost : 0;
+  return unlocked;
 };
 
 /**
- * Check if player can afford an ability
- *
- * @param {number} availableAP - Player's available AP
- * @param {string} abilityId - Ability ID
- * @param {number} currentLevel - Current level (for passive abilities)
- * @returns {boolean} True if player can afford it
+ * Initialize default ability state
+ * @returns {Object} Default ability state
  */
-export const canAffordAbility = (availableAP, abilityId, currentLevel = 0) => {
-  const ability = getAbilityById(abilityId);
+export const initializeAbilities = () => {
+  return {
+    active: [],
+    passive: {
+      [PASSIVE_ABILITIES.LUCKY_DRAW]: 0,
+      [PASSIVE_ABILITIES.GOLD_MAGNET]: 0,
+      [PASSIVE_ABILITIES.MELD_MASTER]: 0,
+      [PASSIVE_ABILITIES.QUICK_HANDS]: 0,
+      [PASSIVE_ABILITIES.XP_BOOST]: 0
+    },
+    uses: {}
+  };
+};
+
+/**
+ * Reset ability uses for a new round
+ * @param {Object} abilityUses - Current ability uses
+ * @returns {Object} Updated ability uses
+ */
+export const resetRoundAbilityUses = (abilityUses) => {
+  const resetUses = { ...abilityUses };
+
+  // Reset round-based abilities
+  if (resetUses[ACTIVE_ABILITIES.REDO_TURN]) {
+    resetUses[ACTIVE_ABILITIES.REDO_TURN] = 0;
+  }
+
+  return resetUses;
+};
+
+/**
+ * Reset ability uses for a new match
+ * @returns {Object} Fresh ability uses object
+ */
+export const resetMatchAbilityUses = () => {
+  return {};
+};
+
+/**
+ * Check if ability can be used
+ * @param {string} abilityId - The ability ID
+ * @param {Object} abilityUses - Current ability uses
+ * @param {Object} playerAbilities - Player's unlocked abilities
+ * @returns {Object} { canUse: boolean, reason: string }
+ */
+export const canUseAbility = (abilityId, abilityUses, playerAbilities) => {
+  const ability = getAbility(abilityId);
 
   if (!ability) {
-    return false;
+    return { canUse: false, reason: 'Ability not found' };
   }
 
-  if (ability.type === ABILITY_TYPES.ACTIVE) {
-    return availableAP >= ability.cost;
-  } else {
-    const upgradeCost = getAbilityUpgradeCost(abilityId, currentLevel);
-    return upgradeCost > 0 && availableAP >= upgradeCost;
+  // Check if unlocked
+  const isUnlocked = playerAbilities?.active?.includes(abilityId);
+  if (!isUnlocked) {
+    return { canUse: false, reason: 'Ability not unlocked' };
   }
+
+  const currentUses = abilityUses[abilityId] || 0;
+
+  // Check uses per round
+  if (ability.usesPerRound !== undefined) {
+    if (currentUses >= ability.usesPerRound) {
+      return { canUse: false, reason: 'No uses remaining this round' };
+    }
+  }
+
+  // Check uses per match
+  if (ability.usesPerMatch !== undefined) {
+    if (currentUses >= ability.usesPerMatch) {
+      return { canUse: false, reason: 'No uses remaining this match' };
+    }
+  }
+
+  // Check uses per session
+  if (ability.usesPerSession !== undefined) {
+    if (currentUses >= ability.usesPerSession) {
+      return { canUse: false, reason: 'No uses remaining this session' };
+    }
+  }
+
+  return { canUse: true, reason: '' };
 };
 
 /**
- * Apply Gold Magnet passive bonus to score
- *
- * @param {number} baseScore - Base score/gold earned
- * @param {number} goldMagnetLevel - Level of Gold Magnet (0 if not owned)
- * @returns {number} Modified score with bonus applied
+ * Use an ability (increment usage counter)
+ * @param {string} abilityId - The ability ID
+ * @param {Object} abilityUses - Current ability uses
+ * @returns {Object} Updated ability uses
  */
-export const applyGoldMagnetBonus = (baseScore, goldMagnetLevel = 0) => {
-  if (goldMagnetLevel === 0) {
-    return baseScore;
-  }
-
-  const ability = ABILITIES.GOLD_MAGNET;
-  const levelData = ability.levels.find(l => l.level === goldMagnetLevel);
-
-  if (!levelData) {
-    return baseScore;
-  }
-
-  return Math.floor(baseScore * levelData.multiplier);
+export const useAbility = (abilityId, abilityUses) => {
+  return {
+    ...abilityUses,
+    [abilityId]: (abilityUses[abilityId] || 0) + 1
+  };
 };
 
 /**
- * Get formatted ability description
- *
- * @param {string} abilityId - Ability ID
- * @param {number} level - Current level (for passive abilities)
- * @returns {string} Formatted description
+ * Get remaining uses for an ability
+ * @param {string} abilityId - The ability ID
+ * @param {Object} abilityUses - Current ability uses
+ * @returns {number|string} Remaining uses or 'unlimited'
  */
-export const getAbilityDescription = (abilityId, level = 1) => {
-  const ability = getAbilityById(abilityId);
+export const getRemainingUses = (abilityId, abilityUses) => {
+  const ability = getAbility(abilityId);
+  if (!ability) return 0;
 
-  if (!ability) {
-    return '';
+  const currentUses = abilityUses[abilityId] || 0;
+
+  if (ability.usesPerRound !== undefined) {
+    return ability.usesPerRound - currentUses;
   }
 
-  if (ability.type === ABILITY_TYPES.ACTIVE) {
-    return ability.description;
-  } else {
-    const levelData = ability.levels.find(l => l.level === level);
-    return levelData ? `${ability.description} (${levelData.effect})` : ability.description;
+  if (ability.usesPerMatch !== undefined) {
+    return ability.usesPerMatch - currentUses;
   }
+
+  if (ability.usesPerSession !== undefined) {
+    return ability.usesPerSession - currentUses;
+  }
+
+  return 'unlimited';
 };
