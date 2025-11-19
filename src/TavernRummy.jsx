@@ -60,7 +60,6 @@ import { useAbilities } from './hooks/useAbilities';
 import DeckPeekModal from './components/Modals/DeckPeekModal';
 import CardSwapModal from './components/Modals/CardSwapModal';
 import LuckyDrawModal from './components/Modals/LuckyDrawModal';
-import DevPanel from './components/UI/DevPanel';
 
 // Ability Utils
 import { ACTIVE_ABILITIES } from './utils/abilitiesUtils';
@@ -1266,13 +1265,6 @@ const TavernRummy = () => {
           getMeldMasterLevel={getMeldMasterLevel}
         />
 
-        {/* Dev Panel */}
-        <DevPanel
-          unlockedAbilities={unlockedAbilities}
-          onUnlockActiveAbility={abilities.unlockActiveAbility}
-          onUpgradePassiveAbility={abilities.upgradePassiveAbility}
-          onResetAbilities={resetAllAbilities}
-        />
 
         {/* Ability Modals */}
         <DeckPeekModal
