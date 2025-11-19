@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import PlayingCard from '../UI/PlayingCard';
+import { getCardStyling } from '../../utils/skinsUtils';
 
 /**
  * GameBoard Component
@@ -13,6 +14,7 @@ import PlayingCard from '../UI/PlayingCard';
  * @param {boolean} canDraw - Whether player can currently draw
  * @param {string} tutorialHighlight - 'deck', 'discard', or null
  * @param {Object} refs - Object with deckRef and discardRef
+ * @param {string} skinId - Card skin to use
  */
 const GameBoard = ({
   deck,
@@ -21,8 +23,11 @@ const GameBoard = ({
   onDrawFromDiscard,
   canDraw,
   tutorialHighlight,
-  refs
+  refs,
+  skinId
 }) => {
+  // Get card back styling for the deck
+  const cardBackStyling = getCardStyling(skinId, true);
   const isDeckLow = deck.length <= 10 && deck.length > 0;
 
   return (
@@ -41,16 +46,18 @@ const GameBoard = ({
         <div
           onClick={onDrawFromDeck}
           className={`
-            relative w-24 h-36 rounded-lg border-3 border-amber-700
-            bg-gradient-to-br from-amber-900 to-amber-950
+            relative w-24 h-36 rounded-lg
+            ${cardBackStyling.background}
+            ${cardBackStyling.border}
+            ${cardBackStyling.shadow}
             flex items-center justify-center cursor-pointer
-            transition-all duration-200 shadow-2xl
+            transition-all duration-200
             ${canDraw && deck.length > 0 ? 'hover:scale-105 hover:shadow-yellow-500/50' : 'opacity-50 cursor-not-allowed'}
             ${canDraw && deck.length > 0 && !tutorialHighlight ? 'clickable-pulse' : ''}
             ${isDeckLow ? 'deck-low-glow' : ''}
           `}
         >
-          <div className="text-amber-600 text-5xl">🃏</div>
+          <div className="text-5xl">{cardBackStyling.pattern}</div>
           {deck.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 rounded-lg">
               <span className="text-red-400 font-bold">Empty</span>
@@ -75,6 +82,7 @@ const GameBoard = ({
             <PlayingCard
               card={discardPile[discardPile.length - 1]}
               onClick={onDrawFromDiscard}
+              skinId={skinId}
             />
           </div>
         ) : (
@@ -97,7 +105,8 @@ GameBoard.propTypes = {
   refs: PropTypes.shape({
     deckRef: PropTypes.object,
     discardRef: PropTypes.object
-  })
+  }),
+  skinId: PropTypes.string
 };
 
 export default GameBoard;
