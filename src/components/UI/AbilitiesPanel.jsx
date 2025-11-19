@@ -14,7 +14,7 @@ const AbilitiesPanel = ({
   getMeldMasterLevel
 }) => {
   const [hoveredAbility, setHoveredAbility] = useState(null);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isPassivesMinimized, setIsPassivesMinimized] = useState(false);
 
   // Safety check: if unlockedAbilities is undefined, don't render anything
   if (!unlockedAbilities) {
@@ -94,125 +94,123 @@ const AbilitiesPanel = ({
         animate={{ opacity: 1, x: 0 }}
         className="bg-gradient-to-br from-amber-900 to-gray-900 rounded-lg border-4 border-amber-600 shadow-2xl"
       >
-        <div className="flex justify-between items-center p-4 border-b-2 border-amber-600">
-          <div className="text-amber-400 font-bold">
-            ⚡ ABILITIES
-          </div>
-          <button
-            onClick={() => setIsMinimized(!isMinimized)}
-            className="text-amber-400 hover:text-amber-300 transition-colors text-xl font-bold"
-            aria-label={isMinimized ? "Expand abilities panel" : "Minimize abilities panel"}
-          >
-            {isMinimized ? '▲' : '▼'}
-          </button>
-        </div>
-
-        {!isMinimized && (
-          <div className="p-4 max-h-[70vh] overflow-y-auto">{/* Wrapper for scrollable content */}
-
-        {/* Active Abilities */}
+        {/* Active Abilities - Always Shown */}
         {activeAbilities.length > 0 && (
-          <div className="space-y-2 mb-3">
-            <div className="text-amber-300 text-xs font-semibold mb-1">ACTIVE</div>
-            {activeAbilities.map(abilityId => {
-              const ability = ABILITIES[abilityId];
-              if (!ability) return null;
+          <div className="p-4 border-b-2 border-amber-600">
+            <div className="text-amber-300 text-xs font-semibold mb-2">⚔️ ACTIVE ABILITIES</div>
+            <div className="space-y-2">
+              {activeAbilities.map(abilityId => {
+                const ability = ABILITIES[abilityId];
+                if (!ability) return null;
 
-              const isAvailable = canUseAbility(abilityId);
-              const usesText = getRemainingUses(abilityId);
+                const isAvailable = canUseAbility(abilityId);
+                const usesText = getRemainingUses(abilityId);
 
-              return (
-                <motion.button
-                  key={abilityId}
-                  onClick={() => !disabled && isAvailable && onUseAbility(abilityId)}
-                  onMouseEnter={() => setHoveredAbility(abilityId)}
-                  onMouseLeave={() => setHoveredAbility(null)}
-                  disabled={disabled || !isAvailable}
-                  whileHover={isAvailable ? { scale: 1.05 } : {}}
-                  whileTap={isAvailable ? { scale: 0.95 } : {}}
-                  className={`
-                    w-full px-3 py-2 rounded-lg border-2 transition-all text-left
-                    ${isAvailable
-                      ? 'bg-amber-700 hover:bg-amber-600 border-amber-500 cursor-pointer'
-                      : 'bg-gray-700 border-gray-600 opacity-50 cursor-not-allowed'
-                    }
-                  `}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{ability.icon}</span>
-                      <div>
-                        <div className="text-white text-sm font-semibold">{ability.name}</div>
-                        <div className="text-amber-200 text-xs">{usesText}</div>
+                return (
+                  <motion.button
+                    key={abilityId}
+                    onClick={() => !disabled && isAvailable && onUseAbility(abilityId)}
+                    onMouseEnter={() => setHoveredAbility(abilityId)}
+                    onMouseLeave={() => setHoveredAbility(null)}
+                    disabled={disabled || !isAvailable}
+                    whileHover={isAvailable ? { scale: 1.05 } : {}}
+                    whileTap={isAvailable ? { scale: 0.95 } : {}}
+                    className={`
+                      w-full px-3 py-2 rounded-lg border-2 transition-all text-left
+                      ${isAvailable
+                        ? 'bg-amber-700 hover:bg-amber-600 border-amber-500 cursor-pointer'
+                        : 'bg-gray-700 border-gray-600 opacity-50 cursor-not-allowed'
+                      }
+                    `}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{ability.icon}</span>
+                        <div>
+                          <div className="text-white text-sm font-semibold">{ability.name}</div>
+                          <div className="text-amber-200 text-xs">{usesText}</div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.button>
-              );
-            })}
+                  </motion.button>
+                );
+              })}
+            </div>
           </div>
         )}
 
-        {/* Passive Abilities */}
+        {/* Passive Abilities - Toggleable */}
         {(passiveAbilities.length > 0 || passiveActiveAbilities.length > 0) && (
-          <div className="space-y-2 border-t-2 border-amber-600 pt-3">
-            <div className="text-amber-300 text-xs font-semibold mb-1">PASSIVE</div>
+          <div>
+            <div className="flex justify-between items-center p-4 border-b-2 border-amber-600 cursor-pointer" onClick={() => setIsPassivesMinimized(!isPassivesMinimized)}>
+              <div className="text-purple-300 text-xs font-semibold">
+                🛡️ PASSIVE ABILITIES
+              </div>
+              <button
+                className="text-purple-300 hover:text-purple-200 transition-colors text-xl font-bold"
+                aria-label={isPassivesMinimized ? "Expand passive abilities" : "Minimize passive abilities"}
+              >
+                {isPassivesMinimized ? '▲' : '▼'}
+              </button>
+            </div>
 
-            {/* Passive Active Abilities (Shield, Phoenix Revival) */}
-            {passiveActiveAbilities.map(abilityId => {
-              const ability = ABILITIES[abilityId];
-              if (!ability) return null;
+            {!isPassivesMinimized && (
+              <div className="p-4 space-y-2 max-h-[40vh] overflow-y-auto">
+                {/* Passive Active Abilities (Shield, Phoenix Revival) */}
+                {passiveActiveAbilities.map(abilityId => {
+                  const ability = ABILITIES[abilityId];
+                  if (!ability) return null;
 
-              return (
-                <div
-                  key={abilityId}
-                  onMouseEnter={() => setHoveredAbility(abilityId)}
-                  onMouseLeave={() => setHoveredAbility(null)}
-                  className="px-3 py-2 rounded-lg border-2 bg-purple-800 border-purple-600"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{ability.icon}</span>
-                      <div>
-                        <div className="text-white text-sm font-semibold">{ability.name}</div>
-                        <div className="text-purple-200 text-xs">
-                          Always Active
+                  return (
+                    <div
+                      key={abilityId}
+                      onMouseEnter={() => setHoveredAbility(abilityId)}
+                      onMouseLeave={() => setHoveredAbility(null)}
+                      className="px-3 py-2 rounded-lg border-2 bg-purple-800 border-purple-600"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{ability.icon}</span>
+                          <div>
+                            <div className="text-white text-sm font-semibold">{ability.name}</div>
+                            <div className="text-purple-200 text-xs">
+                              Always Active
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
 
-            {/* Regular Passive Abilities */}
-            {passiveAbilities.map(({ id: abilityId, level }) => {
-              const ability = ABILITIES[abilityId];
-              if (!ability) return null;
+                {/* Regular Passive Abilities */}
+                {passiveAbilities.map(({ id: abilityId, level }) => {
+                  const ability = ABILITIES[abilityId];
+                  if (!ability) return null;
 
-              return (
-                <div
-                  key={abilityId}
-                  onMouseEnter={() => setHoveredAbility(abilityId)}
-                  onMouseLeave={() => setHoveredAbility(null)}
-                  className="px-3 py-2 rounded-lg border-2 bg-purple-800 border-purple-600"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{ability.icon}</span>
-                      <div>
-                        <div className="text-white text-sm font-semibold">{ability.name}</div>
-                        <div className="text-purple-200 text-xs">
-                          Level {level}/{ability.maxLevel}
+                  return (
+                    <div
+                      key={abilityId}
+                      onMouseEnter={() => setHoveredAbility(abilityId)}
+                      onMouseLeave={() => setHoveredAbility(null)}
+                      className="px-3 py-2 rounded-lg border-2 bg-purple-800 border-purple-600"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{ability.icon}</span>
+                          <div>
+                            <div className="text-white text-sm font-semibold">{ability.name}</div>
+                            <div className="text-purple-200 text-xs">
+                              Level {level}/{ability.maxLevel}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
