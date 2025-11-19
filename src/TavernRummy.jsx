@@ -1249,6 +1249,7 @@ const TavernRummy = () => {
           playerGold={progression.gold}
           onSelectSkin={setActiveSkin}
           onUnlockSkin={unlockSkin}
+          onSpendGold={progression.spendGold}
         />
 
         <ChallengeRulesModal

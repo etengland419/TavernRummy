@@ -20,6 +20,7 @@ export const useProgression = () => {
   const [xpToNextLevel, setXpToNextLevel] = useState(50);
   const [abilityPoints, setAbilityPoints] = useState(0);
   const [spentAP, setSpentAP] = useState(0);
+  const [gold, setGold] = useState(0);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState(null);
 
@@ -29,6 +30,7 @@ export const useProgression = () => {
 
     setTotalXP(savedData.totalXP || 0);
     setSpentAP(savedData.spentAP || 0);
+    setGold(savedData.gold || 0);
 
     // Calculate current level and XP
     const levelData = calculateLevel(savedData.totalXP || 0);
@@ -43,17 +45,18 @@ export const useProgression = () => {
 
   // Save progression whenever it changes
   useEffect(() => {
-    if (totalXP > 0 || spentAP > 0) {
+    if (totalXP > 0 || spentAP > 0 || gold > 0) {
       const savedData = loadProgression();
       saveProgression({
         ...savedData,
         totalXP,
         level,
         spentAP,
-        abilityPoints
+        abilityPoints,
+        gold
       });
     }
-  }, [totalXP, level, spentAP, abilityPoints]);
+  }, [totalXP, level, spentAP, abilityPoints, gold]);
 
   /**
    * Add XP and check for level ups
@@ -148,6 +151,30 @@ export const useProgression = () => {
     return Math.min(100, Math.floor((currentLevelXP / xpToNextLevel) * 100));
   }, [currentLevelXP, xpToNextLevel]);
 
+  /**
+   * Add gold to player's balance
+   *
+   * @param {number} amount - Amount of gold to add
+   */
+  const addGold = useCallback((amount) => {
+    setGold(prev => prev + amount);
+  }, []);
+
+  /**
+   * Spend gold from player's balance
+   *
+   * @param {number} amount - Amount of gold to spend
+   * @returns {boolean} True if successful (had enough gold)
+   */
+  const spendGold = useCallback((amount) => {
+    if (gold < amount) {
+      return false;
+    }
+
+    setGold(prev => prev - amount);
+    return true;
+  }, [gold]);
+
   return {
     // State
     totalXP,
@@ -156,6 +183,7 @@ export const useProgression = () => {
     xpToNextLevel,
     abilityPoints,
     spentAP,
+    gold,
     showLevelUpModal,
     levelUpData,
 
@@ -164,6 +192,8 @@ export const useProgression = () => {
     addRoundXP,
     spendAP,
     refundAP,
+    addGold,
+    spendGold,
     closeLevelUpModal,
     getXPProgress,
   };

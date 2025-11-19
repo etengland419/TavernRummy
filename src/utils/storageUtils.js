@@ -17,6 +17,7 @@ const DEFAULT_PROGRESSION = {
   level: 1,
   abilityPoints: 0,
   spentAP: 0,
+  gold: 200, // Player's gold for purchasing cosmetics (starting amount)
   unlockedAbilities: [],
   abilityLevels: {}, // For passive abilities with multiple levels
   equippedAbilities: [], // Active abilities currently equipped
