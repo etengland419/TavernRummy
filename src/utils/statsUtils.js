@@ -381,8 +381,8 @@ export const updateChallengeLoss = (stats) => {
     newStats.challengeMode = getDefaultStats().challengeMode;
   }
 
-  // Reset win streak
-  newStats.challengeMode.currentWinStreak = 0;
+  // Don't reset win streak - player keeps their streak in Challenge Mode
+  // Only reset tier progression
   newStats.challengeMode.currentTier = DIFFICULTY_LEVELS.EASY;
   newStats.challengeMode.totalChallengeLosses += 1;
 
