@@ -638,6 +638,12 @@ const TavernRummy = () => {
       newScores[result.winner] += scoreDiff;
       setScoreAnimation(result.winner);
       setTimeout(() => setScoreAnimation(null), ANIMATION_TIMINGS.SCORE_ANIMATION);
+
+      // Award gold to player's persistent progression balance when they win
+      if (result.winner === 'player') {
+        progression.addGold(scoreDiff);
+        console.log(`Gold Awarded: +${scoreDiff} gold (Total: ${progression.gold + scoreDiff})`);
+      }
     }
 
     // Award XP to player (with XP Boost multiplier)
