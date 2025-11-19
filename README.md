@@ -103,7 +103,8 @@ TavernRummy/
 ├── docs/                               # Project documentation
 │   ├── code-review.md                  # Architecture analysis
 │   ├── roguelite-roadmap.md            # Future expansion plan
-│   └── roguelite-quick-reference.md    # Design reference
+│   ├── roguelite-quick-reference.md    # Design reference
+│   └── mobile-launch-monetization-guide.md  # Mobile deployment & monetization
 ├── package.json
 ├── tailwind.config.js
 ├── README.md
@@ -323,6 +324,31 @@ The codebase is architected to support a comprehensive roguelite expansion. See 
 - Daily challenges
 - PWA support
 - Enhanced animations
+
+#### Mobile App Launch
+Ready to launch on iOS and Android! See `docs/mobile-launch-monetization-guide.md` for a comprehensive guide covering:
+
+**Development Options:**
+- Progressive Web App (PWA) - Quick MVP
+- Capacitor - Recommended for app stores
+- React Native - Full native rewrite
+
+**App Store Deployment:**
+- iOS App Store submission process
+- Android Play Store submission process
+- App Store Optimization (ASO) strategies
+
+**Monetization:**
+- Optional rewarded video ads
+- In-app purchases (IAP)
+- Premium subscription model
+- Revenue projections and analytics
+
+**Marketing & Growth:**
+- Pre-launch marketing strategies
+- Launch day checklist
+- Post-launch growth tactics
+- Paid advertising recommendations
 
 #### Other Potential Features
 - Multiplayer mode (online play)
