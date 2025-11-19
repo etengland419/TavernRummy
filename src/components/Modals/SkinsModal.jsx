@@ -15,7 +15,8 @@ const SkinsModal = ({
   unlockedSkins,
   playerGold,
   onSelectSkin,
-  onUnlockSkin
+  onUnlockSkin,
+  onSpendGold
 }) => {
   const [selectedPreview, setSelectedPreview] = useState(activeSkin);
   const [notification, setNotification] = useState(null);
@@ -41,10 +42,14 @@ const SkinsModal = ({
       if (playerGold >= skin.cost) {
         const result = onUnlockSkin(skinId, playerGold);
         if (result.success) {
-          setNotification(`🎉 Unlocked ${skin.name}!`);
-          setTimeout(() => setNotification(null), 3000);
-          onSelectSkin(skinId);
-          setSelectedPreview(skinId);
+          // Deduct gold from player's balance
+          const goldSpent = onSpendGold(skin.cost);
+          if (goldSpent) {
+            setNotification(`🎉 Unlocked ${skin.name}!`);
+            setTimeout(() => setNotification(null), 3000);
+            onSelectSkin(skinId);
+            setSelectedPreview(skinId);
+          }
         }
       } else {
         setNotification(`❌ Not enough gold! Need ${skin.cost - playerGold} more.`);
@@ -228,7 +233,8 @@ SkinsModal.propTypes = {
   unlockedSkins: PropTypes.object.isRequired,
   playerGold: PropTypes.number.isRequired,
   onSelectSkin: PropTypes.func.isRequired,
-  onUnlockSkin: PropTypes.func.isRequired
+  onUnlockSkin: PropTypes.func.isRequired,
+  onSpendGold: PropTypes.func.isRequired
 };
 
 export default SkinsModal;
