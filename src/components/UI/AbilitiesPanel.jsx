@@ -14,6 +14,7 @@ const AbilitiesPanel = ({
   getMeldMasterLevel
 }) => {
   const [hoveredAbility, setHoveredAbility] = useState(null);
+  const [isPassivesMinimized, setIsPassivesMinimized] = useState(false);
 
   // Safety check: if unlockedAbilities is undefined, don't render anything
   if (!unlockedAbilities) {
@@ -43,23 +44,26 @@ const AbilitiesPanel = ({
 
   const getRemainingUses = (abilityId) => {
     const ability = ABILITIES[abilityId];
-    if (!ability) return 0;
+    if (!ability) return '';
 
     const currentUses = abilityUses[abilityId] || 0;
 
     if (ability.usesPerRound !== undefined) {
-      return ability.usesPerRound - currentUses;
+      const remaining = ability.usesPerRound - currentUses;
+      return remaining > 0 ? `${remaining}/round` : 'Used';
     }
 
     if (ability.usesPerMatch !== undefined) {
-      return ability.usesPerMatch - currentUses;
+      const remaining = ability.usesPerMatch - currentUses;
+      return remaining > 0 ? `${remaining}/match` : 'Used';
     }
 
     if (ability.usesPerSession !== undefined) {
-      return ability.usesPerSession - currentUses;
+      const remaining = ability.usesPerSession - currentUses;
+      return remaining > 0 ? `${remaining}/session` : 'Used';
     }
 
-    return 0;
+    return 'Ready';
   };
 
   const canUseAbility = (abilityId) => {
@@ -84,7 +88,7 @@ const AbilitiesPanel = ({
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-30">
+    <div className="fixed bottom-4 right-4 z-30 max-w-xs">
       <motion.div
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
@@ -94,13 +98,13 @@ const AbilitiesPanel = ({
         {activeAbilities.length > 0 && (
           <div className="p-3 border-b-2 border-amber-600">
             <div className="text-amber-300 text-xs font-semibold mb-2">⚔️ ACTIVE</div>
-            <div className="flex gap-2">
+            <div className="space-y-2">
               {activeAbilities.map(abilityId => {
                 const ability = ABILITIES[abilityId];
                 if (!ability) return null;
 
                 const isAvailable = canUseAbility(abilityId);
-                const remainingUses = getRemainingUses(abilityId);
+                const usesText = getRemainingUses(abilityId);
 
                 return (
                   <motion.button
@@ -112,16 +116,21 @@ const AbilitiesPanel = ({
                     whileHover={isAvailable ? { scale: 1.05 } : {}}
                     whileTap={isAvailable ? { scale: 0.95 } : {}}
                     className={`
-                      relative px-3 py-2 rounded-lg border-2 transition-all
+                      w-full px-2 py-2 rounded-lg border-2 transition-all text-left
                       ${isAvailable
                         ? 'bg-amber-700 hover:bg-amber-600 border-amber-500 cursor-pointer'
                         : 'bg-gray-700 border-gray-600 opacity-50 cursor-not-allowed'
                       }
                     `}
                   >
-                    <span className="text-2xl">{ability.icon}</span>
-                    <div className="absolute -top-1 -right-1 bg-amber-400 text-gray-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-gray-900">
-                      {remainingUses}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{ability.icon}</span>
+                        <div>
+                          <div className="text-white text-xs font-semibold">{ability.name}</div>
+                          <div className="text-amber-200 text-xs">{usesText}</div>
+                        </div>
+                      </div>
                     </div>
                   </motion.button>
                 );
@@ -130,51 +139,81 @@ const AbilitiesPanel = ({
           </div>
         )}
 
-        {/* Passive Abilities */}
+        {/* Passive Abilities - Toggleable */}
         {(passiveAbilities.length > 0 || passiveActiveAbilities.length > 0) && (
-          <div className="p-3">
-            <div className="text-purple-300 text-xs font-semibold mb-2">🛡️ PASSIVE</div>
-            <div className="flex gap-2 flex-wrap">
-              {/* Passive Active Abilities (Shield, Phoenix Revival) */}
-              {passiveActiveAbilities.map(abilityId => {
-                const ability = ABILITIES[abilityId];
-                if (!ability) return null;
-
-                return (
-                  <div
-                    key={abilityId}
-                    onMouseEnter={() => setHoveredAbility(abilityId)}
-                    onMouseLeave={() => setHoveredAbility(null)}
-                    className="relative px-3 py-2 rounded-lg border-2 bg-purple-800 border-purple-600"
-                  >
-                    <span className="text-2xl">{ability.icon}</span>
-                    <div className="absolute -top-1 -right-1 bg-purple-400 text-gray-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-gray-900">
-                      ✓
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Regular Passive Abilities */}
-              {passiveAbilities.map(({ id: abilityId, level }) => {
-                const ability = ABILITIES[abilityId];
-                if (!ability) return null;
-
-                return (
-                  <div
-                    key={abilityId}
-                    onMouseEnter={() => setHoveredAbility(abilityId)}
-                    onMouseLeave={() => setHoveredAbility(null)}
-                    className="relative px-3 py-2 rounded-lg border-2 bg-purple-800 border-purple-600"
-                  >
-                    <span className="text-2xl">{ability.icon}</span>
-                    <div className="absolute -top-1 -right-1 bg-purple-400 text-gray-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-gray-900">
-                      {level}
-                    </div>
-                  </div>
-                );
-              })}
+          <div>
+            <div
+              className="flex justify-between items-center p-3 border-b-2 border-amber-600 cursor-pointer"
+              onClick={() => setIsPassivesMinimized(!isPassivesMinimized)}
+            >
+              <div className="text-purple-300 text-xs font-semibold">
+                🛡️ PASSIVE
+              </div>
+              <button
+                className="text-purple-300 hover:text-purple-200 transition-colors text-lg font-bold"
+                aria-label={isPassivesMinimized ? "Expand passive abilities" : "Minimize passive abilities"}
+              >
+                {isPassivesMinimized ? '▲' : '▼'}
+              </button>
             </div>
+
+            {!isPassivesMinimized && (
+              <div className="p-3 space-y-2 max-h-[40vh] overflow-y-auto">
+                {/* Passive Active Abilities (Shield, Phoenix Revival) */}
+                {passiveActiveAbilities.map(abilityId => {
+                  const ability = ABILITIES[abilityId];
+                  if (!ability) return null;
+
+                  return (
+                    <div
+                      key={abilityId}
+                      onMouseEnter={() => setHoveredAbility(abilityId)}
+                      onMouseLeave={() => setHoveredAbility(null)}
+                      className="px-2 py-2 rounded-lg border-2 bg-purple-800 border-purple-600"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">{ability.icon}</span>
+                          <div>
+                            <div className="text-white text-xs font-semibold">{ability.name}</div>
+                            <div className="text-purple-200 text-xs">
+                              Always Active
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Regular Passive Abilities */}
+                {passiveAbilities.map(({ id: abilityId, level }) => {
+                  const ability = ABILITIES[abilityId];
+                  if (!ability) return null;
+
+                  return (
+                    <div
+                      key={abilityId}
+                      onMouseEnter={() => setHoveredAbility(abilityId)}
+                      onMouseLeave={() => setHoveredAbility(null)}
+                      className="px-2 py-2 rounded-lg border-2 bg-purple-800 border-purple-600"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">{ability.icon}</span>
+                          <div>
+                            <div className="text-white text-xs font-semibold">{ability.name}</div>
+                            <div className="text-purple-200 text-xs">
+                              Level {level}/{ability.maxLevel}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
