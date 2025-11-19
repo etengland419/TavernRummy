@@ -38,8 +38,8 @@ const DebugModal = ({ show, onClose, progression, abilities, scores, setScores, 
 
   // AP Quick Actions
   const handleAddAP = (amount) => {
-    // Directly modify abilityPoints by refunding negative amount
-    progression.refundAP(-amount);
+    // Directly add to abilityPoints using refundAP
+    progression.refundAP(amount);
     console.log(`[DEBUG] Added ${amount} AP`);
   };
 
