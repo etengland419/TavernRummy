@@ -10,7 +10,8 @@ import {
   PASSIVE_ABILITIES,
   ACTIVE_ABILITIES,
   ABILITY_TYPES,
-  getAbility
+  getAbility,
+  MAX_EQUIPPED_ABILITIES
 } from '../utils/abilitiesUtils';
 
 /**
@@ -302,12 +303,17 @@ export const useAbilities = () => {
    */
   const equipAbility = useCallback((abilityId) => {
     const ability = getAbility(abilityId);
-    if (!ability || ability.type !== ABILITY_TYPES.ACTIVE) return false;
-    if (!isAbilityUnlocked(abilityId)) return false;
-    if (equippedAbilities.includes(abilityId)) return false;
+    if (!ability || ability.type !== ABILITY_TYPES.ACTIVE) return { success: false, reason: 'Invalid ability' };
+    if (!isAbilityUnlocked(abilityId)) return { success: false, reason: 'Ability not unlocked' };
+    if (equippedAbilities.includes(abilityId)) return { success: false, reason: 'Already equipped' };
+
+    // Check if we've reached the maximum number of equipped abilities
+    if (equippedAbilities.length >= MAX_EQUIPPED_ABILITIES) {
+      return { success: false, reason: `Maximum ${MAX_EQUIPPED_ABILITIES} abilities can be equipped` };
+    }
 
     setEquippedAbilities(prev => [...prev, abilityId]);
-    return true;
+    return { success: true };
   }, [equippedAbilities, isAbilityUnlocked]);
 
   /**

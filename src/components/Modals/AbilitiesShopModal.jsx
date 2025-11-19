@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ABILITY_TYPES,
   getImplementedAbilities,
   getAbilityUpgradeCost,
-  canAffordAbility
+  canAffordAbility,
+  MAX_EQUIPPED_ABILITIES
 } from '../../utils/abilitiesUtils';
 
 /**
@@ -19,8 +20,14 @@ import {
  */
 const AbilitiesShopModal = ({ show, onClose, abilities, progression }) => {
   const [selectedTab, setSelectedTab] = useState('active'); // 'active' or 'passive'
+  const [feedbackMessage, setFeedbackMessage] = useState(null);
 
   if (!show) return null;
+
+  const showFeedback = (message, isError = false) => {
+    setFeedbackMessage({ text: message, isError });
+    setTimeout(() => setFeedbackMessage(null), 3000);
+  };
 
   const implementedAbilities = getImplementedAbilities();
   const activeAbilities = implementedAbilities.filter(a => a.type === ABILITY_TYPES.ACTIVE);
@@ -71,6 +78,29 @@ const AbilitiesShopModal = ({ show, onClose, abilities, progression }) => {
             <span className="text-purple-200 font-semibold">Available Ability Points: </span>
             <span className="text-yellow-400 font-bold text-lg">⚡ {progression.abilityPoints} AP</span>
           </div>
+
+          {/* Equipped Abilities Counter */}
+          <div className="mt-2 text-center text-sm text-purple-200">
+            Equipped: <span className="font-bold text-amber-400">{abilities.equippedAbilities.length}/{MAX_EQUIPPED_ABILITIES}</span> active abilities
+          </div>
+
+          {/* Feedback Message */}
+          <AnimatePresence>
+            {feedbackMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className={`mt-2 p-2 rounded-lg text-center font-semibold text-sm ${
+                  feedbackMessage.isError
+                    ? 'bg-red-900 border-2 border-red-500 text-red-200'
+                    : 'bg-green-900 border-2 border-green-500 text-green-200'
+                }`}
+              >
+                {feedbackMessage.text}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Tabs */}
@@ -212,7 +242,14 @@ const AbilitiesShopModal = ({ show, onClose, abilities, progression }) => {
                               </button>
                             ) : (
                               <button
-                                onClick={() => abilities.equipAbility(ability.id)}
+                                onClick={() => {
+                                  const result = abilities.equipAbility(ability.id);
+                                  if (!result.success) {
+                                    showFeedback(result.reason, true);
+                                  } else {
+                                    showFeedback(`${ability.name} equipped!`, false);
+                                  }
+                                }}
                                 className="mt-2 px-3 py-1 bg-green-600 hover:bg-green-500 text-white text-xs font-semibold rounded border-2 border-green-400"
                               >
                                 Equip

@@ -11,6 +11,9 @@ export const ABILITY_TYPES = {
   PASSIVE: 'passive'
 };
 
+// Game Balance
+export const MAX_EQUIPPED_ABILITIES = 2;
+
 // Active Abilities
 export const ACTIVE_ABILITIES = {
   DECK_PEEK: 'deck_peek',
