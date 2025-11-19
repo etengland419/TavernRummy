@@ -11,7 +11,7 @@ import PropTypes from 'prop-types';
 const RoundEndModal = ({ roundEndData, onNextRound }) => {
   if (!roundEndData) return null;
 
-  const { winner, playerDeadwood, aiDeadwood, scoreDiff, reason } = roundEndData;
+  const { winner, playerDeadwood, aiDeadwood, scoreDiff, reason, xp } = roundEndData;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 animate-fadeIn">
@@ -44,6 +44,12 @@ const RoundEndModal = ({ roundEndData, onNextRound }) => {
               </span>
             </div>
           )}
+          {xp !== undefined && xp > 0 && (
+            <div className="flex justify-between border-t border-amber-700 pt-3 font-bold">
+              <span>XP Gained:</span>
+              <span className="text-purple-400">+{xp}</span>
+            </div>
+          )}
         </div>
 
         <button
@@ -63,7 +69,8 @@ RoundEndModal.propTypes = {
     playerDeadwood: PropTypes.number.isRequired,
     aiDeadwood: PropTypes.number.isRequired,
     scoreDiff: PropTypes.number.isRequired,
-    reason: PropTypes.string.isRequired
+    reason: PropTypes.string.isRequired,
+    xp: PropTypes.number
   }),
   onNextRound: PropTypes.func.isRequired
 };

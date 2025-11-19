@@ -190,6 +190,12 @@ const TierMilestoneModal = ({ show, milestone, roundResult, onClose }) => {
                   <span>Gold Won:</span>
                   <span className="text-yellow-400">{roundResult.scoreDiff}</span>
                 </div>
+                {roundResult.xp !== undefined && roundResult.xp > 0 && (
+                  <div className="flex justify-between border-t border-amber-700 pt-2 font-bold">
+                    <span>XP Gained:</span>
+                    <span className="text-purple-400">+{roundResult.xp}</span>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
@@ -240,7 +246,8 @@ TierMilestoneModal.propTypes = {
     playerDeadwood: PropTypes.number,
     aiDeadwood: PropTypes.number,
     scoreDiff: PropTypes.number,
-    reason: PropTypes.string
+    reason: PropTypes.string,
+    xp: PropTypes.number
   }),
   onClose: PropTypes.func.isRequired
 };

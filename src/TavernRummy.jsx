@@ -586,12 +586,24 @@ const TavernRummy = () => {
 
   const handleDraw = () => {
     setGameOver(true);
+
+    // Award participation XP even for draws
+    const drawResult = {
+      winner: 'draw',
+      playerDeadwood: calculateDeadwood(playerHand),
+      aiDeadwood: calculateDeadwood(aiHand)
+    };
+    const { xp: baseXP } = progression.addRoundXP(drawResult);
+    const xpMultiplier = getXPBoostMultiplier();
+    const xp = Math.round(baseXP * xpMultiplier);
+
     setRoundEndData({
       winner: 'draw',
       playerDeadwood: calculateDeadwood(playerHand),
       aiDeadwood: calculateDeadwood(aiHand),
       scoreDiff: 0,
-      reason: 'The deck ran out of cards. No gold changes hands.'
+      reason: 'The deck ran out of cards. No gold changes hands.',
+      xp: xp
     });
     setTutorialHighlight(null);
   };
@@ -716,7 +728,8 @@ const TavernRummy = () => {
     setScores(newScores);
     setRoundEndData({
       ...result,
-      scoreDiff: displayScoreDiff
+      scoreDiff: displayScoreDiff,
+      xp: xp // Include XP earned this round
     });
 
     // Track game completion in stats
