@@ -1204,7 +1204,7 @@ const TavernRummy = () => {
           show={showDebugModal}
           onClose={() => setShowDebugModal(false)}
           progression={progression}
-          abilities={{}}
+          abilities={abilities}
           scores={scores}
           setScores={setScores}
           onAutoWin={handleDebugAutoWin}

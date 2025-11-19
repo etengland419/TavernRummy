@@ -14,6 +14,7 @@ const AbilitiesPanel = ({
   getMeldMasterLevel
 }) => {
   const [hoveredAbility, setHoveredAbility] = useState(null);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   // Safety check: if unlockedAbilities is undefined, don't render anything
   if (!unlockedAbilities) {
@@ -87,15 +88,27 @@ const AbilitiesPanel = ({
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-30">
+    <div className="fixed bottom-4 right-4 z-30 max-w-xs">
       <motion.div
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
-        className="bg-gradient-to-br from-amber-900 to-gray-900 rounded-lg border-4 border-amber-600 p-4 shadow-2xl"
+        className="bg-gradient-to-br from-amber-900 to-gray-900 rounded-lg border-4 border-amber-600 shadow-2xl"
       >
-        <div className="text-amber-400 font-bold mb-3 text-center border-b-2 border-amber-600 pb-2">
-          ⚡ ABILITIES
+        <div className="flex justify-between items-center p-4 border-b-2 border-amber-600">
+          <div className="text-amber-400 font-bold">
+            ⚡ ABILITIES
+          </div>
+          <button
+            onClick={() => setIsMinimized(!isMinimized)}
+            className="text-amber-400 hover:text-amber-300 transition-colors text-xl font-bold"
+            aria-label={isMinimized ? "Expand abilities panel" : "Minimize abilities panel"}
+          >
+            {isMinimized ? '▲' : '▼'}
+          </button>
         </div>
+
+        {!isMinimized && (
+          <div className="p-4 max-h-[70vh] overflow-y-auto">{/* Wrapper for scrollable content */}
 
         {/* Active Abilities */}
         {activeAbilities.length > 0 && (
@@ -198,6 +211,8 @@ const AbilitiesPanel = ({
                 </div>
               );
             })}
+          </div>
+        )}
           </div>
         )}
 
