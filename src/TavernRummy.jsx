@@ -196,6 +196,7 @@ const TavernRummy = () => {
   // Destructure commonly used abilities for convenience
   const {
     unlockedAbilities,
+    equippedAbilities,
     abilityUses,
     deckPeekCards,
     showDeckPeekModal,
@@ -1228,6 +1229,7 @@ const TavernRummy = () => {
         {/* Abilities Panel */}
         <AbilitiesPanel
           unlockedAbilities={unlockedAbilities}
+          equippedAbilities={equippedAbilities}
           abilityUses={abilityUses}
           onUseAbility={handleUseAbility}
           disabled={currentTurn !== 'player' || gameOver}
