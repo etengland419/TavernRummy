@@ -123,8 +123,14 @@ const AbilitiesPanel = ({
                       }
                     `}
                   >
-                    <div className="flex items-center justify-center">
-                      <span className="text-3xl">{ability.icon}</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{ability.icon}</span>
+                        <div>
+                          <div className="text-white text-xs font-semibold">{ability.name}</div>
+                          <div className="text-amber-200 text-xs">{usesText}</div>
+                        </div>
+                      </div>
                     </div>
                   </motion.button>
                 );
