@@ -30,7 +30,8 @@ export const useProgression = () => {
 
     setTotalXP(savedData.totalXP || 0);
     setSpentAP(savedData.spentAP || 0);
-    setGold(savedData.gold || 0);
+    // Use 200 as default starting gold for new/old save data without gold
+    setGold(savedData.gold !== undefined ? savedData.gold : 200);
 
     // Calculate current level and XP
     const levelData = calculateLevel(savedData.totalXP || 0);
