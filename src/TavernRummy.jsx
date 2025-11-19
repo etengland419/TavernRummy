@@ -46,6 +46,7 @@ import AbilitiesPanel from './components/UI/AbilitiesPanel';
 import AbilitiesShopModal from './components/Modals/AbilitiesShopModal';
 import ChallengeTierDisplay from './components/UI/ChallengeTierDisplay';
 import ShopModal from './components/Modals/ShopModal';
+import SkinsModal from './components/Modals/SkinsModal';
 
 // Hooks
 import { useTutorial } from './hooks/useTutorial';
@@ -56,6 +57,7 @@ import { useCardAnimation } from './hooks/useCardAnimation';
 import { useStrategyTips } from './hooks/useStrategyTips';
 import { useProgression } from './hooks/useProgression';
 import { useAbilities } from './hooks/useAbilities';
+import { useCosmetics } from './hooks/useCosmetics';
 
 // Ability Components
 import DeckPeekModal from './components/Modals/DeckPeekModal';
@@ -118,6 +120,7 @@ const TavernRummy = () => {
   const [showTierMilestone, setShowTierMilestone] = useState(false);
   const [showDebugModal, setShowDebugModal] = useState(false);
   const [showShopModal, setShowShopModal] = useState(false);
+  const [showSkinsModal, setShowSkinsModal] = useState(false);
 
   // Refs
   const deckRef = useRef(null);
@@ -163,6 +166,9 @@ const TavernRummy = () => {
 
   // Card animation hook
   const { flyingCards, addFlyingCard, addFlyingCardFromPosition } = useCardAnimation();
+
+  // Cosmetics hook
+  const { activeSkin, unlockedSkins, setActiveSkin, unlockSkin } = useCosmetics();
 
   // Get effective difficulty (uses win streak for Challenge Mode)
   const getEffectiveDifficulty = () => {
@@ -999,6 +1005,15 @@ const TavernRummy = () => {
             <button
               onClick={() => {
                 // sounds.buttonClick(); // Sound effects disabled
+                setShowSkinsModal(true);
+              }}
+              className="px-2 sm:px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
+            >
+              🎨 Card Skins
+            </button>
+            <button
+              onClick={() => {
+                // sounds.buttonClick(); // Sound effects disabled
                 setShowAbilitiesShop(true);
               }}
               className="px-2 sm:px-3 py-1 rounded-lg border bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700 transition-all"
@@ -1101,6 +1116,7 @@ const TavernRummy = () => {
           aiHandRef={aiHandRef}
           opponentName={opponentName}
           challengeTier={gameMode === GAME_MODES.CHALLENGING ? getCurrentTier(stats.challengeMode.currentWinStreak) : null}
+          skinId={activeSkin}
         />
 
         {/* Game Board (Deck & Discard) */}
@@ -1112,6 +1128,7 @@ const TavernRummy = () => {
           canDraw={currentTurn === 'player' && phase === 'draw'}
           tutorialHighlight={tutorialHighlight}
           refs={{ deckRef, discardRef }}
+          skinId={activeSkin}
         />
 
         {/* Player Hand */}
@@ -1127,6 +1144,7 @@ const TavernRummy = () => {
           sortCards={true}
           playerHandRef={playerHandRef}
           currentTurn={currentTurn}
+          skinId={activeSkin}
         />
 
         {/* Game Controls */}
@@ -1221,6 +1239,16 @@ const TavernRummy = () => {
           achievements={getAllAchievements()}
           completionStats={getCompletionStats()}
           onClose={() => setShowAchievementsModal(false)}
+        />
+
+        <SkinsModal
+          show={showSkinsModal}
+          onClose={() => setShowSkinsModal(false)}
+          activeSkin={activeSkin}
+          unlockedSkins={unlockedSkins}
+          playerGold={progression.gold}
+          onSelectSkin={setActiveSkin}
+          onUnlockSkin={unlockSkin}
         />
 
         <ChallengeRulesModal
@@ -1333,6 +1361,7 @@ const TavernRummy = () => {
             toPosition={flyingCard.toPosition}
             duration={flyingCard.duration}
             onComplete={flyingCard.onComplete}
+            skinId={activeSkin}
           />
         ))}
 

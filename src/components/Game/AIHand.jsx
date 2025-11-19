@@ -15,8 +15,9 @@ import PlayingCard from '../UI/PlayingCard';
  * @param {Object} aiHandRef - Ref for AI hand container
  * @param {string} opponentName - Name of the opponent to display
  * @param {Object} challengeTier - Current challenge tier info {icon, name} (optional)
+ * @param {string} skinId - Card skin to use
  */
-const AIHand = ({ hand, gameOver, aiDrawnCard, aiDiscardedCard, currentTurn, aiHandRef, opponentName, challengeTier }) => {
+const AIHand = ({ hand, gameOver, aiDrawnCard, aiDiscardedCard, currentTurn, aiHandRef, opponentName, challengeTier, skinId }) => {
   const isAiTurn = currentTurn === 'ai';
 
   return (
@@ -50,6 +51,7 @@ const AIHand = ({ hand, gameOver, aiDrawnCard, aiDiscardedCard, currentTurn, aiH
                 hidden={!gameOver}
                 isAiDrawing={aiDrawnCard === card.id}
                 isAiDiscarding={aiDiscardedCard === card.id}
+                skinId={skinId}
               />
             </motion.div>
           ))}
@@ -70,7 +72,8 @@ AIHand.propTypes = {
   challengeTier: PropTypes.shape({
     icon: PropTypes.string,
     name: PropTypes.string
-  })
+  }),
+  skinId: PropTypes.string
 };
 
 export default AIHand;

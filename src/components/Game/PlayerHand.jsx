@@ -19,6 +19,7 @@ import { isCardInMeld, getMeldColor } from '../../utils/cardUtils';
  * @param {boolean} sortCards - Whether cards are auto-sorted
  * @param {Object} playerHandRef - Ref for player hand container
  * @param {string} currentTurn - Current turn ('player' or 'ai')
+ * @param {string} skinId - Card skin to use
  */
 const PlayerHand = ({
   hand,
@@ -31,7 +32,8 @@ const PlayerHand = ({
   tutorialHighlight,
   sortCards,
   playerHandRef,
-  currentTurn
+  currentTurn,
+  skinId
 }) => {
   const isPlayerTurn = currentTurn === 'player';
 
@@ -92,6 +94,7 @@ const PlayerHand = ({
                     shouldHighlight={tutorialHighlight === card.id}
                     inMeld={inMeld}
                     meldColor={meldColor}
+                    skinId={skinId}
                   />
                 </motion.div>
               </React.Fragment>
@@ -142,7 +145,8 @@ PlayerHand.propTypes = {
   tutorialHighlight: PropTypes.string,
   sortCards: PropTypes.bool.isRequired,
   playerHandRef: PropTypes.object,
-  currentTurn: PropTypes.string
+  currentTurn: PropTypes.string,
+  skinId: PropTypes.string
 };
 
 export default PlayerHand;

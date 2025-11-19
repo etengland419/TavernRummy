@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
+import { getCardStyling, getSuitSymbol, CARD_SKINS } from '../../utils/skinsUtils';
 
 /**
  * PlayingCard Component
@@ -15,6 +16,7 @@ import PropTypes from 'prop-types';
  * @param {boolean} shouldHighlight - Whether to highlight (tutorial)
  * @param {boolean} inMeld - Whether card is in a meld
  * @param {string} meldColor - Border color class for meld
+ * @param {string} skinId - Card skin to use (defaults to CLASSIC)
  */
 const PlayingCard = ({
   card,
@@ -26,9 +28,22 @@ const PlayingCard = ({
   isAiDiscarding = false,
   shouldHighlight = false,
   inMeld = false,
-  meldColor = null
+  meldColor = null,
+  skinId = CARD_SKINS.CLASSIC
 }) => {
-  const isRed = ['♥', '♦', '🏆', '💰'].includes(card.suit);
+  // Get skin styling
+  const styling = getCardStyling(skinId, hidden);
+
+  // Map suit names for skin symbols
+  const suitMap = {
+    '⚔️': 'Swords',
+    '🏆': 'Chalices',
+    '💰': 'Coins',
+    '🔱': 'Staves'
+  };
+  const suitName = suitMap[card.suit] || 'Swords';
+  const displaySuit = getSuitSymbol(skinId, suitName);
+
   const [showMeldCelebration, setShowMeldCelebration] = useState(false);
   const prevInMeld = useRef(inMeld);
 
@@ -46,9 +61,12 @@ const PlayingCard = ({
     <div
       onClick={onClick}
       className={`
-        relative w-20 h-28 rounded-lg border-2 flex flex-col items-center justify-center
-        cursor-pointer transition-all duration-300 shadow-lg
-        ${hidden ? 'bg-gradient-to-br from-amber-900 to-amber-950 border-amber-700' : 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-800'}
+        relative w-20 h-28 rounded-lg flex flex-col items-center justify-center
+        cursor-pointer transition-all duration-300
+        ${styling.background}
+        ${styling.border}
+        ${styling.shadow}
+        ${styling.pixelated ? 'image-rendering-pixelated' : ''}
         ${inMeld && meldColor ? `${meldColor} border-4` : ''}
         ${isNew ? 'animate-pulse ring-2 ring-green-400' : ''}
         ${isDiscarding ? 'opacity-0 scale-90 pointer-events-none' : ''}
@@ -61,11 +79,11 @@ const PlayingCard = ({
     >
       {!hidden ? (
         <>
-          <div className={`text-2xl font-bold ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
+          <div className={`text-2xl font-bold ${styling.textColor}`}>
             {card.rank}
           </div>
-          <div className="text-3xl my-1">{card.suit}</div>
-          <div className={`text-xs ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
+          <div className="text-3xl my-1">{displaySuit}</div>
+          <div className={`text-xs ${styling.textColor}`}>
             {card.value}
           </div>
           {inMeld && (
@@ -75,7 +93,7 @@ const PlayingCard = ({
           )}
         </>
       ) : (
-        <div className="text-amber-600 text-4xl">🃏</div>
+        <div className="text-4xl">{styling.pattern}</div>
       )}
     </div>
   );
@@ -96,7 +114,8 @@ PlayingCard.propTypes = {
   isAiDiscarding: PropTypes.bool,
   shouldHighlight: PropTypes.bool,
   inMeld: PropTypes.bool,
-  meldColor: PropTypes.string
+  meldColor: PropTypes.string,
+  skinId: PropTypes.string
 };
 
 export default PlayingCard;

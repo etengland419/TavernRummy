@@ -13,6 +13,7 @@ import PlayingCard from './PlayingCard';
  * @param {Object} toPosition - Ending position {x, y}
  * @param {number} duration - Animation duration in seconds
  * @param {Function} onComplete - Callback when animation completes
+ * @param {string} skinId - Card skin to use
  */
 const AnimatedCard = ({
   card,
@@ -20,7 +21,8 @@ const AnimatedCard = ({
   fromPosition,
   toPosition,
   duration = 0.3,
-  onComplete
+  onComplete,
+  skinId
 }) => {
   const hasAnimated = useRef(false);
 
@@ -57,7 +59,7 @@ const AnimatedCard = ({
         ease: [0.34, 1.56, 0.64, 1] // Bouncy easing
       }}
     >
-      <PlayingCard card={card} hidden={hidden} />
+      <PlayingCard card={card} hidden={hidden} skinId={skinId} />
     </motion.div>
   );
 };
@@ -74,7 +76,8 @@ AnimatedCard.propTypes = {
     y: PropTypes.number.isRequired
   }).isRequired,
   duration: PropTypes.number,
-  onComplete: PropTypes.func
+  onComplete: PropTypes.func,
+  skinId: PropTypes.string
 };
 
 export default AnimatedCard;
