@@ -4,7 +4,7 @@ A medieval-themed Gin Rummy card game with an immersive tavern atmosphere, intel
 
 ## 🎮 Play Online
 
-[Play Tavern Rummy](https://etengland419.github.io/TavernRummy) *(Update with your GitHub Pages URL)*
+[Play Tavern Rummy](https://SQLCommit.github.io/TavernRummy) *(Update with your GitHub Pages URL)*
 
 ## ✨ Features
 
