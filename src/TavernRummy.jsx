@@ -214,8 +214,7 @@ const TavernRummy = () => {
     getXPBoostMultiplier,
     getMeldMasterLevel,
     resetForNewRound,
-    resetForNewMatch,
-    resetAllAbilities
+    resetForNewMatch
   } = abilities;
 
   // Initialize game on mount (only after splash screen is dismissed)

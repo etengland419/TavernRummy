@@ -42,30 +42,6 @@ const AbilitiesPanel = ({
     return null; // Don't show panel if no abilities
   }
 
-  const getRemainingUses = (abilityId) => {
-    const ability = ABILITIES[abilityId];
-    if (!ability) return '';
-
-    const currentUses = abilityUses[abilityId] || 0;
-
-    if (ability.usesPerRound !== undefined) {
-      const remaining = ability.usesPerRound - currentUses;
-      return remaining > 0 ? `${remaining}/round` : 'Used';
-    }
-
-    if (ability.usesPerMatch !== undefined) {
-      const remaining = ability.usesPerMatch - currentUses;
-      return remaining > 0 ? `${remaining}/match` : 'Used';
-    }
-
-    if (ability.usesPerSession !== undefined) {
-      const remaining = ability.usesPerSession - currentUses;
-      return remaining > 0 ? `${remaining}/session` : 'Used';
-    }
-
-    return 'Ready';
-  };
-
   const canUseAbility = (abilityId) => {
     const ability = ABILITIES[abilityId];
     if (!ability) return false;
@@ -104,7 +80,6 @@ const AbilitiesPanel = ({
                 if (!ability) return null;
 
                 const isAvailable = canUseAbility(abilityId);
-                const usesText = getRemainingUses(abilityId);
 
                 return (
                   <motion.button
