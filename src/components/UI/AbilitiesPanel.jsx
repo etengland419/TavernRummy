@@ -7,6 +7,7 @@ import {
 
 const AbilitiesPanel = ({
   unlockedAbilities,
+  equippedAbilities,
   abilityUses,
   onUseAbility,
   disabled = false,
@@ -19,8 +20,8 @@ const AbilitiesPanel = ({
     return null;
   }
 
-  // Get active abilities
-  const activeAbilities = unlockedAbilities.active || [];
+  // Get active abilities (only show equipped ones)
+  const activeAbilities = equippedAbilities || [];
 
   // Get passive abilities with levels
   const passiveAbilities = Object.entries(unlockedAbilities.passive || {})
@@ -196,6 +197,7 @@ AbilitiesPanel.propTypes = {
     active: PropTypes.arrayOf(PropTypes.string),
     passive: PropTypes.object
   }),
+  equippedAbilities: PropTypes.arrayOf(PropTypes.string),
   abilityUses: PropTypes.object.isRequired,
   onUseAbility: PropTypes.func.isRequired,
   disabled: PropTypes.bool,
