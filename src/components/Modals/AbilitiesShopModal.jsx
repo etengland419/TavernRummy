@@ -5,8 +5,7 @@ import {
   ABILITY_TYPES,
   getImplementedAbilities,
   getAbilityUpgradeCost,
-  canAffordAbility,
-  getAbility
+  canAffordAbility
 } from '../../utils/abilitiesUtils';
 
 /**
@@ -49,11 +48,7 @@ const AbilitiesShopModal = ({ show, onClose, abilities, progression }) => {
       return;
     }
 
-    // Auto-equip active abilities
-    const ability = getAbility(abilityId);
-    if (ability && ability.type === ABILITY_TYPES.ACTIVE) {
-      abilities.equipAbility(abilityId);
-    }
+    // Don't auto-equip - let the user manually equip abilities they want to use
   };
 
   return (
