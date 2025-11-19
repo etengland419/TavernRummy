@@ -20,15 +20,24 @@ const AbilitiesPanel = ({
     return null;
   }
 
-  // Get active abilities (only show equipped ones)
-  const activeAbilities = equippedAbilities || [];
+  // Get active abilities (only show equipped ones that are not passive)
+  const activeAbilities = (equippedAbilities || []).filter(abilityId => {
+    const ability = ABILITIES[abilityId];
+    return ability && !ability.passive;
+  });
+
+  // Get passive active abilities (Shield, Phoenix Revival)
+  const passiveActiveAbilities = (equippedAbilities || []).filter(abilityId => {
+    const ability = ABILITIES[abilityId];
+    return ability && ability.passive;
+  });
 
   // Get passive abilities with levels
   const passiveAbilities = Object.entries(unlockedAbilities.passive || {})
     .filter(([_, level]) => level > 0)
     .map(([abilityId, level]) => ({ id: abilityId, level }));
 
-  if (activeAbilities.length === 0 && passiveAbilities.length === 0) {
+  if (activeAbilities.length === 0 && passiveAbilities.length === 0 && passiveActiveAbilities.length === 0) {
     return null; // Don't show panel if no abilities
   }
 
@@ -132,9 +141,38 @@ const AbilitiesPanel = ({
         )}
 
         {/* Passive Abilities */}
-        {passiveAbilities.length > 0 && (
+        {(passiveAbilities.length > 0 || passiveActiveAbilities.length > 0) && (
           <div className="space-y-2 border-t-2 border-amber-600 pt-3">
             <div className="text-amber-300 text-xs font-semibold mb-1">PASSIVE</div>
+
+            {/* Passive Active Abilities (Shield, Phoenix Revival) */}
+            {passiveActiveAbilities.map(abilityId => {
+              const ability = ABILITIES[abilityId];
+              if (!ability) return null;
+
+              return (
+                <div
+                  key={abilityId}
+                  onMouseEnter={() => setHoveredAbility(abilityId)}
+                  onMouseLeave={() => setHoveredAbility(null)}
+                  className="px-3 py-2 rounded-lg border-2 bg-purple-800 border-purple-600"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{ability.icon}</span>
+                      <div>
+                        <div className="text-white text-sm font-semibold">{ability.name}</div>
+                        <div className="text-purple-200 text-xs">
+                          Always Active
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Regular Passive Abilities */}
             {passiveAbilities.map(({ id: abilityId, level }) => {
               const ability = ABILITIES[abilityId];
               if (!ability) return null;
