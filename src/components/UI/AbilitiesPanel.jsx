@@ -80,6 +80,19 @@ const AbilitiesPanel = ({
                 if (!ability) return null;
 
                 const isAvailable = canUseAbility(abilityId);
+                const currentUses = abilityUses[abilityId] || 0;
+
+                // Calculate uses text
+                let usesText = '';
+                if (ability.usesPerRound !== undefined) {
+                  usesText = `${currentUses}/${ability.usesPerRound} uses`;
+                } else if (ability.usesPerMatch !== undefined) {
+                  usesText = `${currentUses}/${ability.usesPerMatch} uses`;
+                } else if (ability.usesPerSession !== undefined) {
+                  usesText = `${currentUses}/${ability.usesPerSession} uses`;
+                } else {
+                  usesText = 'Unlimited';
+                }
 
                 return (
                   <motion.button
