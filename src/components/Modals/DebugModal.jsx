@@ -110,6 +110,7 @@ const DebugModal = ({ show, onClose, progression, abilities, scores, setScores, 
 
       // Clear all localStorage keys
       localStorage.removeItem('tavernRummyProgression');
+      localStorage.removeItem('tavernRummyAbilities');
       localStorage.removeItem('tavernRummy_stats');
       localStorage.removeItem('tavernRummy_achievements');
       localStorage.removeItem('tavernRummy_tipMastery');
