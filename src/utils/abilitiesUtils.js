@@ -125,9 +125,10 @@ export const ABILITIES = {
     type: ABILITY_TYPES.ACTIVE,
     cost: 5,
     description: 'Respawn with 50 gold if you reach 0',
-    detailedDescription: 'If your gold reaches 0, automatically revive with 50 gold. Can only be used once per session.',
+    detailedDescription: 'If your gold reaches 0, automatically revive with 50 gold. Can only be used once per session. This effect is always active once purchased.',
     usesPerSession: 1,
-    cooldown: 0
+    cooldown: 0,
+    passive: true
   },
 
   // Passive Abilities

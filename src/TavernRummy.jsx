@@ -212,6 +212,7 @@ const TavernRummy = () => {
     checkLuckyDraw,
     getQuickHandsMultiplier,
     getGoldMagnetMultiplier,
+    getXPBoostMultiplier,
     getMeldMasterLevel,
     resetForNewRound,
     resetForNewMatch,
@@ -606,19 +607,30 @@ const TavernRummy = () => {
 
     // Update scores
     const newScores = { ...scores };
+    let displayScoreDiff = result.scoreDiff;
     if (result.winner !== 'draw') {
       // Apply Gold Magnet bonus to player score
       const scoreDiff = result.winner === 'player'
         ? Math.round(result.scoreDiff * getGoldMagnetMultiplier())
         : result.scoreDiff;
 
+      displayScoreDiff = scoreDiff;
       newScores[result.winner] += scoreDiff;
       setScoreAnimation(result.winner);
       setTimeout(() => setScoreAnimation(null), ANIMATION_TIMINGS.SCORE_ANIMATION);
     }
 
-    // Award XP to player
-    const { xp, breakdown } = progression.addRoundXP(result);
+    // Award XP to player (with XP Boost multiplier)
+    const { xp: baseXP, breakdown } = progression.addRoundXP(result);
+    const xpMultiplier = getXPBoostMultiplier();
+    const xp = Math.round(baseXP * xpMultiplier);
+
+    // If XP Boost is active, add the bonus XP
+    if (xpMultiplier > 1.0) {
+      const bonusXP = xp - baseXP;
+      progression.addXP(bonusXP, `XP Boost Bonus: +${bonusXP} XP`);
+    }
+
     console.log(`XP Gained: +${xp} XP`, breakdown);
 
     // Sound effects disabled - Play appropriate sound based on result
@@ -649,11 +661,12 @@ const TavernRummy = () => {
       if (trackMatch) {
         trackMatch(matchWinner);
       }
-      // Award bonus XP for match win in Challenge Mode
+      // Award bonus XP for match win in Challenge Mode (with XP Boost multiplier)
       if (gameMode === GAME_MODES.CHALLENGING && matchWinner === 'player') {
-        progression.addXP(XP_REWARDS.MATCH_WIN_BONUS, 'Match Victory Bonus: +50 XP');
-        setMatchWinXP(XP_REWARDS.MATCH_WIN_BONUS);
-        console.log(`Match Win Bonus XP: +${XP_REWARDS.MATCH_WIN_BONUS} XP`);
+        const matchWinXP = Math.round(XP_REWARDS.MATCH_WIN_BONUS * getXPBoostMultiplier());
+        progression.addXP(matchWinXP, `Match Victory Bonus: +${matchWinXP} XP`);
+        setMatchWinXP(matchWinXP);
+        console.log(`Match Win Bonus XP: +${matchWinXP} XP`);
       } else {
         setMatchWinXP(0);
       }
@@ -672,20 +685,21 @@ const TavernRummy = () => {
         const milestone = checkTierMilestone(previousStreak, updatedStats.challengeMode.currentWinStreak);
 
         if (milestone) {
-          // Award milestone XP
-          updatedStats = addMilestoneXP(updatedStats, milestone.xpBonus);
-          progression.addXP(milestone.xpBonus, `Tier Milestone Bonus: ${milestone.tier.name}`);
+          // Award milestone XP (with XP Boost multiplier)
+          const milestoneXP = Math.round(milestone.xpBonus * getXPBoostMultiplier());
+          updatedStats = addMilestoneXP(updatedStats, milestoneXP);
+          progression.addXP(milestoneXP, `Tier Milestone Bonus: ${milestone.tier.name}`);
 
           // Show tier milestone notification with round result
           setTierMilestone({
             tier: milestone.tier,
-            xpBonus: milestone.xpBonus,
+            xpBonus: milestoneXP,
             message: getTierReachedMessage(milestone.threshold),
             roundResult: result // Include round result in milestone
           });
           setShowTierMilestone(true);
 
-          console.log(`🎊 TIER UP! Reached ${milestone.tier.name} tier! +${milestone.xpBonus} XP`);
+          console.log(`🎊 TIER UP! Reached ${milestone.tier.name} tier! +${milestoneXP} XP`);
         }
 
         // Update stats (this will be saved by useStats)
@@ -700,7 +714,10 @@ const TavernRummy = () => {
     }
 
     setScores(newScores);
-    setRoundEndData(result);
+    setRoundEndData({
+      ...result,
+      scoreDiff: displayScoreDiff
+    });
 
     // Track game completion in stats
     if (trackGame) {
