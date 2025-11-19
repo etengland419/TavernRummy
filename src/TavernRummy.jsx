@@ -11,6 +11,7 @@ import { getRandomOpponentName } from './utils/opponentNames';
 import { XP_REWARDS } from './utils/progressionUtils';
 import { getDifficultyForWinStreak, checkTierMilestone, getTierReachedMessage, getCurrentTier, getOpponentNameForTier } from './utils/challengeUtils';
 import { updateChallengeWin, updateChallengeLoss, addMilestoneXP } from './utils/statsUtils';
+import { logGameStateValidation } from './utils/gameStateValidation';
 
 // AI
 import { executeAITurn } from './ai/aiStrategy';
@@ -210,6 +211,7 @@ const TavernRummy = () => {
     saveGameStateForRedo,
     activateCardSwap,
     checkLuckyDraw,
+    selectLuckyDrawCard,
     getQuickHandsMultiplier,
     getGoldMagnetMultiplier,
     getXPBoostMultiplier,
@@ -871,23 +873,49 @@ const TavernRummy = () => {
   };
 
   const handleLuckyDrawSelection = (selectedCard) => {
+    // Check for duplicate cards before processing
+    const cardExistsInHand = playerHand.some(card => card.id === selectedCard.id);
+    if (cardExistsInHand) {
+      console.error('Duplicate card detected in hand:', selectedCard.id);
+      setMessage('Error: Duplicate card detected. Please restart the round.');
+      selectLuckyDrawCard(selectedCard); // Clear modal state
+      return;
+    }
+
     const newDeck = [...deck];
-    // Remove both cards from deck
+    // Remove both lucky draw cards from deck
     newDeck.shift();
     newDeck.shift();
     setDeck(newDeck);
+
+    // Clear the Lucky Draw modal state using the hook function
+    selectLuckyDrawCard(selectedCard);
 
     // Add flying animation
     addFlyingCard(selectedCard, deckRef, playerHandRef, true);
 
     // Delay adding card to hand until animation completes
     setTimeout(() => {
+      // Double-check for duplicates before adding to hand
+      const stillExists = playerHand.some(card => card.id === selectedCard.id);
+      if (stillExists) {
+        console.error('Duplicate card still detected after timeout:', selectedCard.id);
+        setMessage('Error: Duplicate card detected. Please restart the round.');
+        return;
+      }
+
       const newHand = [...playerHand, selectedCard];
       setPlayerHand(newHand);
       setNewlyDrawnCard(selectedCard.id);
       setPhase('discard');
       setMessage('Lucky Draw! Discard a card or knock');
       setTurnCount(prev => prev + 1);
+
+      // Validate game state after Lucky Draw
+      logGameStateValidation(
+        { playerHand: newHand, aiHand, deck: newDeck, discardPile },
+        'After Lucky Draw Selection'
+      );
 
       setTimeout(() => setNewlyDrawnCard(null), ANIMATION_TIMINGS.CARD_HIGHLIGHT);
     }, ANIMATION_TIMINGS.CARD_DRAW);
